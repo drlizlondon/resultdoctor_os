@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iron Deficiency — Admin/Audit Tool</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:14px}
+  a{color:#0074d9}
+
+  /* Layout */
+  #app{display:flex;height:100vh;overflow:hidden}
+  #sidebar{width:260px;min-width:260px;background:#0B1C3D;color:#fff;display:flex;flex-direction:column;overflow-y:auto}
+  #main{flex:1;overflow-y:auto;padding:24px}
+
+  /* Sidebar */
+  .sb-header{padding:20px 16px 12px;border-bottom:1px solid rgba(255,255,255,0.1)}
+  .sb-header .logo{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#8fa8c8;margin-bottom:4px}
+  .sb-header h1{font-size:15px;font-weight:600;line-height:1.3}
+  .sb-header .meta{font-size:11px;color:#8fa8c8;margin-top:6px}
+  .sb-nav{padding:8px 0;flex:1}
+  .sb-nav a{display:flex;align-items:center;gap:10px;padding:10px 16px;color:#c8d8ee;text-decoration:none;font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all 0.15s}
+  .sb-nav a:hover,.sb-nav a.active{background:rgba(255,255,255,0.08);color:#fff;border-left-color:#4a9eff}
+  .sb-nav a .badge{margin-left:auto;background:#e63946;color:#fff;border-radius:10px;padding:1px 6px;font-size:11px}
+  .sb-nav .section-label{padding:14px 16px 4px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#5a7a9a}
+  .sb-footer{padding:16px;border-top:1px solid rgba(255,255,255,0.1)}
+  .mode-toggle{display:flex;gap:6px}
+  .mode-toggle button{flex:1;padding:6px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#8fa8c8;border-radius:6px;cursor:pointer;font-size:12px;transition:all 0.15s}
+  .mode-toggle button.active{background:#4a9eff;border-color:#4a9eff;color:#fff}
+
+  /* Working mode banner */
+  #working-banner{display:none;background:#fff3cd;border:1px solid #ffc107;color:#856404;padding:10px 16px;font-size:13px;margin-bottom:16px;border-radius:8px}
+
+  /* Tabs */
+  .tab-content{display:none}
+  .tab-content.active{display:block}
+
+  /* Cards */
+  .card{background:#fff;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,0.08);margin-bottom:16px;border:0.5px solid #e0e4ef}
+  .card-header{padding:16px 20px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;gap:10px}
+  .card-body{padding:16px 20px}
+  .card-title{font-size:14px;font-weight:600}
+
+  /* Badges */
+  .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.3px}
+  .badge-urgent{background:#ffe0e0;color:#c0392b}
+  .badge-gp{background:#e0f0ff;color:#1565c0}
+  .badge-refer{background:#f0e0ff;color:#6a1b9a}
+  .badge-monitor{background:#e0ffe0;color:#2e7d32}
+  .badge-amber{background:#fff3e0;color:#e65100}
+  .badge-explicit{background:#e8f5e9;color:#2e7d32}
+  .badge-inferred{background:#fff3e0;color:#e65100}
+  .badge-context{background:#ede7f6;color:#4527a0}
+  .badge-info{background:#e3f2fd;color:#1565c0}
+
+  /* Meta table */
+  .meta-table{width:100%;border-collapse:collapse}
+  .meta-table td{padding:8px 12px;border-bottom:1px solid #f0f2f5;vertical-align:top}
+  .meta-table td:first-child{font-weight:600;width:200px;color:#555}
+  .meta-table tr:last-child td{border-bottom:none}
+
+  /* Alert panels */
+  .panel{border-radius:8px;padding:14px 16px;margin-bottom:14px}
+  .panel-red{background:#fff5f5;border:1px solid #fcc}
+  .panel-green{background:#f5fff5;border:1px solid #c3e6cb}
+  .panel-amber{background:#fffbf0;border:1px solid #ffc107}
+  .panel h4{font-size:13px;font-weight:700;margin-bottom:8px}
+  .panel ul{margin-left:16px;font-size:13px;line-height:1.7}
+  .panel p{font-size:13px;line-height:1.6}
+
+  /* Variable cards */
+  .var-card{background:#fff;border-radius:10px;border:0.5px solid #e0e4ef;padding:16px;margin-bottom:12px}
+  .var-code{font-family:monospace;font-size:12px;background:#f5f7fa;padding:2px 8px;border-radius:4px;border:0.5px solid #dde}
+  .var-name{font-size:15px;font-weight:700;margin:6px 0 4px}
+  .var-aka{font-size:12px;color:#777;margin-bottom:8px}
+  .threshold-row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+  .threshold-pill{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:500}
+  .pill-normal{background:#e8f5e9;color:#2e7d32}
+  .pill-thresh{background:#fff3e0;color:#e65100}
+  .pill-raised{background:#ffe0e0;color:#c0392b}
+  .pill-binary{background:#e3f2fd;color:#1565c0}
+  .pill-context{background:#ede7f6;color:#4527a0}
+  .var-note{background:#f8f9fa;border-left:3px solid #4a9eff;padding:10px 12px;border-radius:0 6px 6px 0;font-size:13px;line-height:1.6;margin-top:10px}
+  .var-source{font-size:11px;color:#888;font-family:monospace;margin-top:6px}
+
+  /* Rule cards */
+  .rule-card{background:#fff;border-radius:10px;border:0.5px solid #e0e4ef;margin-bottom:12px;overflow:hidden}
+  .rule-header{padding:14px 16px;display:flex;align-items:center;gap:8px;cursor:pointer;background:#fafbfc}
+  .rule-header:hover{background:#f0f2f5}
+  .rule-step{font-family:monospace;font-size:11px;background:#e8eaf6;color:#3949ab;padding:2px 6px;border-radius:4px}
+  .rule-title{font-size:14px;font-weight:600;flex:1}
+  .rule-chevron{font-size:12px;color:#888;transition:transform 0.2s}
+  .rule-card.open .rule-chevron{transform:rotate(180deg)}
+  .rule-body{display:none;padding:16px;border-top:1px solid #f0f2f5}
+  .rule-card.open .rule-body{display:block}
+
+  /* Logic lines */
+  .logic-block{font-family:monospace;font-size:13px;line-height:1.8;background:#f8f9fa;border-radius:6px;padding:12px 14px;margin:8px 0}
+  .kw-if{color:#1565c0;font-weight:700}
+  .kw-and{color:#2e7d32;font-weight:700}
+  .kw-or{color:#e65100;font-weight:700}
+  .kw-andnot{color:#c0392b;font-weight:700}
+  .kw-then{color:#0B1C3D;font-weight:700}
+  .kw-context{color:#4527a0;font-weight:700}
+
+  /* Meaning block */
+  .meaning-block{background:#f5f7fa;border-radius:6px;padding:12px 14px;font-size:13px;line-height:1.6;margin:10px 0}
+
+  /* Management block */
+  .mgmt-list{list-style:none;margin:10px 0}
+  .mgmt-list li{display:flex;align-items:flex-start;gap:8px;padding:6px 0;font-size:13px;line-height:1.5;border-bottom:1px solid #f5f5f5}
+  .mgmt-list li:last-child{border-bottom:none}
+  .mgmt-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+  /* Source trail */
+  .source-trail{background:#fafafa;border:0.5px solid #e8e8e8;border-radius:6px;padding:14px 16px;margin:12px 0}
+  .source-trail blockquote{font-family:Georgia,serif;font-style:italic;font-size:13px;line-height:1.7;border-left:3px solid #4a9eff;padding-left:12px;color:#333;margin-bottom:8px}
+  .source-attr{font-family:monospace;font-size:11px;color:#888}
+
+  /* Admin/user output panel */
+  .output-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0}
+  .output-col{padding:12px;border-radius:6px;border:0.5px solid #e0e4ef}
+  .output-col h5{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin-bottom:8px}
+  .output-col p,.output-col textarea{font-size:13px;line-height:1.5;width:100%}
+  textarea.local-inst{border:1px solid #dde;border-radius:4px;padding:6px;font-size:13px;min-height:80px;resize:vertical;display:none}
+  .working-mode textarea.local-inst{display:block}
+  .save-btn{display:none;background:#4a9eff;color:#fff;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;margin-top:6px}
+  .working-mode .save-btn{display:inline-block}
+
+  /* Context map */
+  .ctx-table{width:100%;border-collapse:collapse;font-size:13px}
+  .ctx-table th{background:#f5f7fa;padding:8px 12px;text-align:left;font-weight:600;color:#555;border-bottom:2px solid #e0e4ef}
+  .ctx-table td{padding:8px 12px;border-bottom:1px solid #f0f2f5;vertical-align:top}
+
+  /* Gap cards */
+  .gap-card{background:#fff;border-radius:10px;border:0.5px solid #e0e4ef;margin-bottom:10px;overflow:hidden}
+  .gap-header{padding:12px 16px;display:flex;align-items:center;gap:8px;background:#fafbfc}
+  .gap-status{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .status-open{background:#e63946}
+  .status-partial{background:#ffc107}
+  .status-resolved{background:#2ecc71}
+  .gap-body{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px 16px;border-top:1px solid #f0f2f5}
+  .gap-col h5{font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin-bottom:6px}
+  .gap-col p{font-size:13px;line-height:1.5;color:#444}
+  .gap-col textarea{width:100%;border:1px solid #dde;border-radius:4px;padding:6px;font-size:13px;min-height:60px;resize:vertical}
+  .gap-actions{margin-top:8px;display:flex;gap:6px}
+  .gap-actions button{padding:4px 10px;border-radius:4px;border:1px solid;font-size:11px;cursor:pointer}
+  .btn-save{background:#4a9eff;color:#fff;border-color:#4a9eff}
+  .btn-resolve{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
+  .btn-partial{background:#fff3e0;color:#e65100;border-color:#ffcc80}
+  .gap-ts{font-size:11px;color:#aaa;margin-top:4px}
+
+  /* Stats row */
+  .stats-row{display:flex;gap:12px;margin-bottom:16px}
+  .stat-box{flex:1;background:#fff;border-radius:8px;padding:12px 16px;border:0.5px solid #e0e4ef;text-align:center}
+  .stat-num{font-size:24px;font-weight:700}
+  .stat-label{font-size:11px;color:#888;text-transform:uppercase;margin-top:2px}
+
+  /* Filter buttons */
+  .filter-row{display:flex;gap:6px;margin-bottom:14px}
+  .filter-btn{padding:5px 14px;border-radius:20px;border:1px solid #e0e4ef;background:#fff;cursor:pointer;font-size:12px;font-weight:500;transition:all 0.15s}
+  .filter-btn.active{background:#0B1C3D;color:#fff;border-color:#0B1C3D}
+
+  /* Copy sheet */
+  .copy-block{background:#fff;border-radius:8px;border:0.5px solid #e0e4ef;margin-bottom:12px;overflow:hidden}
+  .copy-block-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fafbfc;border-bottom:1px solid #f0f2f5}
+  .copy-block-header h4{font-size:13px;font-weight:600}
+  .copy-btn{padding:4px 12px;background:#0B1C3D;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:12px}
+  .copy-btn.copied{background:#2ecc71}
+  .copy-pre{padding:14px 16px;font-family:monospace;font-size:12px;line-height:1.6;white-space:pre-wrap;max-height:200px;overflow-y:auto;background:#f8f9fa}
+
+  /* Search */
+  .search-row{margin-bottom:14px}
+  .search-row input{width:100%;padding:8px 12px;border:1px solid #e0e4ef;border-radius:6px;font-size:13px}
+
+  /* Change log */
+  .log-entry{padding:10px 14px;border-bottom:1px solid #f0f2f5;font-size:13px}
+  .log-entry:last-child{border-bottom:none}
+  .log-ts{font-family:monospace;font-size:11px;color:#888}
+
+  /* Page section */
+  .section-header{margin-bottom:20px}
+  .section-header h2{font-size:20px;font-weight:700;color:#0B1C3D}
+  .section-header p{font-size:13px;color:#666;margin-top:4px}
+
+  /* Warning box */
+  .review-warning{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#856404}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-header">
+    <div class="logo">ResultDoctor · Admin</div>
+    <h1>Adult Iron Deficiency</h1>
+    <div class="meta">NCL-Wide · Final Aug 2022</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="section-label">Pathway Audit</div>
+    <a onclick="showTab('provenance')" class="active" id="nav-provenance">🏥 Provenance &amp; Metadata</a>
+    <a onclick="showTab('variables')" id="nav-variables">🧪 Variables &amp; Ranges</a>
+    <a onclick="showTab('rules')" id="nav-rules">⚙️ Decision Rules</a>
+    <a onclick="showTab('context')" id="nav-context">🔗 Context Map</a>
+    <a onclick="showTab('gaps')" id="nav-gaps">⚠️ Gaps &amp; Resolution <span class="badge" id="gap-badge">7</span></a>
+    <div class="section-label">Tools</div>
+    <a onclick="showTab('copysheet')" id="nav-copysheet">📋 Copy Sheet</a>
+    <a onclick="showTab('changelog')" id="nav-changelog">📝 Change Log</a>
+  </nav>
+  <div class="sb-footer">
+    <div style="font-size:11px;color:#8fa8c8;margin-bottom:8px">Mode</div>
+    <div class="mode-toggle">
+      <button class="active" id="btn-master" onclick="setMode('master')">Master</button>
+      <button id="btn-working" onclick="setMode('working')">Working</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <div id="working-banner">✏️ <strong>Working mode active.</strong> Thresholds, local instructions, and gap resolutions are now editable. Changes are tracked in the Change Log.</div>
+
+  <!-- ===================== PROVENANCE ===================== -->
+  <div class="tab-content active" id="tab-provenance">
+    <div class="section-header">
+      <h2>Provenance &amp; Metadata</h2>
+      <p>Source document details, exclusions, patient information, and escalation contacts.</p>
+    </div>
+
+    <div class="review-warning">⚠️ <strong>Review date passed.</strong> This pathway's review date was August 2025. It is now June 2026. Clinical team should confirm this version remains current before deployment.</div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Pathway Metadata</span></div>
+      <div class="card-body">
+        <table class="meta-table">
+          <tr><td>Title</td><td>Adult Iron Deficiency Primary Care Clinical Pathway</td></tr>
+          <tr><td>ICB / Organisation</td><td>North Central London (NCL-Wide)</td></tr>
+          <tr><td>Population</td><td>Adults <em>[not explicitly defined in source — clinical team to confirm minimum age and any sub-populations excluded]</em></td></tr>
+          <tr><td>Setting</td><td>Primary Care <span class="badge badge-explicit">EXPLICIT</span></td></tr>
+          <tr><td>Latest Version</td><td>Final version August 2022</td></tr>
+          <tr><td>Previous Versions</td><td>August 2018</td></tr>
+          <tr><td>Review Date</td><td>August 2025 <span style="color:#c0392b;font-weight:600">⚠ OVERDUE</span></td></tr>
+          <tr><td>Authors</td><td>Dr. Nick Dattani, Dr Folusha Oluwajana, Dr Sheena Mankodi, Dr Edward Seward</td></tr>
+          <tr><td>Approving Body</td><td>NCL ICB CAG</td></tr>
+          <tr><td>Contact</td><td><a href="mailto:nclicb.pathways@nhs.net">nclicb.pathways@nhs.net</a></td></tr>
+          <tr><td>Source URL</td><td>⚠ SOURCE URL NOT PROVIDED — file supplied by user as "Iron Deficiency Clinical Pathway - Jan 2025.pdf"</td></tr>
+          <tr><td>Indexed Variables</td><td>Hb, MCV, MCH, MCHC, ferritin, iron studies, CRP, coeliac screen, urine dipstick, B12, folate, H. pylori, haemoglobin, platelets, WBC, qFIT, clotting screen, TFT</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel panel-red">
+      <h4>🚫 Exclusion Criteria</h4>
+      <p><strong>Not stated in source — clinical team to define before deployment.</strong></p>
+      <ul style="margin-top:8px">
+        <li>Children / paediatric patients (pathway says "adult" but no minimum age stated)</li>
+        <li>Pregnant women: pathway references pregnancy throughout but does not explicitly include/exclude — clinical team to confirm</li>
+        <li>Patients with known haematological malignancy (not addressed)</li>
+        <li>Palliative / end-of-life patients (not addressed)</li>
+      </ul>
+    </div>
+
+    <div class="panel panel-green">
+      <h4>📄 Patient-Facing Information</h4>
+      <ul>
+        <li>NICE CKS: <a href="https://cks.nice.org.uk/anaemia-iron-deficiency" target="_blank">https://cks.nice.org.uk/anaemia-iron-deficiency</a> <span class="badge badge-explicit">EXPLICIT</span></li>
+        <li>British Gastroenterology Society iron deficiency guidance: <a href="https://www.bsg.org.uk/wp-content/uploads/2011/05/Iron-Deficiency-Aneamia-in-Adults-gutjnl-2021-325210.pdf" target="_blank">BSG PDF</a> <span class="badge badge-explicit">EXPLICIT</span></li>
+        <li>BCSH guideline (pregnancy): <a href="https://onlinelibrary.wiley.com/doi/full/10.1111/j.1365-2141.2011.09012.x" target="_blank">Wiley link</a> <span class="badge badge-explicit">EXPLICIT</span></li>
+        <li>Patient leaflets: <strong>not stated in source — clinical team to add local leaflet links</strong></li>
+      </ul>
+    </div>
+
+    <div class="panel panel-amber">
+      <h4>📞 Escalation Contacts</h4>
+      <p><strong>Phone numbers / hotlines: not stated in source.</strong> The following referral routes are named but contact details absent:</p>
+      <ul style="margin-top:8px">
+        <li>Gastroenterology — 2WW and routine referral [no number in source]</li>
+        <li>Haematology — parenteral iron / unknown cause [no number in source]</li>
+        <li>Gynaecology — postmenopausal bleeding [no number in source]</li>
+        <li>Urology — haematuria referrals [no number in source]</li>
+        <li>Multi-Disciplinary Cancer Centre (MDC) — raised platelets [no number in source]</li>
+        <li>Pathway queries: <a href="mailto:nclicb.pathways@nhs.net">nclicb.pathways@nhs.net</a> <span class="badge badge-explicit">EXPLICIT</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===================== VARIABLES ===================== -->
+  <div class="tab-content" id="tab-variables">
+    <div class="section-header">
+      <h2>Variables &amp; Ranges</h2>
+      <p>All measurable variables extracted from the pathway, with thresholds, synonyms, and pathway context.</p>
+    </div>
+
+    <!-- Hb -->
+    <div class="var-card">
+      <span class="var-code">hb</span>
+      <div class="var-name">Haemoglobin</div>
+      <div class="var-aka">Also known as: Hb, hemoglobin, haemoglobin concentration, blood haemoglobin</div>
+      <div style="font-size:12px;color:#555">Unit: g/L &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-normal">Normal (M): ≥130 g/L</span>
+        <span class="threshold-pill pill-thresh">Anaemia (M): &lt;130 g/L</span>
+        <span class="threshold-pill pill-normal">Normal (F non-preg): ≥120 g/L</span>
+        <span class="threshold-pill pill-thresh">Anaemia (F non-preg): &lt;120 g/L</span>
+        <span class="threshold-pill pill-raised">Urgent (M): &lt;120 g/L</span>
+        <span class="threshold-pill pill-raised">Urgent (F postmeno): &lt;100 g/L</span>
+        <span class="threshold-pill pill-context">Context-required: sex, menopausal status</span>
+      </div>
+      <div class="var-note">"In men – Hb below 130 g/L [= anaemia]. In non-pregnant women – Hb below 120 g/L [= anaemia]. Men with a haemoglobin (Hb) level less than 120 g/L and postmenopausal women with an Hb level less than 100 g/L should be investigated more urgently."</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel &amp; step 9.0</div>
+    </div>
+
+    <!-- MCV -->
+    <div class="var-card">
+      <span class="var-code">mcv</span>
+      <div class="var-name">Mean Corpuscular Volume</div>
+      <div class="var-aka">Also known as: MCV, mean cell volume, red cell volume index, erythrocyte volume</div>
+      <div style="font-size:12px;color:#555">Unit: fl &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-thresh">Microcytosis: &lt;80 fl</span>
+        <span class="threshold-pill pill-context">Context: degree of anaemia affects interpretation</span>
+      </div>
+      <div class="var-note">"Red cell microcytosis (MCV) &lt;80fl. Note while the probability of iron deficiency in anaemic people increases with decreasing MCV, no specific cut-off point can be used." Thalassaemia trait associated with very low MCV/MCH/MCHC often disproportionate to degree of anaemia.</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
+    </div>
+
+    <!-- Ferritin -->
+    <div class="var-card">
+      <span class="var-code">ferritin</span>
+      <div class="var-name">Serum Ferritin</div>
+      <div class="var-aka">Also known as: ferritin, serum ferritin, s-ferritin, iron stores marker</div>
+      <div style="font-size:12px;color:#555">Unit: µg/L &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-raised">Absent iron stores: &lt;15 µg/L</span>
+        <span class="threshold-pill pill-thresh">Low iron stores: &lt;30 µg/L</span>
+        <span class="threshold-pill pill-normal">Iron deficiency rare: &gt;150 µg/L</span>
+        <span class="threshold-pill pill-context">Context: inflammatory conditions raise ferritin</span>
+      </div>
+      <div class="var-note">"Low serum ferritin (&lt;15µg/L is indicative of absent iron stores; &lt;30 µg/L are generally indicative of low body iron stores. Interpretation difficult if co-existing inflammatory conditions but is rare if ferritin &gt;150µg/L)."</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
+    </div>
+
+    <!-- MCH -->
+    <div class="var-card">
+      <span class="var-code">mch</span>
+      <div class="var-name">Mean Cell Haemoglobin</div>
+      <div class="var-aka">Also known as: MCH, mean corpuscular haemoglobin, cell haemoglobin content</div>
+      <div style="font-size:12px;color:#555">Unit: pg &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-thresh">Hypochromia: reduced MCH</span>
+        <span class="threshold-pill pill-context">Context: exclude chronic disease, haemoglobinopathy</span>
+      </div>
+      <div class="var-note">"Hypochromia (reduced MCH) in the absence of chronic disease or haemoglobinopathy" associated with iron deficiency. Also reduced in thalassaemia trait (often very low).</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
+    </div>
+
+    <!-- CRP -->
+    <div class="var-card">
+      <span class="var-code">crp</span>
+      <div class="var-name">C-Reactive Protein</div>
+      <div class="var-aka">Also known as: CRP, C reactive protein, inflammatory marker</div>
+      <div style="font-size:12px;color:#555">Unit: mg/L &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-context">Context: raised CRP may spuriously elevate ferritin</span>
+      </div>
+      <div class="var-note">Requested as part of investigation panel. "Consider Inflammatory markers: CRP, WBC and platelets if potentially spuriously affecting ferritin." CRP elevation indicates inflammation which can make ferritin falsely normal even in iron deficiency.</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 5.0 (B) Investigations</div>
+    </div>
+
+    <!-- Ferritin -->
+    <div class="var-card">
+      <span class="var-code">platelets</span>
+      <div class="var-name">Platelets</div>
+      <div class="var-aka">Also known as: PLT, thrombocytes, platelet count</div>
+      <div style="font-size:12px;color:#555">Unit: ×10⁹/L &nbsp;|&nbsp; Type: Numeric</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-thresh">Raised: consider MDC referral</span>
+        <span class="threshold-pill pill-context">Context: may spuriously affect ferritin interpretation</span>
+      </div>
+      <div class="var-note">"Consider referral to MDC if raised platelets (see abnormal full blood count primary care clinical pathway)." Threshold for "raised" not specified in this pathway — see FBC pathway.</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 4.1 (R)</div>
+    </div>
+
+    <!-- qFIT -->
+    <div class="var-card">
+      <span class="var-code">qfit</span>
+      <div class="var-name">Quantitative Faecal Immunochemical Test</div>
+      <div class="var-aka">Also known as: qFIT, FIT test, faecal immunochemical test, stool blood test</div>
+      <div style="font-size:12px;color:#555">Unit: Binary (positive/negative) &nbsp;|&nbsp; Type: Binary</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-raised">Positive / raised: 2WW trigger</span>
+        <span class="threshold-pill pill-binary">Negative: does not exclude referral need</span>
+      </div>
+      <div class="var-note">"Raised / positive FIT test suggestive of cancer" listed as 2WW referral criterion. "NOTE: Faecal occult blood test not recommended." — qFIT preferred over FOB test.</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Steps 5.0 (Investigations) &amp; 4.1 (R) 2WW criteria</div>
+    </div>
+
+    <!-- Coeliac screen -->
+    <div class="var-card">
+      <span class="var-code">coeliac_screen</span>
+      <div class="var-name">Coeliac Serology</div>
+      <div class="var-aka">Also known as: coeliac screen, TTG antibodies, tTG-IgA, coeliac serology, anti-endomysial antibodies</div>
+      <div style="font-size:12px;color:#555">Unit: Binary (positive/negative) &nbsp;|&nbsp; Type: Binary</div>
+      <div class="threshold-row">
+        <span class="threshold-pill pill-raised">Positive: refer to gastroenterology</span>
+      </div>
+      <div class="var-note">"If coeliac serology is positive" listed as explicit gastroenterology referral criterion. Coeliac disease is a cause of malabsorption-related iron deficiency.</div>
+      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 9.0 / 11.0</div>
+    </div>
+
+  </div>
+
+  <!-- ===================== RULES ===================== -->
+  <div class="tab-content" id="tab-rules">
+    <div class="section-header">
+      <h2>Decision Rules</h2>
+      <p>One card per pathway branch. All source text verbatim. <span class="badge badge-explicit">EXPLICIT</span> = directly stated. <span class="badge badge-inferred">INFERRED</span> = deduced from flow diagram.</p>
+    </div>
+    <div class="search-row"><input type="text" id="rule-search" placeholder="Search rules..." oninput="filterRules()"></div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterByCategory('all',this)">All</button>
+      <button class="filter-btn" onclick="filterByCategory('urgent',this)">Urgent</button>
+      <button class="filter-btn" onclick="filterByCategory('tww',this)">2WW</button>
+      <button class="filter-btn" onclick="filterByCategory('refer',this)">Refer</button>
+      <button class="filter-btn" onclick="filterByCategory('gp',this)">GP Action</button>
+      <button class="filter-btn" onclick="filterByCategory('monitor',this)">Monitor</button>
+    </div>
+
+    <!-- RULE A -->
+    <div class="rule-card" data-category="urgent" id="rc-A">
+      <div class="rule-header" onclick="toggleRule('A')">
+        <span class="rule-step">STEP 4.1</span>
+        <span class="badge badge-urgent">URGENT</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">Admit — cardiovascular instability</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-A">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> cardiovascular instability (e.g. postural drop)<br>
+          <span class="kw-then">THEN</span> ADMIT urgently
+        </div>
+        <div class="meaning-block">Patient with iron deficiency (suspected or confirmed) who is haemodynamically unstable — postural hypotension or equivalent cardiovascular compromise — requires immediate hospital admission. This takes priority over all other pathway branches.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">🚨</span><strong>URGENT:</strong> Admit to hospital immediately</li>
+          <li><span class="mgmt-icon">📞</span>Contact receiving team / call 999 as appropriate for clinical situation</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"Admit if unstable cardiovascularly e.g. postural drop"</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Step 4.1 (R) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>Admit immediately if cardiovascular instability present (e.g. postural drop). Do not delay for investigations.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local detail — e.g. which ward to call, 999 threshold, local admission pathway..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'A')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE B -->
+    <div class="rule-card" data-category="tww" id="rc-B">
+      <div class="rule-header" onclick="toggleRule('B')">
+        <span class="rule-step">STEP 4.1 / 12.0</span>
+        <span class="badge badge-urgent">2WW</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">2-Week Wait referral to gastroenterology</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-B">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> (age ≥40 <span class="kw-and">AND</span> jaundice <span class="kw-and">AND</span> (unexplained weight loss <span class="kw-or">OR</span> abdominal pain))<br>
+          <span class="kw-or">OR</span> (age &lt;50 <span class="kw-and">AND</span> rectal bleeding <span class="kw-and">AND</span> (abdominal pain <span class="kw-or">OR</span> change in bowel habit <span class="kw-or">OR</span> weight loss <span class="kw-or">OR</span> iron deficiency anaemia))<br>
+          <span class="kw-or">OR</span> (age ≥50 <span class="kw-and">AND</span> unexplained rectal bleeding)<br>
+          <span class="kw-or">OR</span> (age ≥60 <span class="kw-and">AND</span> (iron deficiency anaemia <span class="kw-or">OR</span> bowel habit change <span class="kw-or">OR</span> weight loss) <span class="kw-and">AND</span> any of: diarrhoea/back pain/abdominal pain/nausea/vomiting/constipation/new onset diabetes)<br>
+          <span class="kw-or">OR</span> any age with occult blood in faeces<br>
+          <span class="kw-or">OR</span> any age with rectal/abdominal mass <span class="kw-or">OR</span> unexplained anal mass/ulceration<br>
+          <span class="kw-or">OR</span> ascites<br>
+          <span class="kw-or">OR</span> new iron deficiency without obvious cause<br>
+          <span class="kw-or">OR</span> raised/positive FIT test suggestive of cancer<br>
+          <span class="kw-or">OR</span> iron deficiency anaemia with dyspepsia<br>
+          <span class="kw-or">OR</span> upper GI bleeding (melaena / haematemesis)<br>
+          <span class="kw-then">THEN</span> 2-Week Wait referral to gastroenterology (reflecting clinical judgement)<br>
+          <span class="kw-context">CONTEXT:</span> Consider referral to MDC if raised platelets
+        </div>
+        <div class="meaning-block">Multiple symptom-age combinations and red flag features that mandate urgent cancer investigation via 2WW pathway. The list is exhaustive as stated in the source — each criterion is independently sufficient.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">🚨</span><strong>2WW:</strong> Refer urgently to gastroenterology (2-week wait) per NICE criteria</li>
+          <li><span class="mgmt-icon">📋</span>Document which criterion/criteria triggered referral</li>
+          <li><span class="mgmt-icon">📋</span>Ensure investigations are within 6 months of referral date</li>
+          <li><span class="mgmt-icon">⚠️</span>If raised platelets: also consider MDC referral (see FBC pathway)</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"2 Week Wait referral to gastroenterology: ≥40 years with jaundice or unexplained weight loss and abdominal pain; &lt;50 years with rectal bleeding and any of the following unexplained symptoms: abdominal pain, change in bowel habit, weight loss or iron deficiency anaemia; ≥50 years with unexplained rectal bleeding; ≥60 years with iron-deficiency anaemia or changes in their bowel habit or weight loss and any of the following: diarrhoea, back pain, abdominal pain, nausea, vomiting, constipation or new onset diabetes; Any age where tests show occult blood in their faeces; Any age with rectal or abdominal mass or unexplained anal mass or anal ulceration; Ascites; New iron deficiency without an obvious cause; Raised / positive FIT test suggestive of cancer; Iron deficiency anaemia with dyspepsia; Upper GI bleeding-melaena / haematemesis"</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Steps 4.1 (R) and 12.0 (Pi) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>2WW gastroenterology referral required if any of the listed criteria are met. Clinical judgement applies.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local referral system details, e-RS worklist name, contact number..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'B')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE C -->
+    <div class="rule-card" data-category="refer" id="rc-C">
+      <div class="rule-header" onclick="toggleRule('C')">
+        <span class="rule-step">STEP 9.0 / 10.0 / 11.0</span>
+        <span class="badge badge-refer">REFER</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">Refer to gastroenterology (routine/urgent)</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-C">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> male <span class="kw-and">AND</span> iron deficiency anaemia <span class="kw-andnot">AND NOT</span> overt non-GI bleeding → refer gastro<br>
+          <span class="kw-if">IF</span> postmenopausal female <span class="kw-and">AND</span> iron deficiency anaemia <span class="kw-andnot">AND NOT</span> overt non-GI bleeding → refer gastro<br>
+          &nbsp;&nbsp;<span class="kw-context">CONTEXT:</span> Male Hb &lt;120 g/L <span class="kw-or">OR</span> postmeno female Hb &lt;100 g/L → investigate MORE URGENTLY<br>
+          <span class="kw-if">IF</span> age ≥50 <span class="kw-and">AND</span> (marked anaemia <span class="kw-or">OR</span> significant FH colorectal carcinoma) → refer gastro, even if coeliac found<br>
+          <span class="kw-if">IF</span> premenopausal female &lt;50 <span class="kw-and">AND</span> (colonic symptoms <span class="kw-or">OR</span> strong FH GI cancer <span class="kw-or">OR</span> persistent IDA despite treatment <span class="kw-or">OR</span> not menstruating) → refer gastro<br>
+          <span class="kw-if">IF</span> coeliac serology positive → refer gastro<br>
+          <span class="kw-then">THEN</span> Refer to gastroenterology (consider Advice &amp; Guidance first if appropriate)
+        </div>
+        <div class="meaning-block">Men and postmenopausal women with IDA need GI investigation (cancer exclusion) unless overt non-GI bleeding explains it. Premenopausal women generally can be managed without GI investigation unless specific risk factors are present. Coeliac disease found on investigation still requires gastro involvement.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">🟣</span><strong>REFER:</strong> Gastroenterology referral (routine unless urgency criteria met)</li>
+          <li><span class="mgmt-icon">💬</span>Consider Advice and Guidance before full referral if appropriate</li>
+          <li><span class="mgmt-icon">📋</span>Ensure investigations within 6 months of referral date</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"All men and postmenopausal women with iron deficiency anaemia unless they have overt nongastrointestinal bleeding. Men with a haemoglobin (Hb) level less than 120 g/L and postmenopausal women with an Hb level less than 100 g/L should be investigated more urgently"</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Step 9.0 (B) / 10.0 (B) / 11.0 (G) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>Men and postmenopausal women with IDA: refer to gastroenterology unless overt non-GI bleeding. Premenopausal women: refer if risk factors present.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local referral pathway, wait times, A&G details..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'C')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE D -->
+    <div class="rule-card" data-category="refer" id="rc-D">
+      <div class="rule-header" onclick="toggleRule('D')">
+        <span class="rule-step">STEP 5.0 / 7.0 / 7.1 / 7.2</span>
+        <span class="badge badge-refer">REFER</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">Other sources of bleeding — non-GI referral routes</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-D">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> other source of bleeding identified (gynaecological / epistaxis / genitourinary)<br>
+          <span class="kw-then">THEN</span> Consider Advice &amp; Guidance <span class="kw-or">OR</span> refer to relevant speciality<br>
+          &nbsp;&nbsp;&nbsp;Consider haematology if underlying cause unknown<br>
+          &nbsp;&nbsp;&nbsp;Escalate to 2WW if required (e.g. postmenopausal bleeding → gynaecology)<br>
+          <br>
+          <span class="kw-if">IF</span> visible haematuria <span class="kw-and">AND</span> age ≥45 <span class="kw-andnot">AND NOT</span> UTI <span class="kw-then">THEN</span> refer urology<br>
+          <span class="kw-if">IF</span> visible haematuria <span class="kw-and">AND</span> persists/recurs after UTI treatment → refer urology<br>
+          <span class="kw-if">IF</span> non-visible haematuria <span class="kw-and">AND</span> age ≥60 <span class="kw-and">AND</span> (dysuria <span class="kw-or">OR</span> raised WBC) → refer urology
+        </div>
+        <div class="meaning-block">When bleeding source is non-GI (gynaecological, epistaxis, urinary), routing is to the relevant specialty rather than gastroenterology. Urology referral has explicit age-based thresholds for haematuria. Gynaecology 2WW applies for postmenopausal bleeding.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">🟣</span>Gynaecology: 2WW for postmenopausal bleeding; routine referral otherwise</li>
+          <li><span class="mgmt-icon">🟣</span>Urology: ≥45 with unexplained visible haematuria / ≥60 with non-visible haematuria + dysuria or raised WBC</li>
+          <li><span class="mgmt-icon">🟣</span>Haematology: if underlying cause unknown</li>
+          <li><span class="mgmt-icon">💬</span>Consider Advice and Guidance first where appropriate</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"Consider Advice and guidance or refer to relevant speciality if underlying cause not manageable in primary care. Consider referral to haematology if underlying cause unknown. Escalate to 2WW if required e.g. Refer to gynaecology for postmenopausal bleeding. Refer to urology people aged ≥45 years with: unexplained visible haematuria without urinary tract infection or visible haematuria that persists or recurs after successful treatment of urinary tract infection. Refer to urology people aged ≥60 years with: unexplained non-visible haematuria and either dysuria or a raised white cell count on a blood test"</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Steps 5.0 (B), 7.0 (G), 7.1 (O), 7.2 (R) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>Non-GI bleeding source: refer to relevant specialty. Age-gated urology referrals for haematuria. Gynaecology 2WW for postmenopausal bleeding.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local referral contacts for urology / gynaecology / haematology..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'D')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE E -->
+    <div class="rule-card" data-category="gp" id="rc-E">
+      <div class="rule-header" onclick="toggleRule('E')">
+        <span class="rule-step">STEP 8.0 / 8.1</span>
+        <span class="badge badge-gp">GP ACTION</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">Start iron replacement therapy</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-E">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> iron deficiency anaemia suspected<br>
+          <span class="kw-then">THEN</span> start iron replacement (treat whilst awaiting investigations)<br>
+          1st choice: Ferrous fumarate 322mg capsule (100mg elemental iron) daily<br>
+          &nbsp;&nbsp;&nbsp;<span class="kw-or">OR</span> ferrous fumarate 210mg tablets (68mg elemental iron) daily<br>
+          2nd choice: Ferrous sulphate 200mg (65mg elemental iron) daily<br>
+          <span class="kw-context">CONTEXT:</span> Tolerance, intolerance, pregnancy, malabsorption<br>
+          <span class="kw-if">IF</span> unable to tolerate oral iron → refer (usually haematology) for parenteral iron
+        </div>
+        <div class="meaning-block">Iron replacement should be started immediately on clinical suspicion, including while awaiting investigation results, and as a therapeutic trial in pregnant women. Diet alone is insufficient to correct IDA.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">💊</span><strong>1st line:</strong> Ferrous fumarate 322mg capsule daily (100mg elemental iron) OR ferrous fumarate 210mg tablets daily (68mg elemental iron) — take on empty stomach</li>
+          <li><span class="mgmt-icon">💊</span><strong>2nd line:</strong> Ferrous sulphate 200mg daily (65mg elemental iron) — take on empty stomach</li>
+          <li><span class="mgmt-icon">ℹ️</span>Consider alternate day dosing for significant GI intolerance</li>
+          <li><span class="mgmt-icon">🟣</span>If unable to tolerate oral iron: refer to haematology for parenteral iron</li>
+          <li><span class="mgmt-icon">⚠️</span>GI side effects (abdominal pain, constipation, black stools, nausea) — common cause of non-compliance</li>
+          <li><span class="mgmt-icon">⚠️</span>Absorption reduced by: phytates, polyphenols (tea/coffee), calcium, antacids/PPIs</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"Iron Replacement (dietary changes alone are not sufficient to correct iron deficiency anaemia). Treat whilst awaiting investigations or for therapeutic trial in pregnant women. 1st choice: Ferrous fumarate 322mg capsule (100mg elemental iron/capsule) daily or ferrous fumarate 210mg tablets (68mg elemental iron/tablet) daily. Iron should be taken on an empty stomach. 2nd choice: Ferrous sulphate 200mg (65mg elemental iron/tablet) daily."</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Step 8.0 (Pi) / 8.1 (B) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>Start ferrous fumarate 322mg daily (1st choice). Check FBC in 1 month. Continue for 3 months after Hb normalises.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local formulary preference, parenteral iron referral pathway..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'E')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE F -->
+    <div class="rule-card" data-category="monitor" id="rc-F">
+      <div class="rule-header" onclick="toggleRule('F')">
+        <span class="rule-step">STEP 13.0 / 14.0 / 15.0 / 18.0</span>
+        <span class="badge badge-monitor">MONITOR</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">FBC at 1 month — treatment response assessment</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-F">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> on iron treatment<br>
+          <span class="kw-then">THEN</span> check FBC in 1 month<br>
+          <br>
+          <span class="kw-if">IF</span> significant improvement (Hb rises 1-2 g/100ml over 3-4 weeks)<br>
+          <span class="kw-then">THEN</span> continue oral iron for 3 months after Hb normalisation → adequate marrow iron store repletion<br>
+          <br>
+          <span class="kw-if">IF</span> no improvement<br>
+          <span class="kw-then">THEN</span> 2WW referral <span class="kw-or">OR</span> refer to gastro/relevant specialist <span class="kw-or">OR</span> consider Advice &amp; Guidance
+        </div>
+        <div class="meaning-block">Haemoglobin should rise 1-2 g/100ml over 3-4 weeks with adequate iron therapy. Failure to improve mandates further investigation — consider whether this represents occult malignancy, malabsorption, non-compliance, or incorrect diagnosis.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">🧪</span>Check FBC at 1 month after starting iron</li>
+          <li><span class="mgmt-icon">✅</span>If improved: continue iron for 3 months after Hb normalises to replete marrow stores</li>
+          <li><span class="mgmt-icon">🚨</span>If no improvement: consider 2WW referral, refer to gastroenterology or relevant specialist</li>
+          <li><span class="mgmt-icon">💬</span>Consider Advice and Guidance if improvement absent</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"FBC in 1 month. Significant Improvement: Hb should rise by 1-2g/100ml over 3-4 weeks. Continue with oral iron for 3 months after normalisation of the Hb level, to ensure adequate repletion of the marrow iron stores."</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Steps 13.0 (B), 14.0 (B), 15.0 (Pi), 18.0 (G) · EXPLICIT</div>
+        </div>
+        <div class="output-panel">
+          <div class="output-col">
+            <h5>Guideline Summary (locked)</h5>
+            <p>FBC at 1 month. Improved → 3 months post-normalisation. Not improved → refer/2WW.</p>
+          </div>
+          <div class="output-col">
+            <h5>Local Instruction (editable in Working mode)</h5>
+            <textarea class="local-inst" placeholder="Add local monitoring protocol, recall system details..."></textarea>
+            <button class="save-btn" onclick="saveLocal(this,'F')">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULE G -->
+    <div class="rule-card" data-category="monitor" id="rc-G">
+      <div class="rule-header" onclick="toggleRule('G')">
+        <span class="rule-step">STEP 19.0</span>
+        <span class="badge badge-monitor">MONITOR</span>
+        <span class="badge badge-explicit">EXPLICIT</span>
+        <span class="rule-title">Long-term follow-up after treatment</span>
+        <span class="rule-chevron">▼</span>
+      </div>
+      <div class="rule-body" id="rb-G">
+        <div class="logic-block">
+          <span class="kw-if">IF</span> Hb corrected after treatment<br>
+          <span class="kw-then">THEN</span> repeat bloods 3 monthly for first year, then 6 monthly for 2-3 years<br>
+          Repeat bloods again if symptoms of anaemia develop<br>
+          <br>
+          <span class="kw-if">IF</span> iron deficiency still persisting after treatment → refer to gastroenterology
+        </div>
+        <div class="meaning-block">Long-term monitoring required because IDA has a tendency to recur, and the underlying cause may evolve. Regular checks allow early detection of recurrence.</div>
+        <ul class="mgmt-list">
+          <li><span class="mgmt-icon">📅</span>Repeat bloods every 3 months in year 1</li>
+          <li><span class="mgmt-icon">📅</span>Then every 6 months for 2-3 years</li>
+          <li><span class="mgmt-icon">🧪</span>Recheck if symptoms of anaemia return</li>
+          <li><span class="mgmt-icon">🟣</span>If iron deficiency persists: refer to gastroenterology</li>
+        </ul>
+        <div class="source-trail">
+          <blockquote>"Recheck haemoglobin and haematinics. If iron deficiency still persisting refer to gastro. If corrected repeat bloods 3 monthly for the first year then 6 monthly for 2-3 years. Repeat bloods again if symptoms of anaemia develop."</blockquote>
+          <div class="source-attr">Adult Iron Deficiency Primary Care Clinical Pathway · NCL ICB · Final Aug 2022 · Step 19.0 (Pi) · EXPLICIT</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== CONTEXT MAP ===================== -->
+  <div class="tab-content" id="tab-context">
+    <div class="section-header">
+      <h2>Context Map</h2>
+      <p>Variables that cannot be interpreted without additional context. All entries trace to the source PDF.</p>
+    </div>
+    <table class="ctx-table">
+      <thead>
+        <tr><th>Variable</th><th>Requires</th><th>Collection condition</th><th>Source</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>ferritin</code></td>
+          <td>CRP / inflammatory markers (WBC, platelets)</td>
+          <td>Raised ferritin may mask iron deficiency in presence of inflammation. Ferritin &gt;150 µg/L makes iron deficiency rare.</td>
+          <td class="source-attr">Def panel: "Interpretation difficult if co-existing inflammatory conditions but is rare if ferritin >150µg/L" · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>hb</code></td>
+          <td>Sex, menopausal status</td>
+          <td>Anaemia threshold: &lt;130 g/L (men), &lt;120 g/L (non-pregnant women). Urgency threshold differs: M &lt;120 g/L, postmeno F &lt;100 g/L.</td>
+          <td class="source-attr">Def panel + Step 9.0 · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>mcv</code></td>
+          <td>Clinical context (iron deficiency, thalassaemia, chronic disease)</td>
+          <td>MCV &lt;80fl supports microcytosis but no single cut-off is pathognomonic. Thalassaemia produces disproportionately low MCV for anaemia degree.</td>
+          <td class="source-attr">Def panel · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>mch</code></td>
+          <td>Absence of chronic disease, absence of haemoglobinopathy</td>
+          <td>Hypochromia (reduced MCH) is only interpretable as iron deficiency marker when chronic disease and haemoglobinopathy are excluded.</td>
+          <td class="source-attr">Def panel · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>haematuria</code> (visible)</td>
+          <td>Age, UTI status</td>
+          <td>Urology referral triggered at age ≥45 for unexplained visible haematuria without UTI, or after UTI treatment failure.</td>
+          <td class="source-attr">Step 7.2 (R) · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>haematuria</code> (non-visible)</td>
+          <td>Age, dysuria, WBC</td>
+          <td>Urology referral triggered at age ≥60 with non-visible haematuria AND (dysuria OR raised WBC).</td>
+          <td class="source-attr">Step 7.2 (R) · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td><code>coeliac_screen</code></td>
+          <td>Does not modify referral need for IDA in men/postmeno women</td>
+          <td>"All people aged ≥50 years with marked anaemia, or a significant family history of colorectal carcinoma, even if coeliac disease is found" — coeliac finding does not eliminate GI investigation need.</td>
+          <td class="source-attr">Step 10.0 (B) · EXPLICIT</td>
+        </tr>
+        <tr>
+          <td>Gastro referral threshold (premenopausal women)</td>
+          <td>Menstruation status, colonic symptoms, FH GI cancer, treatment response</td>
+          <td>Premenopausal women &lt;50 only referred to gastro if: colonic symptoms, strong FH (2 FDR or 1 FDR &lt;50), persistent IDA despite treatment, or not menstruating (e.g. post-hysterectomy).</td>
+          <td class="source-attr">Step 10.0 (B) · EXPLICIT</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===================== GAPS ===================== -->
+  <div class="tab-content" id="tab-gaps">
+    <div class="section-header">
+      <h2>Gaps &amp; Resolution</h2>
+      <p>Items the system could not extract from the source PDF. Flag for clinical team before deployment.</p>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-num" style="color:#e63946" id="cnt-open">7</div><div class="stat-label">Open</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:#ffc107" id="cnt-partial">0</div><div class="stat-label">Partial</div></div>
+      <div class="stat-box"><div class="stat-num" style="color:#2ecc71" id="cnt-resolved">0</div><div class="stat-label">Resolved</div></div>
+      <div class="stat-box"><div class="stat-num" id="cnt-total">7</div><div class="stat-label">Total</div></div>
+    </div>
+    <div class="filter-row">
+      <button class="filter-btn active" onclick="filterGaps('all',this)">All</button>
+      <button class="filter-btn" onclick="filterGaps('open',this)">Open</button>
+      <button class="filter-btn" onclick="filterGaps('partial',this)">Partial</button>
+      <button class="filter-btn" onclick="filterGaps('resolved',this)">Resolved</button>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Source URL</strong> <span class="badge badge-info" style="margin-left:auto">URL</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>No public URL for this pathway document provided in the source PDF. File was supplied by user as a local PDF.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Add the NCL ICB pathways page URL or PDF direct link..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Exclusion criteria — minimum age</strong> <span class="badge badge-info" style="margin-left:auto">POPULATION</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>Pathway states "Adult" in title but no minimum age is defined. Paediatric/adolescent exclusion not stated.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="e.g. ≥18 years, or ≥16 years per local policy..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Pregnancy — pathway scope</strong> <span class="badge badge-info" style="margin-left:auto">POPULATION</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>Pathway references pregnancy at several points (therapeutic trial, impairment of body temperature regulation in pregnant women) but does not explicitly state whether pregnant patients are in or out of scope.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Confirm whether pathway applies to pregnant patients and whether obstetric team must be involved..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Referral phone numbers / contacts</strong> <span class="badge badge-info" style="margin-left:auto">CONTACT</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>No phone numbers or referral contact details stated in source for: gastroenterology, haematology, gynaecology, urology, or MDC.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Add local referral numbers / e-RS worklist names for each specialty..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Patient leaflet URLs</strong> <span class="badge badge-info" style="margin-left:auto">PATIENT INFO</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>Source references NICE CKS and BSG guidance (clinician-facing) but no patient-facing leaflet URLs are stated.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Add local patient leaflet URLs for iron deficiency / iron replacement therapy..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>Review date passed</strong> <span class="badge badge-info" style="margin-left:auto">METADATA</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>Review date stated in source: August 2025. Current date: June 2026. Pathway is overdue for review. Clinical team must confirm this remains the current, approved version.</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Confirm pathway is still current or link to updated version..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+    <div class="gap-card" data-gstatus="open">
+      <div class="gap-header"><div class="gap-status status-open"></div><strong>"Marked anaemia" — threshold not defined</strong> <span class="badge badge-info" style="margin-left:auto">THRESHOLD</span></div>
+      <div class="gap-body">
+        <div class="gap-col"><h5>Why Flagged</h5><p>Step 10.0 refers to "marked anaemia" as a gastroenterology referral criterion for patients ≥50 but does not define a numeric threshold for "marked".</p></div>
+        <div class="gap-col"><h5>Local Resolution</h5><textarea placeholder="Clinical team to define — e.g. Hb <100 g/L, or Hb below a locally agreed threshold..."></textarea><div class="gap-actions"><button class="btn-save">Save</button><button class="btn-resolve" onclick="resolveGap(this,'resolved')">Mark Resolved</button><button class="btn-partial" onclick="resolveGap(this,'partial')">Mark Partial</button></div><div class="gap-ts"></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===================== COPY SHEET ===================== -->
+  <div class="tab-content" id="tab-copysheet">
+    <div class="section-header">
+      <h2>Copy Sheet</h2>
+      <p>Copy any block to clipboard for use in documentation, EMR templates, or communications.</p>
+    </div>
+    <div class="copy-block">
+      <div class="copy-block-header"><h4>All Variables (summary)</h4><button class="copy-btn" onclick="copyBlock(this,'vars-all')">Copy</button></div>
+      <div class="copy-pre" id="vars-all">VARIABLES — Adult Iron Deficiency Pathway (NCL ICB, Final Aug 2022)
+
+hb          Haemoglobin (g/L)          Anaemia: <130 M / <120 F (non-preg)
+mcv         Mean Corpuscular Volume (fl)  Microcytosis: <80 fl
+ferritin    Serum Ferritin (µg/L)      Absent stores: <15 | Low: <30 | Normal rare if >150
+mch         Mean Cell Haemoglobin (pg) Hypochromia if reduced (context: excl CLD, haemog'path)
+crp         C-Reactive Protein (mg/L)  May spuriously elevate ferritin
+platelets   Platelets (×10⁹/L)         Raised = consider MDC referral
+qfit        qFIT result                Positive = 2WW trigger
+coeliac_screen  Coeliac serology       Positive = refer gastroenterology</div>
+    </div>
+    <div class="copy-block">
+      <div class="copy-block-header"><h4>All Decision Rules (summary)</h4><button class="copy-btn" onclick="copyBlock(this,'rules-all')">Copy</button></div>
+      <div class="copy-pre" id="rules-all">DECISION RULES — Adult Iron Deficiency Pathway (NCL ICB, Final Aug 2022)
+
+[A] URGENT ADMIT — cardiovascular instability (postural drop)
+[B] 2WW GASTRO — multiple age/symptom criteria (see pathway step 4.1/12.0)
+[C] REFER GASTRO — men + postmeno women with IDA; coeliac +ve; age ≥50 marked anaemia
+[D] REFER OTHER — non-GI bleeding → urology/gynaecology/haematology per criteria
+[E] GP ACTION — start ferrous fumarate 322mg daily, FBC in 1 month
+[F] MONITOR — if improved: continue 3 months post-Hb normalisation; if no improvement: 2WW/refer
+[G] FOLLOW-UP — bloods 3-monthly year 1, then 6-monthly 2-3 years</div>
+    </div>
+    <div class="copy-block">
+      <div class="copy-block-header"><h4>Iron Replacement Regimen</h4><button class="copy-btn" onclick="copyBlock(this,'iron-rx')">Copy</button></div>
+      <div class="copy-pre" id="iron-rx">IRON REPLACEMENT — NCL ICB Iron Deficiency Pathway, Final Aug 2022
+
+1st choice: Ferrous fumarate 322mg capsule (100mg elemental iron) daily — empty stomach
+         OR Ferrous fumarate 210mg tablets (68mg elemental iron) daily — empty stomach
+2nd choice: Ferrous sulphate 200mg (65mg elemental iron) daily — empty stomach
+
+Consider alternate day dosing if significant GI intolerance.
+If unable to tolerate oral: refer (usually haematology) for parenteral iron.
+Continue for 3 months after Hb normalisation.
+FBC check at 1 month — expect Hb rise of 1-2 g/100ml over 3-4 weeks.</div>
+    </div>
+  </div>
+
+  <!-- ===================== CHANGE LOG ===================== -->
+  <div class="tab-content" id="tab-changelog">
+    <div class="section-header">
+      <h2>Change Log</h2>
+      <p>All edits made in Working mode are timestamped here.</p>
+    </div>
+    <div class="card">
+      <div class="card-body" id="changelog-list">
+        <p style="color:#aaa;font-size:13px">No changes recorded yet. Switch to Working mode to edit thresholds, local instructions, or gap resolutions.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+let mode = 'master';
+const localStore = {};
+
+function showTab(id) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  document.getElementById('nav-'+id).classList.add('active');
+}
+
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-master').classList.toggle('active', m === 'master');
+  document.getElementById('btn-working').classList.toggle('active', m === 'working');
+  document.getElementById('working-banner').style.display = m === 'working' ? 'block' : 'none';
+  if (m === 'working') {
+    document.body.classList.add('working-mode');
+  } else {
+    document.body.classList.remove('working-mode');
+  }
+}
+
+function toggleRule(id) {
+  const card = document.getElementById('rc-'+id);
+  card.classList.toggle('open');
+}
+
+function saveLocal(btn, id) {
+  const ta = btn.previousElementSibling;
+  localStore['local_'+id] = ta.value;
+  addLog('Local instruction updated for rule '+id);
+}
+
+function addLog(msg) {
+  const list = document.getElementById('changelog-list');
+  if (list.querySelector('p')) list.innerHTML = '';
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<div class="log-ts">${new Date().toISOString().replace('T',' ').slice(0,19)}</div><div>${msg}</div>`;
+  list.prepend(entry);
+}
+
+function copyBlock(btn, id) {
+  const text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function filterRules() {
+  const q = document.getElementById('rule-search').value.toLowerCase();
+  document.querySelectorAll('.rule-card').forEach(c => {
+    c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+
+function filterByCategory(cat, btn) {
+  document.querySelectorAll('.filter-row .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.rule-card').forEach(c => {
+    c.style.display = (cat === 'all' || c.dataset.category === cat) ? '' : 'none';
+  });
+}
+
+function resolveGap(btn, status) {
+  const card = btn.closest('.gap-card');
+  card.dataset.gstatus = status;
+  const dot = card.querySelector('.gap-status');
+  dot.className = 'gap-status status-'+status;
+  btn.closest('.gap-actions').querySelector('.gap-ts').textContent = 'Updated: '+new Date().toLocaleString();
+  updateGapCounts();
+  addLog('Gap resolution updated: '+card.querySelector('strong').textContent+' → '+status);
+}
+
+function updateGapCounts() {
+  const all = document.querySelectorAll('.gap-card');
+  let open=0, partial=0, resolved=0;
+  all.forEach(c => {
+    if (c.dataset.gstatus==='open') open++;
+    else if (c.dataset.gstatus==='partial') partial++;
+    else if (c.dataset.gstatus==='resolved') resolved++;
+  });
+  document.getElementById('cnt-open').textContent = open;
+  document.getElementById('cnt-partial').textContent = partial;
+  document.getElementById('cnt-resolved').textContent = resolved;
+  document.getElementById('cnt-total').textContent = all.length;
+  document.getElementById('gap-badge').textContent = open;
+}
+
+function filterGaps(status, btn) {
+  document.querySelectorAll('.filter-row .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.gap-card').forEach(c => {
+    c.style.display = (status === 'all' || c.dataset.gstatus === status) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

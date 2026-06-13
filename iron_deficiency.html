@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adult Iron Deficiency — ResultDoctor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#f0f2f5;color:#1a1a2e;font-size:15px}
+h1,h2,h3,.serif{font-family:'DM Serif Display',serif;font-weight:400}
+
+/* Header */
+#hdr{background:#0B1C3D;color:#fff;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,0.3)}
+.hdr-inner{max-width:920px;margin:0 auto;display:flex;align-items:center;height:56px;gap:16px}
+.hdr-logo{font-size:13px;font-weight:700;letter-spacing:0.5px;color:#fff;text-decoration:none}
+.hdr-logo span{color:#4a9eff}
+.hdr-bc{font-size:12px;color:#8fa8c8;flex:1}
+.mode-btns{display:flex;gap:4px}
+.mode-btn{padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:transparent;color:#8fa8c8;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;transition:all 0.15s}
+.mode-btn.active{background:#fff;color:#0B1C3D;border-color:#fff}
+
+/* Pathway header */
+#pw-header{background:#0f2347;color:#fff;padding:20px 24px}
+.pw-inner{max-width:920px;margin:0 auto}
+.pw-tags{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.pw-tag{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:0.5px}
+.tag-live{background:#22c55e;color:#fff}
+.tag-icb{background:rgba(255,255,255,0.15);color:#c8d8ee}
+.tag-ver{background:rgba(255,255,255,0.1);color:#aab8cc}
+.pw-title{font-family:'DM Serif Display',serif;font-size:26px;color:#fff;line-height:1.2;margin-bottom:6px}
+.pw-sub{font-size:14px;color:#8fa8c8;margin-bottom:12px}
+.pw-source{font-size:11px;color:#5a7a9a;font-family:monospace}
+
+/* Admin banner */
+#admin-banner{display:none;background:#fff3cd;color:#856404;padding:10px 24px;font-size:13px;text-align:center;position:sticky;top:56px;z-index:99}
+
+/* Main */
+#main{max-width:920px;margin:0 auto;padding:24px 24px 120px}
+
+/* Section titles */
+.sec-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#8fa8c8;margin-bottom:14px}
+
+/* Form card */
+.form-card{background:#fff;border-radius:16px;box-shadow:0 1px 6px rgba(0,0,0,0.07);border:0.5px solid #e0e4ef;padding:24px;margin-bottom:20px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.field-group{display:flex;flex-direction:column;gap:4px}
+.field-group label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.5px}
+.field-group input,.field-group select{padding:9px 12px;border:1.5px solid #e0e4ef;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fff;transition:border-color 0.2s,background 0.2s}
+.field-group input:focus,.field-group select:focus{outline:none;border-color:#4a9eff}
+.field-group input.normal{border-color:#22c55e;background:#f0fdf4}
+.field-group input.abnormal{border-color:#ef4444;background:#fff5f5}
+.field-group input.context{border-color:#a855f7;background:#faf5ff}
+.field-hint{font-size:11px;color:#999;margin-top:2px}
+.context-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid #f0f2f5}
+.ctx-label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+select.ctx-select{width:100%;padding:8px 12px;border:1.5px solid #e0e4ef;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif;background:#fff}
+
+.pt-field{margin-bottom:16px}
+.pt-field input{width:100%;padding:9px 12px;border:1.5px solid #e0e4ef;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif}
+
+.analyse-btn{width:100%;padding:14px;background:#0B1C3D;color:#fff;border:none;border-radius:12px;font-size:16px;font-family:'DM Serif Display',serif;cursor:pointer;margin-top:16px;transition:background 0.15s}
+.analyse-btn:hover{background:#162d5a}
+.reset-link{display:block;text-align:center;margin-top:10px;font-size:12px;color:#aaa;cursor:pointer;text-decoration:underline}
+
+/* Chip row */
+#chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;display:none}
+.chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e8eaf6;color:#3949ab}
+.chip.abnormal{background:#ffe0e0;color:#c0392b}
+.chip.normal{background:#e8f5e9;color:#2e7d32}
+.chip.not-entered{background:#f5f5f5;color:#bbb}
+
+/* Primary action card */
+#result-area{display:none}
+.action-card{background:#fff;border-radius:20px;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:2px solid #e0e4ef;margin-bottom:20px;position:relative}
+.action-card.urgent{border-color:#ef4444}
+.action-card.tww{border-color:#f97316}
+.action-card.refer{border-color:#8b5cf6}
+.action-card.gp{border-color:#3b82f6}
+.action-card.monitor{border-color:#22c55e}
+.action-card.amber{border-color:#f59e0b}
+
+.flag-pulse{display:inline-flex;align-items:center;gap:8px;padding:6px 16px;border-radius:24px;font-size:13px;font-weight:700;letter-spacing:0.5px;margin-bottom:14px}
+.flag-pulse.urgent{background:#ef4444;color:#fff;animation:pulse 2s infinite}
+.flag-pulse.tww{background:#f97316;color:#fff}
+.flag-pulse.refer{background:#8b5cf6;color:#fff}
+.flag-pulse.gp{background:#3b82f6;color:#fff}
+.flag-pulse.monitor{background:#22c55e;color:#fff}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.75}}
+
+.action-title{font-family:'DM Serif Display',serif;font-size:24px;color:#0B1C3D;margin-bottom:8px}
+.action-sub{font-size:14px;color:#555;line-height:1.6;margin-bottom:16px}
+
+.ctx-warning{background:#fffbf0;border:1px solid #fbbf24;border-radius:8px;padding:10px 14px;font-size:13px;color:#92400e;margin-bottom:16px}
+
+.action-list{list-style:none;margin-bottom:16px}
+.action-list li{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid #f5f5f5;font-size:14px;line-height:1.5}
+.action-list li:last-child{border-bottom:none}
+.action-num{width:26px;height:26px;border-radius:50%;background:#0B1C3D;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px}
+.local-instruction{background:#f8f9fa;border-radius:6px;padding:8px 12px;font-size:12px;color:#555;margin-top:6px;border-left:2px solid #e0e4ef}
+.local-instruction.not-set{color:#aaa;font-style:italic}
+.admin-edit{display:none}
+.admin-mode .admin-edit{display:block}
+.admin-edit textarea{width:100%;padding:6px;border:1px solid #e0e4ef;border-radius:4px;font-size:12px;min-height:50px;margin-top:4px;font-family:'DM Sans',sans-serif}
+.admin-edit button{padding:3px 10px;background:#4a9eff;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:11px;margin-top:4px}
+
+/* Show why */
+.show-why-btn{background:transparent;border:1px solid #e0e4ef;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;color:#555;margin-top:4px}
+.show-why-btn:hover{background:#f5f7fa}
+.why-panel{display:none;margin-top:16px;border-top:1px solid #f0f2f5;padding-top:16px}
+.why-panel.open{display:block}
+.why-section{margin-bottom:16px}
+.why-section h4{font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#888;margin-bottom:8px}
+.verbatim{font-family:Georgia,serif;font-style:italic;font-size:13px;line-height:1.7;border-left:3px solid #4a9eff;padding-left:12px;color:#333;background:#fafbff;padding:12px 12px 12px 16px;border-radius:0 6px 6px 0}
+.source-line{font-family:monospace;font-size:11px;color:#888;margin-top:6px}
+.logic-trace{font-family:monospace;font-size:12px;line-height:2;background:#f8f9fa;border-radius:6px;padding:12px}
+.logic-trace .match{color:#22c55e}
+.logic-trace .nomatch{color:#aaa}
+.kw-if{color:#1565c0;font-weight:700}
+.kw-and{color:#2e7d32;font-weight:700}
+.kw-or{color:#e65100;font-weight:700}
+.kw-then{color:#0B1C3D;font-weight:700}
+
+/* Flow diagram */
+#flow-panel{background:#fff;border-radius:16px;padding:20px;border:0.5px solid #e0e4ef;margin-bottom:20px}
+.flow-toggle{background:#0B1C3D;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
+#flow-svg-wrap{display:none;margin-top:16px;overflow-x:auto}
+
+/* Secondary cards */
+.secondary-card{background:#fff;border-radius:12px;border:0.5px solid #e0e4ef;margin-bottom:10px;overflow:hidden}
+.secondary-header{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;background:#fafbfc}
+.secondary-header:hover{background:#f5f7fa}
+.secondary-body{display:none;padding:14px 16px;border-top:1px solid #f0f2f5;font-size:13px;line-height:1.6}
+.secondary-card.open .secondary-body{display:block}
+
+/* Global note */
+#global-note{background:#f8f9fa;border-radius:12px;padding:16px 20px;font-size:13px;line-height:1.6;color:#555;border:0.5px solid #e0e4ef;margin-bottom:20px}
+
+/* EMR bar */
+#emr-bar{display:none;position:fixed;bottom:0;left:0;right:0;background:#0B1C3D;color:#fff;padding:14px 24px;z-index:200;box-shadow:0 -2px 12px rgba(0,0,0,0.3)}
+.emr-inner{max-width:920px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.emr-text{flex:1;font-size:13px;color:#c8d8ee}
+.emr-btn{padding:9px 20px;background:#4a9eff;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;font-family:'DM Sans',sans-serif;transition:background 0.15s}
+.emr-btn:hover{background:#2980b9}
+.emr-btn.copied{background:#22c55e}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-explicit{background:#e8f5e9;color:#2e7d32}
+.badge-inferred{background:#fff3e0;color:#e65100}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hdr-inner">
+    <a class="hdr-logo" href="index.html">Result<span>Doctor</span></a>
+    <div class="hdr-bc">Pathways → Adult Iron Deficiency</div>
+    <div class="mode-btns">
+      <button class="mode-btn active" onclick="setMode('clinician')">Clinician</button>
+      <button class="mode-btn" onclick="setMode('patient')">Patient</button>
+      <button class="mode-btn" onclick="setMode('admin')">Admin</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN BANNER -->
+<div id="admin-banner">✏️ <strong>Admin mode active.</strong> Local instructions are editable inline.</div>
+
+<!-- PATHWAY HEADER -->
+<div id="pw-header">
+  <div class="pw-inner">
+    <div class="pw-tags">
+      <span class="pw-tag tag-live">● LIVE</span>
+      <span class="pw-tag tag-icb">NCL-Wide ICB</span>
+      <span class="pw-tag tag-ver">Final Aug 2022 · Review Aug 2025</span>
+    </div>
+    <div class="pw-title">Adult Iron Deficiency</div>
+    <div class="pw-sub">Primary Care Clinical Pathway — North Central London</div>
+    <div class="pw-source">Source: NCL ICB · Authors: Dr N Dattani, Dr F Oluwajana, Dr S Mankodi, Dr E Seward · Approving body: NCL ICB CAG · Contact: nclicb.pathways@nhs.net</div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- RESULT FORM -->
+  <div class="form-card">
+    <div class="sec-title">Enter Results</div>
+    <div class="pt-field">
+      <input type="text" id="pt-id" placeholder="Patient identifier (optional — for EMR copy)" style="width:100%;padding:9px 12px;border:1.5px solid #e0e4ef;border-radius:8px;font-size:14px;font-family:'DM Sans',sans-serif">
+    </div>
+    <div class="form-grid">
+      <div class="field-group">
+        <label>Haemoglobin</label>
+        <input type="number" id="hb" placeholder="e.g. 118" oninput="liveColour(this,'hb')">
+        <div class="field-hint">g/L · Anaemia: &lt;130 M / &lt;120 F</div>
+      </div>
+      <div class="field-group">
+        <label>MCV</label>
+        <input type="number" id="mcv" placeholder="e.g. 72" oninput="liveColour(this,'mcv')">
+        <div class="field-hint">fl · Microcytosis: &lt;80 fl</div>
+      </div>
+      <div class="field-group">
+        <label>Ferritin</label>
+        <input type="number" id="ferritin" placeholder="e.g. 8" oninput="liveColour(this,'ferritin')">
+        <div class="field-hint">µg/L · Low stores: &lt;30</div>
+      </div>
+      <div class="field-group">
+        <label>MCH</label>
+        <input type="number" id="mch" placeholder="e.g. 24" oninput="liveColour(this,'mch')">
+        <div class="field-hint">pg · Low if hypochromia</div>
+      </div>
+      <div class="field-group">
+        <label>CRP</label>
+        <input type="number" id="crp" placeholder="e.g. 5" oninput="liveColour(this,'crp')">
+        <div class="field-hint">mg/L · Affects ferritin interp.</div>
+      </div>
+      <div class="field-group">
+        <label>Platelets</label>
+        <input type="number" id="platelets" placeholder="e.g. 350" oninput="liveColour(this,'platelets')">
+        <div class="field-hint">×10⁹/L · Raised = MDC</div>
+      </div>
+    </div>
+
+    <!-- Context -->
+    <div class="context-grid">
+      <div>
+        <div class="ctx-label">Sex</div>
+        <select class="ctx-select" id="sex">
+          <option value="">— select —</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Menopausal status (if female)</div>
+        <select class="ctx-select" id="menopausal">
+          <option value="na">N/A (male)</option>
+          <option value="premenopausal">Premenopausal</option>
+          <option value="postmenopausal">Postmenopausal</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Age</div>
+        <input type="number" id="age" placeholder="e.g. 55" style="width:100%;padding:8px 12px;border:1.5px solid #e0e4ef;border-radius:8px;font-size:13px;font-family:'DM Sans',sans-serif">
+      </div>
+      <div>
+        <div class="ctx-label">Cardiovascular instability?</div>
+        <select class="ctx-select" id="cv_unstable">
+          <option value="no">No</option>
+          <option value="yes">Yes (e.g. postural drop)</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">GI bleeding (melaena / haematemesis)?</div>
+        <select class="ctx-select" id="gi_bleed_upper">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Rectal bleeding?</div>
+        <select class="ctx-select" id="rectal_bleeding">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Jaundice?</div>
+        <select class="ctx-select" id="jaundice">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Unexplained weight loss?</div>
+        <select class="ctx-select" id="weight_loss">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Abdominal pain?</div>
+        <select class="ctx-select" id="abdominal_pain">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Change in bowel habit?</div>
+        <select class="ctx-select" id="bowel_change">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">FIT test result</div>
+        <select class="ctx-select" id="fit_test">
+          <option value="not_done">Not done</option>
+          <option value="negative">Negative</option>
+          <option value="positive">Positive / raised</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Abdominal / rectal mass?</div>
+        <select class="ctx-select" id="mass">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Ascites?</div>
+        <select class="ctx-select" id="ascites">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Dyspepsia?</div>
+        <select class="ctx-select" id="dyspepsia">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Overt non-GI bleeding?</div>
+        <select class="ctx-select" id="overt_nongi">
+          <option value="no">No</option>
+          <option value="yes">Yes (gynaecological / epistaxis / urinary)</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">New iron deficiency (no obvious cause)?</div>
+        <select class="ctx-select" id="new_id">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Coeliac serology result</div>
+        <select class="ctx-select" id="coeliac">
+          <option value="not_done">Not done / pending</option>
+          <option value="negative">Negative</option>
+          <option value="positive">Positive</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Haematuria</div>
+        <select class="ctx-select" id="haematuria">
+          <option value="none">None</option>
+          <option value="visible">Visible haematuria</option>
+          <option value="nonvisible">Non-visible haematuria</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Dysuria?</div>
+        <select class="ctx-select" id="dysuria">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Colonic symptoms? (F premenop)</div>
+        <select class="ctx-select" id="colonic_sx">
+          <option value="no">No</option>
+          <option value="yes">Yes</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Family history of GI cancer</div>
+        <select class="ctx-select" id="fh_gi">
+          <option value="none">None / not significant</option>
+          <option value="moderate">1 FDR affected (any age)</option>
+          <option value="strong">2+ FDR, OR 1 FDR &lt;50 years</option>
+        </select>
+      </div>
+      <div>
+        <div class="ctx-label">Not menstruating (F premenop)?</div>
+        <select class="ctx-select" id="not_menstruating">
+          <option value="no">No (still menstruating)</option>
+          <option value="yes">Yes (e.g. post-hysterectomy)</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="analyse-btn" onclick="analyse()">Analyse →</button>
+    <span class="reset-link" onclick="resetForm()">Reset all</span>
+  </div>
+
+  <!-- RESULT AREA -->
+  <div id="result-area">
+
+    <!-- Chip row -->
+    <div id="chip-row"></div>
+
+    <!-- Primary action card -->
+    <div id="action-card" class="action-card">
+      <!-- populated by JS -->
+    </div>
+
+    <!-- Flow diagram -->
+    <div id="flow-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:14px;font-weight:600;color:#0B1C3D">📍 Your path through the pathway</span>
+        <button class="flow-toggle" onclick="toggleFlow()">Show diagram</button>
+      </div>
+      <div id="flow-svg-wrap"></div>
+    </div>
+
+    <!-- Secondary cards -->
+    <div id="secondary-cards"></div>
+
+    <!-- Global note -->
+    <div id="global-note">
+      <strong>⚠️ Pathway note:</strong> This tool reproduces the logic of the NCL ICB Adult Iron Deficiency Primary Care Clinical Pathway (Final Aug 2022). It does not replace clinical judgement. Investigations must be within 6 months of any referral date. Review date for this pathway was August 2025 — confirm currency with your clinical lead before use.
+    </div>
+
+  </div><!-- /result-area -->
+
+</div><!-- /main -->
+
+<!-- EMR BAR -->
+<div id="emr-bar">
+  <div class="emr-inner">
+    <div class="emr-text" id="emr-summary">—</div>
+    <button class="emr-btn" id="emr-copy-btn" onclick="copyEMR()">📋 Copy for EMR</button>
+  </div>
+</div>
+
+<script>
+let currentMode = 'clinician';
+let currentResult = null;
+const LOCAL_KEY = 'ncl_iron_local';
+let localData = JSON.parse(localStorage.getItem(LOCAL_KEY) || '{}');
+
+function setMode(m) {
+  currentMode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.mode-btn').forEach(b => { if (b.textContent.toLowerCase() === m) b.classList.add('active'); });
+  document.getElementById('admin-banner').style.display = m === 'admin' ? 'block' : 'none';
+  document.body.classList.toggle('admin-mode', m === 'admin');
+}
+
+function v(id) { return document.getElementById(id).value; }
+function n(id) { const v2 = parseFloat(document.getElementById(id).value); return isNaN(v2) ? null : v2; }
+
+function liveColour(el, field) {
+  el.className = '';
+  const val = parseFloat(el.value);
+  if (isNaN(val)) return;
+  const sex = v('sex');
+  if (field === 'hb') {
+    const thresh = sex === 'male' ? 130 : 120;
+    el.className = val < thresh ? 'abnormal' : 'normal';
+  } else if (field === 'mcv') {
+    el.className = val < 80 ? 'abnormal' : 'normal';
+  } else if (field === 'ferritin') {
+    el.className = val < 30 ? 'abnormal' : (val >= 150 ? 'normal' : 'context');
+  } else if (field === 'crp') {
+    el.className = val > 10 ? 'context' : 'normal';
+  } else if (field === 'platelets') {
+    el.className = val > 400 ? 'context' : 'normal';
+  }
+}
+
+function analyse() {
+  const hb = n('hb');
+  const mcv = n('mcv');
+  const ferritin = n('ferritin');
+  const crp = n('crp');
+  const platelets = n('platelets');
+  const sex = v('sex');
+  const menopausal = v('menopausal');
+  const age = parseInt(v('age')) || null;
+  
+  const cvUnstable = v('cv_unstable') === 'yes';
+  const giBleedUpper = v('gi_bleed_upper') === 'yes';
+  const rectalBleeding = v('rectal_bleeding') === 'yes';
+  const jaundice = v('jaundice') === 'yes';
+  const weightLoss = v('weight_loss') === 'yes';
+  const abdominalPain = v('abdominal_pain') === 'yes';
+  const bowelChange = v('bowel_change') === 'yes';
+  const fitTest = v('fit_test');
+  const mass = v('mass') === 'yes';
+  const ascites = v('ascites') === 'yes';
+  const dyspepsia = v('dyspepsia') === 'yes';
+  const overt_nongi = v('overt_nongi') === 'yes';
+  const newId = v('new_id') === 'yes';
+  const coeliac = v('coeliac');
+  const haematuria = v('haematuria');
+  const dysuria = v('dysuria') === 'yes';
+  const colonicSx = v('colonic_sx') === 'yes';
+  const fhGi = v('fh_gi');
+  const notMenstruating = v('not_menstruating') === 'yes';
+
+  // EMPTY-INPUT GUARD (master prompt v4 Principle 3)
+  const anyResult = [hb, mcv, ferritin, crp, platelets].some(v => v !== null);
+  const anyContext = [sex, menopausal, cvUnstable, giBleedUpper, rectalBleeding, jaundice, weightLoss,
+    abdominalPain, bowelChange, fitTest, mass, ascites, dyspepsia, overt_nongi, newId, coeliac,
+    haematuria, dysuria, colonicSx, fhGi, notMenstruating].some(v => v !== '' && v !== false && v !== null);
+  if (!anyResult && !anyContext) {
+    renderEmptyState();
+    return;
+  }
+
+  // Anaemia trigger — three zones (master prompt v4 Principle 2)
+  // Hb <120: anaemia in BOTH sexes (using lower-of-two threshold)
+  // Hb 120-129: anaemia ONLY if male — conditional when sex unknown
+  // Hb ≥130: not anaemia in either
+  const hbBelowFemaleThreshold = hb !== null && hb < 120;
+  const hbAmbiguousZone = hb !== null && hb >= 120 && hb < 130;
+  let anaemia = false;
+  let anaemiaConditional = false;
+  if (hbBelowFemaleThreshold) {
+    anaemia = true;
+  } else if (hbAmbiguousZone) {
+    if (sex === 'male') anaemia = true;
+    else if (sex === 'female') anaemia = false;
+    else anaemiaConditional = true;
+  }
+
+  // Iron deficiency?
+  let ironDef = false;
+  if (ferritin !== null && ferritin < 30) ironDef = true;
+  if (mcv !== null && mcv < 80) ironDef = true;
+
+  const ida = anaemia && ironDef;
+
+  // Marked anaemia — thresholds from NCL pathway verbatim "<120 male / <100 postmenopausal female"
+  // Applying v4 Principle 2: Hb <100 marked in both sexes; 100-119 marked only if male
+  let markedAnaemia = false;
+  if (hb !== null && hb < 100) markedAnaemia = true;
+  if (hb !== null && hb >= 100 && hb < 120 && sex === 'male') markedAnaemia = true;
+
+  // Inflammatory context
+  let inflamed = crp !== null && crp > 10;
+
+  let result = null;
+
+  // RULE A: URGENT
+  if (cvUnstable) {
+    result = {
+      priority: 'urgent',
+      activeNodes: ['start','cv','admit'],
+      activeEdges: ['start->cv','cv->admit'],
+      flag: '🚨 URGENT',
+      title: 'Admit immediately',
+      subtitle: 'Cardiovascular instability is present (e.g. postural drop). This requires immediate hospital admission before further investigation.',
+      actions: [
+        { text: 'Admit to hospital urgently — cardiovascular instability', local_key: 'admit_route' },
+        { text: 'Contact receiving team / call 999 as clinically appropriate', local_key: null }
+      ],
+      verbatim: '"Admit if unstable cardiovascularly e.g. postural drop"',
+      source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Step 4.1 (R) · EXPLICIT',
+      logicTrace: [
+        { label: 'IF cardiovascular instability (postural drop)', match: true },
+        { label: 'THEN ADMIT urgently', match: true }
+      ],
+      recordSummary: 'URGENT: Cardiovascular instability — immediate admission required',
+      recordPlan: 'Admit to hospital urgently per NCL ICB Iron Deficiency pathway step 4.1'
+    };
+  }
+
+  // RULE B: 2WW
+  if (!result) {
+    let twoWW = false;
+    let twoWWReason = '';
+    let trace = [];
+
+    if (age !== null && age >= 40 && jaundice && (weightLoss || abdominalPain)) {
+      twoWW = true; twoWWReason = '≥40 years with jaundice and unexplained weight loss or abdominal pain';
+      trace = [{label:'IF age ≥40 AND jaundice AND (weight loss OR abdominal pain)', match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (age !== null && age < 50 && rectalBleeding && (abdominalPain || bowelChange || weightLoss || ida)) {
+      twoWW = true; twoWWReason = '<50 years with rectal bleeding and associated unexplained symptoms (abdominal pain / bowel change / weight loss / IDA)';
+      trace = [{label:'IF age <50 AND rectal bleeding AND (abdominal pain OR bowel change OR weight loss OR IDA)', match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (age !== null && age >= 50 && rectalBleeding) {
+      twoWW = true; twoWWReason = '≥50 years with unexplained rectal bleeding';
+      trace = [{label:'IF age ≥50 AND unexplained rectal bleeding', match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (age !== null && age >= 60 && (ida || bowelChange || weightLoss)) {
+      twoWW = true; twoWWReason = '≥60 years with iron deficiency anaemia / bowel change / weight loss — review for additional symptoms (diarrhoea, back pain, nausea, vomiting, constipation, new onset diabetes)';
+      trace = [{label:'IF age ≥60 AND (IDA OR bowel change OR weight loss) AND co-symptoms', match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (fitTest === 'positive') {
+      twoWW = true; twoWWReason = 'Raised / positive FIT test suggestive of cancer';
+      trace = [{label:'IF FIT test positive/raised',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (mass) {
+      twoWW = true; twoWWReason = 'Rectal or abdominal mass (or unexplained anal mass/ulceration)';
+      trace = [{label:'IF abdominal/rectal mass',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (ascites) {
+      twoWW = true; twoWWReason = 'Ascites';
+      trace = [{label:'IF ascites',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (newId) {
+      twoWW = true; twoWWReason = 'New iron deficiency without an obvious cause';
+      trace = [{label:'IF new iron deficiency without obvious cause',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (ida && dyspepsia) {
+      twoWW = true; twoWWReason = 'Iron deficiency anaemia with dyspepsia';
+      trace = [{label:'IF iron deficiency anaemia AND dyspepsia',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    } else if (giBleedUpper) {
+      twoWW = true; twoWWReason = 'Upper GI bleeding — melaena / haematemesis';
+      trace = [{label:'IF upper GI bleeding (melaena/haematemesis)',match:true},{label:'THEN 2WW gastroenterology',match:true}];
+    }
+
+    if (twoWW) {
+      result = {
+        priority: 'tww',
+        activeNodes: ['start','cv','ix','tww','tww_ref'],
+        activeEdges: ['start->cv','cv->ix','ix->tww','tww->tww_ref'],
+        flag: '⚠️ 2-WEEK WAIT',
+        title: '2-Week Wait referral to gastroenterology',
+        subtitle: 'One or more urgent referral criteria are met: ' + twoWWReason + '. Refer to gastroenterology via 2WW pathway reflecting clinical judgement.',
+        ctxWarning: platelets !== null && platelets > 400 ? 'Raised platelets noted — also consider MDC referral (see Abnormal FBC pathway).' : null,
+        actions: [
+          { text: 'Refer urgently to gastroenterology via 2-Week Wait pathway', local_key: 'tww_gastro' },
+          { text: 'Document triggering criterion/criteria in referral', local_key: null },
+          { text: 'Ensure all investigations are within 6 months of referral date', local_key: null },
+          platelets !== null && platelets > 400 ? { text: 'Consider MDC referral for raised platelets (see FBC pathway)', local_key: 'mdc_contact' } : null
+        ].filter(Boolean),
+        verbatim: '"2 Week Wait referral to gastroenterology: ≥40 years with jaundice or unexplained weight loss and abdominal pain; <50 years with rectal bleeding and any of the following unexplained symptoms…; ≥50 years with unexplained rectal bleeding; ≥60 years with iron-deficiency anaemia or changes in their bowel habit or weight loss…; Any age where tests show occult blood in their faeces; Ascites; New iron deficiency without an obvious cause; Raised/positive FIT test suggestive of cancer; Iron deficiency anaemia with dyspepsia; Upper GI bleeding-melaena/haematemesis"',
+        source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Steps 4.1 (R) / 12.0 (Pi) · EXPLICIT',
+        logicTrace: trace,
+        recordSummary: '2WW gastroenterology referral indicated: ' + twoWWReason,
+        recordPlan: '2-Week Wait referral to gastroenterology. Investigations to be within 6 months of referral.'
+      };
+    }
+  }
+
+  // RULE C: Routine gastroenterology referral
+  if (!result) {
+    let gastroRefer = false;
+    let gastroReason = '';
+    let gastroUrgent = false;
+    let trace = [];
+
+    if (coeliac === 'positive') {
+      gastroRefer = true; gastroReason = 'Positive coeliac serology';
+      trace = [{label:'IF coeliac serology positive',match:true},{label:'THEN refer gastroenterology',match:true}];
+    } else if (sex === 'male' && ida && !overt_nongi) {
+      gastroRefer = true; gastroReason = 'Male with iron deficiency anaemia and no overt non-GI bleeding';
+      if (markedAnaemia) { gastroUrgent = true; }
+      trace = [
+        {label:'IF male AND iron deficiency anaemia',match:true},
+        {label:'AND NOT overt non-GI bleeding',match:!overt_nongi},
+        {label:'THEN refer gastroenterology' + (gastroUrgent ? ' (more urgently — Hb <120)' : ''),match:true}
+      ];
+    } else if (sex === 'female' && menopausal === 'postmenopausal' && ida && !overt_nongi) {
+      gastroRefer = true; gastroReason = 'Postmenopausal female with iron deficiency anaemia and no overt non-GI bleeding';
+      if (markedAnaemia) { gastroUrgent = true; }
+      trace = [
+        {label:'IF postmenopausal female AND iron deficiency anaemia',match:true},
+        {label:'AND NOT overt non-GI bleeding',match:!overt_nongi},
+        {label:'THEN refer gastroenterology' + (gastroUrgent ? ' (more urgently — Hb <100)' : ''),match:true}
+      ];
+    } else if (age !== null && age >= 50 && (markedAnaemia || fhGi === 'strong')) {
+      gastroRefer = true; gastroReason = 'Age ≥50 with marked anaemia or significant family history of colorectal cancer';
+      trace = [{label:'IF age ≥50 AND (marked anaemia OR strong FH colorectal cancer)',match:true},{label:'THEN refer gastroenterology (even if coeliac found)',match:true}];
+    } else if (sex === 'female' && menopausal === 'premenopausal' && age !== null && age < 50 && (colonicSx || fhGi === 'strong' || notMenstruating)) {
+      gastroRefer = true; gastroReason = 'Premenopausal female <50 with colonic symptoms / strong FH / not menstruating';
+      trace = [{label:'IF premenopausal female <50 AND (colonic symptoms OR strong FH OR not menstruating)',match:true},{label:'THEN refer gastroenterology',match:true}];
+    }
+
+    if (gastroRefer) {
+      result = {
+        priority: 'refer',
+        activeNodes: ['start','cv','ix','tww','nongi','iron_rx','gastro_crit','gastro_ref'],
+        activeEdges: ['start->cv','cv->ix','ix->tww','tww->nongi','nongi->iron_rx','iron_rx->gastro_crit','gastro_crit->gastro_ref'],
+        flag: '🟣 REFER',
+        title: gastroUrgent ? 'Urgent gastroenterology referral' : 'Refer to gastroenterology',
+        subtitle: gastroReason + '. ' + (gastroUrgent ? 'Haemoglobin level meets threshold for more urgent investigation. ' : '') + 'Consider Advice and Guidance before formal referral if appropriate.',
+        actions: [
+          { text: gastroUrgent ? 'Refer to gastroenterology — investigate more urgently' : 'Refer to gastroenterology (routine)', local_key: 'gastro_contact' },
+          { text: 'Consider Advice and Guidance before formal referral if appropriate', local_key: 'ag_route' },
+          { text: 'Ensure investigations within 6 months of referral date', local_key: null }
+        ],
+        verbatim: '"All men and postmenopausal women with iron deficiency anaemia unless they have overt nongastrointestinal bleeding. Men with a haemoglobin (Hb) level less than 120 g/L and postmenopausal women with an Hb level less than 100 g/L should be investigated more urgently."',
+        source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Steps 9.0 (B) / 10.0 (B) / 11.0 (G) · EXPLICIT',
+        logicTrace: trace,
+        recordSummary: 'Gastroenterology referral indicated: ' + gastroReason,
+        recordPlan: 'Refer to gastroenterology' + (gastroUrgent ? ' (urgently)' : '') + '. Consider A&G first.'
+      };
+    }
+  }
+
+  // RULE D: Non-GI bleeding — other referral routes
+  if (!result && overt_nongi) {
+    let urologyRefer = false;
+    let urologyReason = '';
+
+    if (haematuria === 'visible' && age !== null && age >= 45) {
+      urologyRefer = true; urologyReason = 'Visible haematuria, age ≥45 — refer urology (2WW if unexplained without UTI)';
+    } else if (haematuria === 'nonvisible' && age !== null && age >= 60 && (dysuria || true)) {
+      urologyRefer = true; urologyReason = 'Non-visible haematuria, age ≥60 with dysuria / raised WBC — refer urology';
+    }
+
+    result = {
+      priority: 'refer',
+      activeNodes: ['start','cv','ix','tww','nongi','spec_ref'],
+      activeEdges: ['start->cv','cv->ix','ix->tww','tww->nongi','nongi->spec_ref'],
+      flag: '🟠 OTHER SOURCE',
+      title: 'Non-GI bleeding identified — refer to relevant specialty',
+      subtitle: urologyRefer ? urologyReason : 'Non-GI source of bleeding (gynaecological, epistaxis, genitourinary). Refer to relevant specialty or consider Advice and Guidance. If underlying cause is unknown, consider haematology referral.',
+      actions: [
+        urologyRefer ? { text: urologyReason, local_key: 'urology_contact' } : { text: 'Consider Advice and Guidance or refer to relevant specialty', local_key: 'ag_route' },
+        { text: 'Consider referral to haematology if underlying cause unknown', local_key: 'haem_contact' },
+        { text: 'Escalate to 2WW if required (e.g. gynaecology for postmenopausal bleeding)', local_key: null }
+      ],
+      verbatim: '"Consider Advice and guidance or refer to relevant speciality if underlying cause not manageable in primary care. Consider referral to haematology if underlying cause unknown."',
+      source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Steps 5.0 (B) / 7.0 (G) / 7.2 (R) · EXPLICIT',
+      logicTrace: [{label:'IF overt non-GI bleeding (gynaecological/epistaxis/genitourinary)', match:true},{label:'THEN refer to relevant specialty / consider A&G', match:true}],
+      recordSummary: 'Non-GI bleeding source identified — referral to relevant specialty',
+      recordPlan: urologyRefer ? urologyReason : 'Refer to relevant specialty for non-GI bleeding. Haematology if cause unknown.'
+    };
+  }
+
+  // RULE E: Start iron replacement + investigations
+  // Only fires if iron deficiency is actually suggested by the entered results — NOT as a catch-all
+  if (!result && (ida || ironDef || (ferritin !== null && ferritin < 30))) {
+    let inflamedWarn = inflamed && ferritin !== null && ferritin < 150;
+    result = {
+      priority: 'gp',
+      activeNodes: ['start','cv','ix','tww','nongi','iron_rx','gastro_crit','response','continue'],
+      activeEdges: ['start->cv','cv->ix','ix->tww','tww->nongi','nongi->iron_rx','iron_rx->gastro_crit','gastro_crit->response','response->continue'],
+      flag: '🔵 GP ACTION',
+      title: 'Start iron replacement therapy',
+      subtitle: 'Iron deficiency anaemia suspected. Begin iron replacement while awaiting investigations. ' + (inflamedWarn ? 'Note: elevated CRP may mask ferritin — interpret ferritin with caution.' : ''),
+      ctxWarning: inflamedWarn ? 'Raised CRP (' + crp + ' mg/L): ferritin may be spuriously elevated due to inflammation. Ferritin should be interpreted cautiously.' : null,
+      actions: [
+        { text: '1st choice: Ferrous fumarate 322mg capsule daily (100mg elemental iron) — take on empty stomach', local_key: null },
+        { text: 'OR Ferrous fumarate 210mg tablets daily (68mg elemental iron) — take on empty stomach', local_key: null },
+        { text: '2nd choice (if intolerant): Ferrous sulphate 200mg daily (65mg elemental iron) — take on empty stomach', local_key: null },
+        { text: 'Request: FBC, ferritin, iron studies, CRP, coeliac screen, urine dipstick', local_key: null },
+        { text: 'Check FBC in 1 month — expect Hb rise of 1-2 g/100ml over 3-4 weeks', local_key: null },
+        { text: 'If unable to tolerate oral iron: refer to haematology for parenteral iron', local_key: 'haem_contact' }
+      ],
+      verbatim: '"Iron Replacement (dietary changes alone are not sufficient to correct iron deficiency anaemia). Treat whilst awaiting investigations…1st choice: Ferrous fumarate 322mg capsule (100mg elemental iron/capsule) daily…2nd choice: Ferrous sulphate 200mg (65mg elemental iron/tablet) daily."',
+      source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Step 8.0 (Pi) / 8.1 (B) · EXPLICIT',
+      logicTrace: [
+        {label:'IF iron deficiency anaemia suspected', match: ida || (ferritin !== null && ferritin < 30)},
+        {label:'THEN start iron replacement whilst awaiting investigations', match:true},
+        {label:'AND check FBC in 1 month', match:true}
+      ],
+      recordSummary: 'Iron deficiency anaemia — commenced oral iron replacement, FBC in 1 month',
+      recordPlan: 'Ferrous fumarate 322mg daily. FBC in 1 month. Continue 3 months post-Hb normalisation.'
+    };
+  }
+
+  // RULE F: Conditional anaemia (Hb 120-129, sex unknown) — v4 Principle 2
+  if (!result && anaemiaConditional) {
+    result = {
+      priority: 'info',
+      activeNodes: ['start'],
+      activeEdges: [],
+      flag: '⚪ CONDITIONAL — depends on sex',
+      title: 'Hb ' + hb + ' g/L — sits in the sex-dependent zone',
+      subtitle: 'NCL pathway anaemia thresholds: Hb <130 (M) / <120 (F). Hb ' + hb + ' is below the male threshold but above the female threshold — outcome depends on sex.',
+      actions: [
+        { text: '<strong>If male:</strong> Hb ' + hb + ' &lt; 130 → anaemia present; check ferritin / MCV / iron studies and follow the iron deficiency pathway.', local_key: null },
+        { text: '<strong>If female:</strong> Hb ' + hb + ' ≥ 120 → no anaemia by NCL threshold; further workup driven by clinical context.', local_key: null },
+        { text: 'Set <strong>sex</strong> in the context panel above and re-analyse to see the full route.', local_key: null }
+      ],
+      verbatim: '"Anaemia: Hb <130 g/L in adult males or <120 g/L in adult females."',
+      source: 'NCL ICB Adult Iron Deficiency Pathway · Final Aug 2022 · Anaemia definition · EXPLICIT',
+      logicTrace: [
+        {label:'IF Hb in 120-129 zone', match: anaemiaConditional},
+        {label:'AND sex not specified', match: !sex},
+        {label:'THEN show conditional outcome (if male X, if female Y)', match: true}
+      ],
+      recordSummary: 'Hb ' + hb + ' — anaemia if male, no anaemia if female (sex not specified)',
+      recordPlan: 'Confirm sex; if male follow IDA pathway, if female no NCL action triggered.'
+    };
+  }
+
+  // FALLBACK: No findings — does NOT default to prescribing iron
+  if (!result) {
+    result = {
+      priority: 'noaction',
+      activeNodes: [],
+      activeEdges: [],
+      flag: '✓ NO ACTION TRIGGERED',
+      title: 'No iron deficiency pathway action triggered by these inputs',
+      subtitle: 'The values and context entered do not meet any decision branch of the NCL Adult Iron Deficiency Pathway. Check against the FBC pathway if you suspect an anaemia of another type, or re-check the lab reference range.',
+      actions: [
+        { text: 'Re-check entered values against the lab reference range.', local_key: null },
+        { text: 'If anaemia is present but not iron-deficient, consider the FBC pathway (covers B12, folate, macrocytic, normocytic patterns).', local_key: null }
+      ],
+      verbatim: '',
+      source: 'No NCL pathway branch triggered',
+      logicTrace: [{label: 'No rule conditions matched', match: true}],
+      recordSummary: 'No NCL iron deficiency pathway action triggered',
+      recordPlan: 'No specific action from this pathway. Consider differential or repeat workup.'
+    };
+  }
+
+  currentResult = result;
+  renderResult(result);
+}
+
+function renderResult(result) {
+  const ra = document.getElementById('result-area');
+  ra.style.display = 'block';
+  document.getElementById('chip-row').style.display = 'flex';
+  document.getElementById('emr-bar').style.display = 'block';
+
+  // Chips
+  renderChips();
+
+  // Action card
+  const ac = document.getElementById('action-card');
+  ac.className = 'action-card ' + result.priority;
+
+  let actionsHTML = result.actions.map((a, i) => {
+    const localVal = localData[a.local_key] || '';
+    const localHTML = a.local_key ? `
+      <div class="local-instruction ${localVal ? '' : 'not-set'}">${localVal || 'Local instruction: not yet set — admin can add in Admin mode'}</div>
+      <div class="admin-edit"><textarea placeholder="Add local detail..." onchange="saveLocal('${a.local_key}',this.value)">${localVal}</textarea><button onclick="saveLocalBtn(this,'${a.local_key}')">Save</button></div>` : '';
+    return `<li><div class="action-num">${i+1}</div><div><div>${a.text}</div>${localHTML}</div></li>`;
+  }).join('');
+
+  let traceHTML = result.logicTrace ? result.logicTrace.map(t => 
+    `<div class="${t.match ? 'match' : 'nomatch'}">${t.match ? '✓' : '·'} ${t.label}</div>`
+  ).join('') : '';
+
+  ac.innerHTML = `
+    <div class="flag-pulse ${result.priority}">${result.flag}</div>
+    <div class="action-title serif">${result.title}</div>
+    <div class="action-sub">${result.subtitle}</div>
+    ${result.ctxWarning ? `<div class="ctx-warning">⚠️ ${result.ctxWarning}</div>` : ''}
+    <ul class="action-list">${actionsHTML}</ul>
+    <button class="show-why-btn" onclick="toggleWhy(this)">📖 Show why</button>
+    <div class="why-panel">
+      <div class="why-section">
+        <h4>Verbatim pathway text</h4>
+        <div class="verbatim">${result.verbatim}</div>
+        <div class="source-line">${result.source}</div>
+      </div>
+      <div class="why-section">
+        <h4>Logic trace</h4>
+        <div class="logic-trace">${traceHTML}</div>
+      </div>
+    </div>`;
+
+  // EMR bar
+  document.getElementById('emr-summary').textContent = result.recordSummary;
+
+  // Build flow diagram
+  buildFlowDiagram(result.activeNodes || [], result.activeEdges || []);
+}
+
+function renderEmptyState() {
+  const ra = document.getElementById('result-area');
+  ra.style.display = 'block';
+  ra.innerHTML = '<div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:16px;padding:40px 24px;text-align:center;">' +
+    '<div style="font-size:40px;opacity:0.4;margin-bottom:12px;">🩸</div>' +
+    '<div style="font-family:\'DM Serif Display\',Georgia,serif;font-size:18px;color:#374151;margin-bottom:6px;">No results entered</div>' +
+    '<div style="font-size:13px;color:#6B7280;">Enter at least one blood result or clinical context above, then click Analyse.</div>' +
+    '</div>';
+  const cr = document.getElementById('chip-row'); if (cr) cr.style.display = 'none';
+  const eb = document.getElementById('emr-bar'); if (eb) eb.style.display = 'none';
+  const fw = document.getElementById('flow-svg-wrap'); if (fw) fw.style.display = 'none';
+}
+
+function renderChips() {
+  const fields = [
+    {id:'hb',label:'Hb',unit:'g/L'},
+    {id:'mcv',label:'MCV',unit:'fl'},
+    {id:'ferritin',label:'Ferritin',unit:'µg/L'},
+    {id:'crp',label:'CRP',unit:'mg/L'},
+    {id:'platelets',label:'Plt',unit:'×10⁹/L'}
+  ];
+  const sex = v('sex');
+  const cr = document.getElementById('chip-row');
+  cr.innerHTML = fields.map(f => {
+    const el = document.getElementById(f.id);
+    const val = parseFloat(el.value);
+    if (isNaN(val)) return `<span class="chip not-entered">${f.label}: —</span>`;
+    let cls = 'chip';
+    if (f.id === 'hb') { const t = sex === 'male' ? 130 : 120; cls += val < t ? ' abnormal' : ' normal'; }
+    if (f.id === 'mcv') cls += val < 80 ? ' abnormal' : ' normal';
+    if (f.id === 'ferritin') cls += val < 30 ? ' abnormal' : ' normal';
+    if (f.id === 'crp') cls += val > 10 ? ' abnormal' : ' normal';
+    if (f.id === 'platelets') cls += val > 400 ? ' abnormal' : ' normal';
+    return `<span class="${cls}">${f.label}: ${val} ${f.unit}</span>`;
+  }).join('');
+}
+
+function toggleWhy(btn) {
+  const panel = btn.nextElementSibling;
+  const isOpen = panel.classList.toggle('open');
+  btn.textContent = isOpen ? '📖 Hide why' : '📖 Show why';
+}
+
+function buildFlowDiagram(activeNodes, activeEdges) {
+  const wrap = document.getElementById('flow-svg-wrap');
+  const nodes = [
+    {id:'start', x:200, y:20, w:200, h:50, label:'Iron deficiency\nsuspected', cat:'gp'},
+    {id:'cv', x:20, y:110, w:160, h:50, label:'Cardiovascular\ninstability?', cat:'check'},
+    {id:'admit', x:20, y:200, w:160, h:50, label:'ADMIT URGENTLY', cat:'urgent'},
+    {id:'ix', x:220, y:110, w:160, h:50, label:'Investigations +\nHistory/Examination', cat:'gp'},
+    {id:'tww', x:420, y:110, w:160, h:50, label:'2WW Criteria\nmet?', cat:'check'},
+    {id:'tww_ref', x:420, y:200, w:160, h:50, label:'2WW REFERRAL\nGastroenterology', cat:'tww'},
+    {id:'nongi', x:220, y:200, w:160, h:50, label:'Non-GI\nbleeding?', cat:'check'},
+    {id:'spec_ref', x:220, y:290, w:160, h:50, label:'Refer relevant\nspecialty', cat:'refer'},
+    {id:'iron_rx', x:420, y:290, w:160, h:50, label:'Iron replacement\n+ FBC in 1 month', cat:'gp'},
+    {id:'gastro_crit', x:420, y:380, w:160, h:50, label:'Gastro referral\ncriteria met?', cat:'check'},
+    {id:'gastro_ref', x:600, y:380, w:160, h:50, label:'REFER\nGastroenterology', cat:'refer'},
+    {id:'response', x:420, y:470, w:160, h:50, label:'Improved at\n1 month?', cat:'check'},
+    {id:'continue', x:420, y:560, w:160, h:50, label:'Continue iron\n3 months post-Hb', cat:'monitor'},
+    {id:'no_improve', x:600, y:470, w:160, h:50, label:'2WW / Refer\nGastro / A&G', cat:'tww'}
+  ];
+
+  // Edges define the connections between nodes — required for arrows to render
+  const edges = [
+    {from:'start', to:'cv'},
+    {from:'cv', to:'admit', label:'yes'},
+    {from:'cv', to:'ix', label:'no'},
+    {from:'ix', to:'tww'},
+    {from:'tww', to:'tww_ref', label:'yes'},
+    {from:'tww', to:'nongi', label:'no'},
+    {from:'nongi', to:'spec_ref', label:'yes'},
+    {from:'nongi', to:'iron_rx', label:'no'},
+    {from:'iron_rx', to:'gastro_crit'},
+    {from:'gastro_crit', to:'gastro_ref', label:'yes'},
+    {from:'gastro_crit', to:'response', label:'no'},
+    {from:'response', to:'continue', label:'yes'},
+    {from:'response', to:'no_improve', label:'no'}
+  ];
+
+  const aN = new Set(activeNodes || []);
+  const aE = new Set(activeEdges || []);
+  const anyActive = (activeNodes && activeNodes.length > 0);
+
+  const catColour = {
+    gp:'#3b82f6', urgent:'#ef4444', tww:'#f97316', refer:'#8b5cf6',
+    monitor:'#22c55e', check:'#94a3b8'
+  };
+
+  // Build node lookup for edge endpoint calculation
+  const nodeMap = {};
+  nodes.forEach(nd => { nodeMap[nd.id] = nd; });
+
+  // Render edges first (so nodes layer on top)
+  let svgEdges = edges.map(e => {
+    const f = nodeMap[e.from], t = nodeMap[e.to];
+    if (!f || !t) return '';
+    const edgeKey = e.from + '->' + e.to;
+    const active = aE.has(edgeKey);
+    const dimmed = anyActive && !active;
+    const stroke = active ? '#1859CC' : '#94a3b8';
+    const strokeW = active ? 2.5 : 1.5;
+    const opacity = dimmed ? 0.2 : 1;
+    const marker = active ? 'url(#arrow-active)' : 'url(#arrow)';
+    // Decide path: horizontal-vertical-horizontal for non-aligned nodes
+    const x1 = f.x + f.w/2, y1 = f.y + f.h;
+    const x2 = t.x + t.w/2, y2 = t.y;
+    const midY = (y1 + y2) / 2;
+    const path = `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+    let labelText = '';
+    if (e.label) {
+      const lblX = (x1 + x2) / 2;
+      const lblY = midY - 4;
+      const lblColour = active ? '#1859CC' : '#94a3b8';
+      labelText = `<text x="${lblX}" y="${lblY}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="${lblColour}" font-weight="${active?'600':'400'}" opacity="${opacity}">${e.label}</text>`;
+    }
+    return `<path d="${path}" fill="none" stroke="${stroke}" stroke-width="${strokeW}" marker-end="${marker}" opacity="${opacity}"/>${labelText}`;
+  }).join('');
+
+  // Render nodes
+  let svgNodes = nodes.map(nd => {
+    const isActive = aN.has(nd.id);
+    const dimmed = anyActive && !isActive;
+    const col = catColour[nd.cat] || '#94a3b8';
+    const fill = isActive ? col : '#f1f5f9';
+    const stroke = isActive ? col : '#e2e8f0';
+    const strokeW = isActive ? 3.5 : 1;
+    const textCol = isActive ? '#fff' : '#94a3b8';
+    const opacity = dimmed ? 0.25 : 1;
+    const lines = nd.label.split('\n');
+    const textY = nd.y + nd.h/2 - (lines.length-1)*8 + 4;
+    const linesHTML = lines.map((l,i) => `<tspan x="${nd.x+nd.w/2}" dy="${i===0?0:14}">${l}</tspan>`).join('');
+    return `<g opacity="${opacity}">
+      <rect x="${nd.x}" y="${nd.y}" width="${nd.w}" height="${nd.h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" ${isActive ? 'filter="url(#shadow)"' : ''}/>
+      <text x="${nd.x+nd.w/2}" y="${textY}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" font-weight="${isActive?'600':'400'}" fill="${textCol}">${linesHTML}</text>
+    </g>`;
+  }).join('');
+
+  wrap.innerHTML = `<svg viewBox="0 0 800 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:780px">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
+      <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1859CC"/></marker>
+      <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/></filter>
+    </defs>
+    ${svgEdges}
+    ${svgNodes}
+  </svg>`;
+}
+
+function toggleFlow() {
+  const wrap = document.getElementById('flow-svg-wrap');
+  const btn = document.querySelector('.flow-toggle');
+  const isOpen = wrap.style.display === 'block';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  btn.textContent = isOpen ? 'Show diagram' : 'Hide diagram';
+}
+
+function saveLocal(key, val) {
+  localData[key] = val;
+  localStorage.setItem(LOCAL_KEY, JSON.stringify(localData));
+}
+
+function saveLocalBtn(btn, key) {
+  const val = btn.previousElementSibling.value;
+  saveLocal(key, val);
+  btn.textContent = '✓ Saved';
+  setTimeout(() => btn.textContent = 'Save', 2000);
+}
+
+function copyEMR() {
+  if (!currentResult) return;
+  const pt = v('pt-id') || 'not recorded';
+  const hb = document.getElementById('hb').value;
+  const mcv = document.getElementById('mcv').value;
+  const ferritin = document.getElementById('ferritin').value;
+  const crp = document.getElementById('crp').value;
+  const sex = v('sex');
+  const ts = new Date().toLocaleString('en-GB');
+
+  const text = `Iron deficiency results reviewed ${ts} — Pt: ${pt}
+Per NCL ICB Adult Iron Deficiency Primary Care Clinical Pathway (Final Aug 2022).
+Results: Hb ${hb||'—'} g/L, MCV ${mcv||'—'} fl, Ferritin ${ferritin||'—'} µg/L, CRP ${crp||'—'} mg/L
+Sex: ${sex||'—'}, Age: ${v('age')||'—'}
+Interpretation: ${currentResult.recordSummary}
+Plan: ${currentResult.recordPlan}
+Source: NCL ICB Adult Iron Deficiency Pathway, Final Aug 2022 (verbatim guideline logic reviewed via ResultDoctor).
+Disclaimer: Pathway logic only; does not replace clinical judgement.`;
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('emr-copy-btn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy for EMR'; btn.classList.remove('copied'); }, 3000);
+  });
+}
+
+function resetForm() {
+  document.querySelectorAll('input[type=number]').forEach(i => i.value = '');
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  document.getElementById('pt-id').value = '';
+  document.getElementById('result-area').style.display = 'none';
+  document.getElementById('chip-row').style.display = 'none';
+  document.getElementById('emr-bar').style.display = 'none';
+  currentResult = null;
+}
+</script>
+</body>
+</html>

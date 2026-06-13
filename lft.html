@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResultDoctor — NW London Abnormal LFT Pathway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1C3D;
+  --navy2: #162545;
+  --blue: #1859CC;
+  --blue-lt: #E8F0FD;
+  --blue-mid: #4A7DE8;
+  --green: #00703C;
+  --green-lt: #E3F5EC;
+  --red: #B91C1C;
+  --red-lt: #FEF2F2;
+  --amber: #92400E;
+  --amber-lt: #FFFBEB;
+  --amber-bd: #FCD34D;
+  --purple: #7C3AED;
+  --purple-lt: #FDF4FF;
+  --grey: #6B7280;
+  --grey-lt: #F9FAFB;
+  --border: #E5E7EB;
+  --border2: #D1D5DB;
+  --text: #111827;
+  --text2: #374151;
+  --text3: #6B7280;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: #F8F9FB; color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: var(--navy); color: white; padding: 0 32px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.logo { font-family: var(--serif); font-size: 20px; color: white; text-decoration: none; letter-spacing: -.02em; }
+.logo span { color: #60A5FA; }
+.header-nav { display: flex; align-items: center; gap: 24px; }
+.breadcrumb { font-size: 12px; color: rgba(255,255,255,.5); }
+.mode-toggle { display: flex; background: rgba(255,255,255,.1); border-radius: 20px; padding: 2px; }
+.mode-btn { padding: 4px 14px; border-radius: 18px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; font-family: var(--sans); background: transparent; color: rgba(255,255,255,.6); transition: all .15s; }
+.mode-btn.on { background: white; color: var(--navy); }
+
+/* ── PATHWAY HEADER ── */
+.pathway-header { background: var(--navy2); color: white; padding: 32px 0 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.pathway-header-inner { max-width: 880px; margin: 0 auto; padding: 0 32px 28px; }
+.pathway-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; text-transform: uppercase; }
+.tag-live { background: var(--green); color: white; }
+.tag-icb { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); }
+.tag-version { background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); }
+.pathway-title { font-family: var(--serif); font-size: 32px; font-weight: 400; line-height: 1.2; margin-bottom: 8px; letter-spacing: -.02em; }
+.pathway-subtitle { font-size: 13px; color: rgba(255,255,255,.55); }
+.pathway-source-strip { background: rgba(0,0,0,.2); padding: 10px 32px; font-size: 11px; color: rgba(255,255,255,.45); display: flex; align-items: center; gap: 8px; }
+.source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-mid); flex-shrink: 0; }
+
+.page { max-width: 880px; margin: 0 auto; padding: 32px; }
+
+/* ── PANELS ── */
+.panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: var(--shadow); overflow: hidden; }
+.panel-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-head-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); }
+.panel-body { padding: 20px; }
+.panel-note { background: var(--grey-lt); border-top: 1px solid var(--border); padding: 10px 20px; font-size: 12px; color: var(--text3); line-height: 1.5; }
+
+/* ── RESULT FORM ── */
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.result-field { display: flex; flex-direction: column; gap: 5px; }
+.result-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; }
+.result-unit { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.result-input { padding: 10px 12px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 15px; font-family: var(--sans); font-weight: 500; color: var(--text); background: white; transition: border-color .15s, box-shadow .15s; width: 100%; }
+.result-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,89,204,.12); }
+.result-input.abnormal { border-color: var(--red); background: var(--red-lt); }
+.result-input.warning { border-color: #F59E0B; background: var(--amber-lt); }
+.result-input.normal { border-color: var(--green); background: var(--green-lt); }
+.analyse-btn { width: 100%; padding: 14px 24px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; letter-spacing: -.01em; }
+.analyse-btn:hover { background: #1348B0; }
+.reset-link { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--text3); cursor: pointer; text-decoration: underline; }
+
+/* ── CONTEXT ── */
+.context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.ctx-q { display: flex; flex-direction: column; gap: 5px; }
+.ctx-q label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.ctx-select { padding: 8px 10px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); background: white; }
+.ctx-select:focus { outline: none; border-color: var(--blue); }
+
+/* ── OUTPUT ── */
+.output-section { display: none; }
+.output-section.show { display: block; }
+.section-divider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin: 24px 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ━━━ PRIMARY ACTION CARD (the headline answer) ━━━ */
+.primary-card {
+  border-radius: 20px; padding: 28px 28px 24px; margin-bottom: 16px;
+  border: 2px solid; position: relative; box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+.primary-card.urgent { background: #FEF2F2; border-color: #DC2626; }
+.primary-card.gp { background: #EFF6FF; border-color: var(--blue); }
+.primary-card.refer { background: #FAF5FF; border-color: #9333EA; }
+.primary-card.noaction { background: #ECFDF5; border-color: var(--green); }
+.primary-card.amber-action { background: #FFFBEB; border-color: #D97706; }
+.primary-card.info { background: #F9FAFB; border-color: var(--grey); }
+
+.primary-flag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px;
+  margin-bottom: 14px; text-transform: uppercase; letter-spacing: .08em;
+}
+.primary-card.urgent .primary-flag { background: var(--red); color: white; }
+.primary-card.gp .primary-flag { background: var(--blue); color: white; }
+.primary-card.refer .primary-flag { background: #9333EA; color: white; }
+.primary-card.noaction .primary-flag { background: var(--green); color: white; }
+.primary-card.amber-action .primary-flag { background: #D97706; color: white; }
+.primary-card.info .primary-flag { background: var(--grey); color: white; }
+.pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+.primary-title { font-family: var(--serif); font-size: 28px; line-height: 1.2; margin-bottom: 6px; letter-spacing: -.01em; }
+.primary-card.urgent .primary-title { color: #7F1D1D; }
+.primary-card.gp .primary-title { color: var(--navy); }
+.primary-card.refer .primary-title { color: #581C87; }
+.primary-card.noaction .primary-title { color: #064E3B; }
+.primary-card.amber-action .primary-title { color: #78350F; }
+
+.primary-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 18px; line-height: 1.55; }
+.primary-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.primary-action-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: white; border-radius: 10px; border: 1px solid rgba(0,0,0,.06); font-size: 14px; line-height: 1.55; }
+.primary-action-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; color: white; }
+.urgent .primary-action-num { background: var(--red); }
+.gp .primary-action-num { background: var(--blue); }
+.refer .primary-action-num { background: #9333EA; }
+.noaction .primary-action-num { background: var(--green); }
+.amber-action .primary-action-num { background: #D97706; }
+.info .primary-action-num { background: var(--grey); }
+
+.local-instruction { background: rgba(255,255,255,.65); border-radius: 8px; padding: 8px 12px; margin-top: 6px; font-size: 12px; color: var(--text2); border-left: 3px solid; }
+.urgent .local-instruction { border-left-color: var(--red); }
+.gp .local-instruction { border-left-color: var(--blue); }
+.refer .local-instruction { border-left-color: #9333EA; }
+.amber-action .local-instruction { border-left-color: #D97706; }
+.local-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); margin-bottom: 2px; display: block; }
+
+/* ━━━ DETAILS / EXPANDABLE ━━━ */
+.details-toggle {
+  width: 100%; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,.5);
+  border: 1px solid rgba(0,0,0,.08); cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; font-family: var(--sans); font-size: 13px; font-weight: 600;
+  color: var(--text2); transition: background .15s;
+}
+.details-toggle:hover { background: white; }
+.details-toggle .chev { font-size: 12px; transition: transform .2s; }
+.details-toggle.open .chev { transform: rotate(180deg); }
+.details-content { display: none; padding-top: 16px; }
+.details-content.open { display: block; animation: fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+.detail-block { background: rgba(255,255,255,.6); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,.05); }
+.detail-block-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 8px; }
+
+/* Verbatim quote */
+.verbatim-quote {
+  font-family: 'Georgia', serif; font-style: italic; font-size: 13px; line-height: 1.65;
+  color: var(--text); padding: 12px 16px; background: white;
+  border-left: 3px solid var(--blue); border-radius: 0 8px 8px 0; margin: 6px 0;
+}
+.verbatim-source { font-size: 11px; font-style: normal; color: var(--text3); margin-top: 8px; font-family: var(--sans); }
+
+/* Logic trace */
+.logic-trace { font-size: 12px; line-height: 1.7; font-family: var(--sans); }
+.logic-line { padding: 3px 0; }
+.logic-kw { display: inline-block; font-weight: 700; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
+.kw-IF { background: var(--blue-lt); color: var(--blue); }
+.kw-AND { background: var(--green-lt); color: var(--green); }
+.kw-OR { background: var(--amber-lt); color: var(--amber); }
+.kw-THEN { background: var(--navy); color: white; }
+.kw-CTX { background: var(--purple-lt); color: var(--purple); }
+.logic-line.matched { color: var(--text); font-weight: 500; }
+.logic-line.matched::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.logic-line.unmet { color: var(--text3); }
+.logic-line.unmet::before { content: '· '; color: var(--text3); }
+
+/* Source badge */
+.source-attr { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 6px; }
+.source-tag { padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+.source-tag.explicit { background: rgba(0,112,60,.1); color: var(--green); }
+.source-tag.inferred { background: rgba(146,64,14,.1); color: var(--amber); }
+
+/* ━━━ SECONDARY (collapsed) cards ━━━ */
+.secondary-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+.secondary-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.secondary-head .chev { margin-left: auto; font-size: 11px; color: var(--text3); transition: transform .2s; }
+.secondary-card.open .chev { transform: rotate(180deg); }
+.secondary-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.secondary-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.secondary-card.urgent .secondary-tag { background: var(--red-lt); color: var(--red); }
+.secondary-card.gp .secondary-tag { background: var(--blue-lt); color: var(--blue); }
+.secondary-card.refer .secondary-tag { background: var(--purple-lt); color: var(--purple); }
+.secondary-card.noaction .secondary-tag { background: var(--green-lt); color: var(--green); }
+.secondary-card.amber-action .secondary-tag { background: var(--amber-lt); color: var(--amber); }
+.secondary-card.info .secondary-tag { background: var(--grey-lt); color: var(--grey); }
+.secondary-body { display: none; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text2); line-height: 1.6; }
+.secondary-card.open .secondary-body { display: block; }
+
+/* ━━━ CONTEXT WARNING ━━━ */
+.ctx-warning-strip { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: #92400E; line-height: 1.6; display: flex; gap: 10px; }
+.ctx-warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ━━━ RESULT SUMMARY ━━━ */
+.result-summary { background: var(--navy); color: white; border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+.result-chip { text-align: center; }
+.result-chip-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+.result-chip-val { font-size: 17px; font-weight: 600; font-family: var(--serif); }
+.result-chip-val.c-high { color: #FCA5A5; }
+.result-chip-val.c-normal { color: #6EE7B7; }
+.result-chip-val.c-urgent { color: #FCA5A5; }
+.result-chip-val.c-empty { color: rgba(255,255,255,.25); font-size: 13px; }
+
+/* ━━━ COPY TO RECORD ━━━ */
+.copy-record-bar {
+  position: sticky; bottom: 20px; margin: 24px auto 0; max-width: 600px;
+  background: var(--navy); color: white; border-radius: 14px;
+  padding: 14px 18px; display: none; align-items: center; gap: 12px;
+  box-shadow: 0 8px 32px rgba(11,28,61,.3);
+  z-index: 50;
+}
+.copy-record-bar.show { display: flex; }
+.copy-record-text { flex: 1; font-size: 13px; }
+.copy-record-text strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.5); margin-bottom: 2px; font-weight: 700; }
+.copy-record-btn { padding: 9px 18px; background: white; color: var(--navy); border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: var(--sans); white-space: nowrap; }
+.copy-record-btn:hover { background: #E5E7EB; }
+.copy-record-btn.copied { background: var(--green); color: white; }
+
+/* ━━━ FLOW DIAGRAM ━━━ */
+.flow-diagram-panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 20px; overflow: hidden; box-shadow: var(--shadow); }
+.flow-diagram-head { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.flow-diagram-head-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); flex: 1; }
+.flow-toggle { font-size: 12px; color: var(--blue); cursor: pointer; background: var(--blue-lt); padding: 4px 10px; border-radius: 6px; font-weight: 600; border: none; font-family: var(--sans); }
+.flow-toggle:hover { background: #DBEAFE; }
+.flow-diagram-svg { padding: 20px; overflow-x: auto; background: #FAFBFD; }
+.flow-diagram-svg svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+.flow-legend { padding: 10px 20px; background: var(--grey-lt); border-top: 1px solid var(--border); font-size: 11px; color: var(--text3); display: flex; gap: 16px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* SVG node styles */
+.fn-box { fill: white; stroke: #CBD5E1; stroke-width: 1.5; transition: all .35s; }
+.fn-box.urgent-fill { fill: #FEF2F2; stroke: #DC2626; stroke-width: 2; }
+.fn-box.gp-fill { fill: #EFF6FF; stroke: var(--blue); stroke-width: 2; }
+.fn-box.refer-fill { fill: #FAF5FF; stroke: #9333EA; stroke-width: 2; }
+.fn-box.noaction-fill { fill: #ECFDF5; stroke: var(--green); stroke-width: 2; }
+.fn-box.amber-fill { fill: #FFFBEB; stroke: #D97706; stroke-width: 2; }
+.fn-box.active { stroke-width: 3.5; filter: drop-shadow(0 4px 12px rgba(0,0,0,.18)); }
+.fn-box.dimmed { opacity: .25; }
+.fn-text { font-family: var(--sans); font-size: 11px; fill: var(--text); pointer-events: none; }
+.fn-text.dimmed { opacity: .4; }
+.fn-text-bold { font-weight: 600; }
+.fn-arrow { stroke: #94A3B8; stroke-width: 1.5; fill: none; marker-end: url(#arrow); transition: all .35s; }
+.fn-arrow.active { stroke: var(--blue); stroke-width: 2.5; }
+.fn-arrow.dimmed { opacity: .2; }
+.fn-label { font-family: var(--sans); font-size: 9px; fill: var(--text3); pointer-events: none; }
+.fn-label.dimmed { opacity: .4; }
+.fn-rect-step { font-family: var(--sans); font-size: 9px; font-weight: 700; fill: var(--text3); pointer-events: none; }
+.fn-rect-step.active { fill: var(--blue); }
+
+/* ━━━ EMPTY ━━━ */
+.empty-output { text-align: center; padding: 40px 24px; color: var(--text3); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+.empty-title { font-family: var(--serif); font-size: 18px; color: var(--text2); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+/* ━━━ ADMIN MODE BANNER ━━━ */
+.admin-banner {
+  background: linear-gradient(90deg, #FEF3C7, #FDE68A);
+  border-bottom: 1px solid #F59E0B; padding: 8px 32px; font-size: 12px; color: #78350F;
+  display: flex; align-items: center; gap: 10px;
+}
+.admin-banner strong { font-weight: 700; }
+
+/* ━━━ FOOTER ━━━ */
+footer { background: var(--navy); color: rgba(255,255,255,.45); font-size: 11px; padding: 24px 32px; margin-top: 40px; line-height: 1.6; }
+footer strong { color: rgba(255,255,255,.7); }
+
+body.patient-mode .clinician-only { display: none !important; }
+body.clinician-mode .patient-only { display: none !important; }
+
+/* Local instruction edit (admin mode only) */
+.editable-instr { display: none; }
+body.admin-mode .editable-instr { display: block; margin-top: 6px; }
+body.admin-mode .editable-instr textarea { width: 100%; min-height: 50px; padding: 6px 10px; border: 1px solid #F59E0B; border-radius: 6px; font-family: var(--sans); font-size: 12px; }
+body.admin-mode .editable-instr button { margin-top: 4px; padding: 4px 12px; background: #D97706; color: white; border: none; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer; }
+
+@media(max-width: 640px) {
+  .page { padding: 20px 16px; }
+  .pathway-header-inner { padding: 0 16px 20px; }
+  .pathway-title { font-size: 24px; }
+  .context-grid { grid-template-columns: 1fr; }
+  .results-grid { grid-template-columns: 1fr 1fr; }
+  header { padding: 0 16px; }
+  .primary-title { font-size: 22px; }
+  .primary-card { padding: 22px 20px 20px; }
+}
+</style>
+</head>
+<body class="clinician-mode">
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="index.html">Result<span>Doctor</span></a>
+  <div class="header-nav">
+    <a class="back-link" style="color: rgba(255,255,255,.7); text-decoration: none; font-size: 13px; font-weight: 500;" href="index.html">← Pathways</a>
+    <span class="breadcrumb">Abnormal LFTs</span>
+    <div class="mode-toggle">
+      <button class="mode-btn" onclick="setMode('patient')">👤 Patient</button>
+      <button class="mode-btn on" onclick="setMode('clinician')">🏥 Clinician</button>
+      <button class="mode-btn" onclick="setMode('admin')" title="Admin / customise local instructions">⚙️</button>
+    </div>
+  </div>
+</header>
+
+<div id="admin-banner" class="admin-banner" style="display:none">
+  <strong>Admin mode active.</strong> Local instructions (phone numbers, referral routes, URLs) can be edited inline within each action card. Changes save to this browser session.
+</div>
+
+<!-- PATHWAY HEADER -->
+<div class="pathway-header">
+  <div class="pathway-header-inner">
+    <div class="pathway-meta">
+      <span class="tag tag-live">Live</span>
+      <span class="tag tag-icb">NW London ICB</span>
+      <span class="tag tag-version">V1.6 Oct 2019</span>
+    </div>
+    <h1 class="pathway-title">Adult Abnormal LFT Pathway</h1>
+    <p class="pathway-subtitle">
+      Enter the results and clinical context, click <strong style="color:rgba(255,255,255,.8)">Analyse</strong>, and the engine will give you the exact next step from the NW London pathway — with the verbatim guideline text and the flow diagram showing your route.
+    </p>
+  </div>
+  <div class="pathway-source-strip">
+    <div class="source-dot"></div>
+    NW London Outpatient Pathways · Abnormal LFT · V1.6 Oct 2019 / V1.4 Aug 2019 — guideline logic only, never interpretation
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- RESULT ENTRY -->
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-head-label">Enter results &amp; context</span>
+      <span style="font-size:12px;color:var(--text3)">Leave blank if unknown</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="results-grid">
+        <div class="result-field">
+          <div><div class="result-label">Bilirubin</div><div class="result-unit">µmol/L</div></div>
+          <input class="result-input" type="number" id="f-bili" placeholder="e.g. 18" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">ALT</div><div class="result-unit">IU/L</div></div>
+          <input class="result-input" type="number" id="f-alt" placeholder="e.g. 45" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">AST</div><div class="result-unit">IU/L</div></div>
+          <input class="result-input" type="number" id="f-ast" placeholder="e.g. 32" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">ALP</div><div class="result-unit">IU/L</div></div>
+          <input class="result-input" type="number" id="f-alp" placeholder="e.g. 80" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">GGT</div><div class="result-unit">IU/L</div></div>
+          <input class="result-input" type="number" id="f-ggt" placeholder="e.g. 40" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">Albumin</div><div class="result-unit">g/L</div></div>
+          <input class="result-input" type="number" id="f-alb" placeholder="e.g. 38" min="0" oninput="clearOutput()">
+        </div>
+        <div class="result-field">
+          <div><div class="result-label">INR</div><div class="result-unit">ratio</div></div>
+          <input class="result-input" type="number" id="f-inr" placeholder="e.g. 1.1" min="0" step="0.1" oninput="clearOutput()">
+        </div>
+        <div class="result-field clinician-only">
+          <div><div class="result-label">Conj. bilirubin</div><div class="result-unit">% of total</div></div>
+          <input class="result-input" type="number" id="f-conjpct" placeholder="e.g. 15" min="0" max="100" oninput="clearOutput()">
+        </div>
+      </div>
+
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 10px">Clinical context</div>
+      <div class="context-grid">
+        <div class="ctx-q"><label>Jaundice?</label>
+          <select class="ctx-select" id="ctx-jaundice" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes — clinically jaundiced</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Unexplained weight loss?</label>
+          <select class="ctx-select" id="ctx-wtloss" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Alcohol consumption</label>
+          <select class="ctx-select" id="ctx-alcohol" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="high">&gt;14 units/week</option>
+            <option value="low">≤14 units/week</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>NAFLD risk factors?</label>
+          <select class="ctx-select" id="ctx-nafld" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes — T2DM, BMI&gt;25, dyslipidaemia, or HTN</option>
+            <option value="no">None</option>
+          </select>
+        </div>
+        <div class="ctx-q clinician-only"><label>Repeat result?</label>
+          <select class="ctx-select" id="ctx-repeat" onchange="clearOutput()">
+            <option value="">First / unknown</option>
+            <option value="first">First abnormal</option>
+            <option value="repeat">Repeat — still abnormal</option>
+          </select>
+        </div>
+        <div class="ctx-q clinician-only"><label>Patient identifier (optional, for record)</label>
+          <input class="ctx-select" type="text" id="ctx-patient" placeholder="e.g. NHS number or initials" oninput="updateCopyBar()">
+        </div>
+      </div>
+
+      <button class="analyse-btn" onclick="analyse()">Analyse →</button>
+      <span class="reset-link" onclick="resetAll()">Reset all</span>
+    </div>
+    <div class="panel-note">
+      ℹ <em>"The degree of abnormality is not an indication of the severity of disease."</em> — NW London pathway (both pages)
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div id="output-section" class="output-section"></div>
+
+  <!-- EMPTY STATE -->
+  <div id="empty-state">
+    <div class="empty-output">
+      <div class="empty-icon">🔬</div>
+      <div class="empty-title">Enter results above to analyse</div>
+      <div class="empty-sub">After clicking Analyse you'll see: the recommended action, why (with the exact guideline text), and where you are on the flow diagram.</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- COPY TO RECORD STICKY BAR -->
+<div id="copy-record" class="copy-record-bar">
+  <div class="copy-record-text">
+    <strong>Ready for clinical record</strong>
+    <span id="copy-record-summary">—</span>
+  </div>
+  <button class="copy-record-btn" id="copy-record-btn" onclick="copyForRecord()">📋 Copy for EMR</button>
+</div>
+
+<footer>
+  <strong>ResultDoctor</strong> reproduces NHS clinical guidelines verbatim and does not generate, modify, or interpret clinical recommendations. All pathway outputs are attributed to source documents, versions and dates.<br>
+  Built from: NW London Outpatient Pathways — Abnormal LFT V1.6 Oct 2019 / V1.4 Aug 2019. Supports clinical navigation and does not replace clinical judgement.
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// LOCAL INSTRUCTIONS (from admin tool / gaps)
+// In production this would be loaded from a backend or shared with the admin tool
+// For demo, default values are flagged "not set" and editable in admin mode
+// ═══════════════════════════════════════════════════
+const LOCAL_INSTR = JSON.parse(localStorage.getItem('nwl_lft_local') || '{}');
+const DEFAULT_LOCAL = {
+  'jaundice_hotline': '',
+  'liver_team': '',
+  'amu_aau': '',
+  'nafld_url': '',
+  'alcohol_url': '',
+  'gilberts_leaflet': '',
+  'hepatology_referral': ''
+};
+function getLocal(k) { return LOCAL_INSTR[k] || DEFAULT_LOCAL[k] || ''; }
+function setLocal(k, v) { LOCAL_INSTR[k] = v; localStorage.setItem('nwl_lft_local', JSON.stringify(LOCAL_INSTR)); }
+
+// Pre-fill from URL params or sessionStorage (from router)
+(function prefillFromRouter() {
+  const params = new URLSearchParams(window.location.search);
+  const stored = sessionStorage.getItem('resultdoctor_results');
+  let src = null;
+  if (stored) { try { src = JSON.parse(stored); } catch(e) {} }
+  const mapping = { 'bili':'f-bili', 'alt':'f-alt', 'ast':'f-ast', 'alp':'f-alp', 'ggt':'f-ggt', 'alb':'f-alb', 'inr':'f-inr', 'conjpct':'f-conjpct' };
+  const ctxMapping = { 'jaundice':'ctx-jaundice', 'wtloss':'ctx-wtloss', 'alcohol':'ctx-alcohol', 'nafld':'ctx-nafld', 'repeat':'ctx-repeat', 'patient':'ctx-patient' };
+  Object.entries(mapping).forEach(([k, id]) => {
+    const v = params.get(k) || (src && src[k]);
+    if (v != null && v !== '') { const el = document.getElementById(id); if (el) el.value = v; }
+  });
+  Object.entries(ctxMapping).forEach(([k, id]) => {
+    const v = params.get(k) || (src && src[k]);
+    if (v != null && v !== '') { const el = document.getElementById(id); if (el) el.value = v; }
+  });
+})();
+
+function localStr(key, fallback) {
+  const v = getLocal(key);
+  if (v) return `<div class="local-instruction"><span class="local-label">Local instruction</span>${v}</div>`;
+  return `<div class="local-instruction" style="opacity:.6"><span class="local-label">Local instruction not set</span><em>${fallback}</em></div>`;
+}
+
+function editableLocal(key, label) {
+  return `
+    <div class="editable-instr">
+      <label style="font-size:11px;font-weight:600;color:#78350F;display:block;margin-bottom:3px">✏ Set local: ${label}</label>
+      <textarea id="edit-${key}" placeholder="e.g. phone number, URL, referral route...">${getLocal(key)}</textarea>
+      <button onclick="saveLocal('${key}')">Save local</button>
+    </div>`;
+}
+
+function saveLocal(key) {
+  const v = document.getElementById('edit-' + key).value.trim();
+  setLocal(key, v);
+  // Re-run analyse to refresh output
+  if (lastAnalysisData) renderOutput(lastAnalysisData);
+}
+
+// ═══════════════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════════════
+function setMode(m) {
+  document.body.className = m + '-mode';
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('on'));
+  if (event && event.target) event.target.classList.add('on');
+  document.getElementById('admin-banner').style.display = m === 'admin' ? 'flex' : 'none';
+  if (lastAnalysisData) renderOutput(lastAnalysisData);
+}
+
+// ═══════════════════════════════════════════════════
+// FORM HELPERS
+// ═══════════════════════════════════════════════════
+function val(id) { const v = (document.getElementById(id) || {}).value; return v == null || v === '' ? null : parseFloat(v); }
+function sel(id) { return (document.getElementById(id) || {}).value || ''; }
+function txt(id) { return (document.getElementById(id) || {}).value || ''; }
+
+function clearOutput() {
+  document.getElementById('output-section').classList.remove('show');
+  document.getElementById('output-section').innerHTML = '';
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('copy-record').classList.remove('show');
+  lastAnalysisData = null;
+}
+function resetAll() {
+  ['f-bili','f-alt','f-ast','f-alp','f-ggt','f-alb','f-inr','f-conjpct'].forEach(id => { const el = document.getElementById(id); if (el) { el.value=''; el.className='result-input'; }});
+  ['ctx-jaundice','ctx-wtloss','ctx-alcohol','ctx-nafld','ctx-repeat'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+  const pi = document.getElementById('ctx-patient'); if (pi) pi.value = '';
+  clearOutput();
+}
+
+function colourInputs(d) {
+  const set = (id, cls) => { const el = document.getElementById(id); if (el && el.value !== '') el.className = 'result-input ' + cls; };
+  if (d.bili !== null) set('f-bili', d.biliRaised ? 'abnormal' : 'normal');
+  if (d.alt !== null) set('f-alt', d.altRaised ? 'abnormal' : 'normal');
+  if (d.ast !== null) set('f-ast', d.astRaised ? 'abnormal' : 'normal');
+  if (d.alp !== null) set('f-alp', d.alpRaised ? 'warning' : 'normal');
+  if (d.ggt !== null) set('f-ggt', d.ggtRaised ? 'warning' : 'normal');
+  if (d.alb !== null) set('f-alb', d.alb < 35 ? 'abnormal' : 'normal');
+  if (d.inr !== null) set('f-inr', d.inr > 1.2 ? 'abnormal' : 'normal');
+}
+
+// ═══════════════════════════════════════════════════
+// FLOW DIAGRAM
+// Each node is keyed; renderFlow takes a list of "active" node IDs
+// and returns SVG with active path highlighted, rest dimmed
+// ═══════════════════════════════════════════════════
+const FLOW_NODES = {
+  start:       { x: 350, y: 30,  w: 220, h: 40,  text: 'Patient has abnormal LFTs', cls: 'gp-fill', step: 'Start' },
+  history:     { x: 350, y: 100, w: 220, h: 60,  text: 'Take history: alcohol, BMI/metabolic, drugs, viral hep risk', cls: 'gp-fill', step: 'Step 1' },
+  urgent:      { x: 60,  y: 200, w: 220, h: 70,  text: 'Jaundice / low albumin / prolonged INR / weight loss / marked cholestasis', cls: 'urgent-fill', step: 'Urgent' },
+  urgentAct:   { x: 60,  y: 310, w: 220, h: 60,  text: '⚡ 2WW hep / jaundice hotline / emergency admission', cls: 'urgent-fill', step: 'Step 2' },
+  isolatedBili:{ x: 350, y: 200, w: 200, h: 60,  text: 'Isolated raised bilirubin (other LFTs normal)', cls: 'gp-fill', step: 'Step 3' },
+  splitBili:   { x: 350, y: 290, w: 200, h: 50,  text: 'Repeat with split bilirubin + FBC (fasting)', cls: 'gp-fill', step: 'Step 3a' },
+  gilberts:    { x: 350, y: 370, w: 200, h: 60,  text: '✓ Gilbert\'s: bili <85, conj <20%, FBC normal', cls: 'noaction-fill', step: 'Step 4' },
+  hepatic:     { x: 620, y: 200, w: 220, h: 60,  text: 'Hepatic enzymes raised (ALT or AST)', cls: 'gp-fill', step: 'Step 5' },
+  aetiology:   { x: 620, y: 290, w: 220, h: 70,  text: 'Liver aetiology screen + USS', cls: 'gp-fill', step: 'Step 5a' },
+  nafld:       { x: 620, y: 410, w: 220, h: 50,  text: 'USS normal/fatty + NAFLD risks → NAFLD pathway', cls: 'amber-fill', step: 'Step 6' },
+  refer1:      { x: 620, y: 490, w: 220, h: 50,  text: 'Abnormal USS / +ve screen → refer hepatology', cls: 'refer-fill', step: 'Step 7' },
+  refer2:      { x: 360, y: 490, w: 220, h: 50,  text: 'Persistent abnormal ALT/AST → refer hepatology', cls: 'refer-fill', step: 'Step 8' },
+  alcohol:     { x: 100, y: 410, w: 180, h: 50,  text: 'Alcohol cause → alcohol guidelines', cls: 'amber-fill', step: 'Step 9' },
+  alpggt:      { x: 90,  y: 580, w: 240, h: 50,  text: 'Cholestatic: raised ALP — check GGT', cls: 'gp-fill', step: 'P2 Step 5' },
+  alpLiver:    { x: 380, y: 580, w: 200, h: 50,  text: 'GGT raised → liver screen', cls: 'gp-fill', step: 'P2 Step 2' },
+  alpBone:     { x: 600, y: 580, w: 220, h: 50,  text: 'GGT normal → bone/drug, Vit D', cls: 'amber-fill', step: 'P2 Step 5b' },
+  isoGGT:      { x: 90,  y: 660, w: 240, h: 50,  text: 'Isolated GGT → alcohol/metabolic', cls: 'amber-fill', step: 'P2 Step 6' },
+};
+
+const FLOW_EDGES = [
+  { from: 'start', to: 'history' },
+  { from: 'history', to: 'urgent', label: 'urgent flags' },
+  { from: 'history', to: 'isolatedBili', label: 'iso. bili' },
+  { from: 'history', to: 'hepatic', label: 'ALT/AST raised' },
+  { from: 'history', to: 'alpggt', label: 'ALP raised' },
+  { from: 'history', to: 'isoGGT', label: 'iso. GGT' },
+  { from: 'history', to: 'alcohol', label: 'alcohol' },
+  { from: 'urgent', to: 'urgentAct' },
+  { from: 'isolatedBili', to: 'splitBili' },
+  { from: 'splitBili', to: 'gilberts', label: 'criteria met' },
+  { from: 'hepatic', to: 'aetiology' },
+  { from: 'aetiology', to: 'nafld', label: 'fatty + risks' },
+  { from: 'aetiology', to: 'refer1', label: 'abn USS / +ve' },
+  { from: 'aetiology', to: 'refer2', label: 'persistent' },
+  { from: 'alpggt', to: 'alpLiver', label: 'GGT↑' },
+  { from: 'alpggt', to: 'alpBone', label: 'GGT normal' },
+];
+
+function renderFlow(activeNodes, activeEdges) {
+  const aN = new Set(activeNodes);
+  const aE = new Set(activeEdges || []);
+  let svg = `<svg viewBox="0 0 900 720" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#94A3B8"/>
+      </marker>
+      <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1859CC"/>
+      </marker>
+    </defs>`;
+
+  // Edges
+  FLOW_EDGES.forEach((e, i) => {
+    const f = FLOW_NODES[e.from], t = FLOW_NODES[e.to];
+    if (!f || !t) return;
+    const x1 = f.x + f.w/2, y1 = f.y + f.h;
+    const x2 = t.x + t.w/2, y2 = t.y;
+    const edgeKey = e.from + '->' + e.to;
+    const active = aE.has(edgeKey);
+    const dimmed = activeNodes && activeNodes.length > 0 && !active;
+    const cls = active ? 'fn-arrow active' : (dimmed ? 'fn-arrow dimmed' : 'fn-arrow');
+    const marker = active ? 'url(#arrow-active)' : 'url(#arrow)';
+    // Curved path
+    const midX = (x1+x2)/2, midY = (y1+y2)/2;
+    svg += `<path class="${cls}" d="M ${x1} ${y1} Q ${midX} ${midY+10} ${x2} ${y2}" marker-end="${marker}"/>`;
+    if (e.label) {
+      const lblCls = dimmed ? 'fn-label dimmed' : 'fn-label';
+      svg += `<text class="${lblCls}" x="${midX}" y="${midY - 4}" text-anchor="middle">${e.label}</text>`;
+    }
+  });
+
+  // Nodes
+  Object.entries(FLOW_NODES).forEach(([id, n]) => {
+    const active = aN.has(id);
+    const dimmed = activeNodes && activeNodes.length > 0 && !active;
+    let cls = 'fn-box ' + n.cls;
+    if (active) cls += ' active';
+    if (dimmed) cls += ' dimmed';
+    const textCls = dimmed ? 'fn-text dimmed' : 'fn-text fn-text-bold';
+    const stepCls = active ? 'fn-rect-step active' : (dimmed ? 'fn-rect-step dimmed' : 'fn-rect-step');
+    svg += `<rect class="${cls}" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8" ry="8"/>`;
+    svg += `<text class="${stepCls}" x="${n.x + 8}" y="${n.y + 14}">${n.step.toUpperCase()}</text>`;
+    // Word-wrap text
+    const words = n.text.split(' ');
+    let lines = [], cur = '';
+    const maxChars = Math.floor((n.w - 20) / 5.2);
+    words.forEach(w => {
+      if ((cur + ' ' + w).trim().length > maxChars) { lines.push(cur.trim()); cur = w; }
+      else cur += ' ' + w;
+    });
+    if (cur.trim()) lines.push(cur.trim());
+    const lineH = 13;
+    const startY = n.y + (n.h - (lines.length * lineH)) / 2 + 18;
+    lines.forEach((line, i) => {
+      svg += `<text class="${textCls}" x="${n.x + n.w/2}" y="${startY + i * lineH}" text-anchor="middle">${line}</text>`;
+    });
+  });
+
+  svg += `</svg>`;
+  return svg;
+}
+
+// ═══════════════════════════════════════════════════
+// PATHWAY ENGINE
+// Returns a structured analysis result: primary action + secondary + flow path
+// Engine logic is fixed and traces to the source PDF
+// ═══════════════════════════════════════════════════
+let lastAnalysisData = null;
+
+function analyse() {
+  const bili = val('f-bili'), alt = val('f-alt'), ast = val('f-ast');
+  const alp = val('f-alp'), ggt = val('f-ggt'), alb = val('f-alb');
+  const inr = val('f-inr'), conjPct = val('f-conjpct');
+  const jaundice = sel('ctx-jaundice'), wtloss = sel('ctx-wtloss');
+  const alcohol = sel('ctx-alcohol'), nafld = sel('ctx-nafld'), repeat = sel('ctx-repeat');
+
+  const anyResult = [bili,alt,ast,alp,ggt,alb,inr].some(v => v !== null);
+  const anyContext = [jaundice,wtloss,alcohol].some(v => v !== '');
+  if (!anyResult && !anyContext) { alert('Please enter at least one result or clinical context before analysing.'); return; }
+
+  // Compute abnormality booleans
+  // Reference ranges shown only where the PDF gives explicit thresholds
+  const d = {
+    bili, alt, ast, alp, ggt, alb, inr, conjPct,
+    jaundice, wtloss, alcohol, nafld, repeat,
+    biliRaised: bili !== null && bili > 20,    // 20 µmol/L = standard upper, NOT in PDF
+    altRaised: alt !== null && alt > 40,        // 40 IU/L standard upper, NOT in PDF
+    astRaised: ast !== null && ast > 40,
+    alpRaised: alp !== null && alp > 130,
+    ggtRaised: ggt !== null && ggt > 55,
+    albLow: alb !== null && alb < 35,
+    inrHigh: inr !== null && inr > 1.2,
+    jaundiceY: jaundice === 'yes',
+    wtlossY: wtloss === 'yes',
+    alcoholHigh: alcohol === 'high',
+    nafldY: nafld === 'yes',
+    isRepeat: repeat === 'repeat'
+  };
+  d.syntheticFailure = d.jaundiceY || d.albLow || d.inrHigh;
+  d.malignancy = d.wtlossY;
+  d.hepaticPattern = d.altRaised || d.astRaised;
+  d.cholestaticPattern = d.alpRaised || d.ggtRaised;
+  d.altNormal = !d.altRaised && d.alt !== null;
+  d.astNormal = !d.astRaised && d.ast !== null;
+  d.alpNormal = !d.alpRaised && d.alp !== null;
+  d.ggtNormal = !d.ggtRaised && d.ggt !== null;
+  d.allEnzymesNormal = (d.alt === null || d.altNormal) && (d.ast === null || d.astNormal) && (d.alp === null || d.alpNormal) && (d.ggt === null || d.ggtNormal);
+  d.isolatedBili = d.biliRaised && d.allEnzymesNormal && !d.syntheticFailure;
+  d.gilbertsConfirmed = d.isolatedBili && d.bili < 85 && d.conjPct !== null && d.conjPct < 20;
+  d.gilbertsNeedsRepeat = d.isolatedBili && d.conjPct === null;
+
+  colourInputs(d);
+  lastAnalysisData = d;
+  renderOutput(d);
+}
+
+function renderOutput(d) {
+  const out = document.getElementById('output-section');
+  document.getElementById('empty-state').style.display = 'none';
+  out.classList.add('show');
+  out.innerHTML = '';
+
+  // ═══ DECIDE PRIMARY ACTION ═══
+  // Priority order in the engine: Urgent → Gilbert's confirmed → Cholestatic ALP+GGT context → Isolated bili → Hepatic → Cholestatic → Alcohol → No abnormality
+  let primary = null;
+  let secondaries = [];
+  let activeNodes = ['start','history'];
+  let activeEdges = ['start->history'];
+
+  // 1. URGENT
+  if (d.syntheticFailure || d.malignancy) {
+    activeNodes.push('urgent','urgentAct');
+    activeEdges.push('history->urgent','urgent->urgentAct');
+    primary = buildUrgent(d);
+  }
+
+  // 2. ISOLATED BILIRUBIN — Gilbert's pathway
+  else if (d.isolatedBili) {
+    activeNodes.push('isolatedBili','splitBili');
+    activeEdges.push('history->isolatedBili','isolatedBili->splitBili');
+    if (d.gilbertsConfirmed) {
+      activeNodes.push('gilberts');
+      activeEdges.push('splitBili->gilberts');
+      primary = buildGilberts(d);
+    } else {
+      primary = buildSplitBili(d);
+    }
+  }
+
+  // 3. HEPATIC PATTERN
+  else if (d.hepaticPattern) {
+    activeNodes.push('hepatic','aetiology');
+    activeEdges.push('history->hepatic','hepatic->aetiology');
+    if (d.nafldY) {
+      activeNodes.push('nafld'); activeEdges.push('aetiology->nafld');
+      primary = buildNAFLD(d);
+      secondaries.push(buildHepaticScreen(d));
+    } else if (d.isRepeat) {
+      activeNodes.push('refer2'); activeEdges.push('aetiology->refer2');
+      primary = buildReferPersistent(d);
+      secondaries.push(buildHepaticScreen(d));
+    } else {
+      primary = buildHepaticScreen(d);
+    }
+  }
+
+  // 4. CHOLESTATIC — ALP / GGT
+  else if (d.cholestaticPattern) {
+    activeNodes.push('alpggt');
+    activeEdges.push('history->alpggt');
+    if (d.alpRaised && d.ggt === null) {
+      // GGT required for branch
+      primary = buildALPNeedsGGT(d);
+    } else if (d.alpRaised && d.ggtRaised) {
+      activeNodes.push('alpLiver'); activeEdges.push('alpggt->alpLiver');
+      primary = buildCholestaticScreen(d);
+    } else if (d.alpRaised && d.ggtNormal) {
+      activeNodes.push('alpBone'); activeEdges.push('alpggt->alpBone');
+      primary = buildBoneCause(d);
+    } else if (d.ggtRaised && !d.alpRaised) {
+      activeNodes = ['start','history','isoGGT'];
+      activeEdges = ['start->history','history->isoGGT'];
+      primary = buildIsolatedGGT(d);
+    }
+  }
+
+  // 5. ALCOHOL (no LFT abnormality but alcohol flagged)
+  else if (d.alcoholHigh) {
+    activeNodes.push('alcohol');
+    activeEdges.push('history->alcohol');
+    primary = buildAlcohol(d);
+  }
+
+  // 6. NO ABNORMALITY
+  else {
+    primary = buildNormal(d);
+  }
+
+  // ═══ RENDER ═══
+  out.innerHTML = '';
+
+  // Result summary
+  out.innerHTML += resultSummaryHTML(d);
+
+  // Primary action
+  out.innerHTML += renderPrimary(primary);
+
+  // Flow diagram (always shown, defaulting to closed for primary-only view but expandable)
+  out.innerHTML += `
+    <div class="flow-diagram-panel">
+      <div class="flow-diagram-head">
+        <span class="flow-diagram-head-label">📍 Your path through the NW London pathway</span>
+        <button class="flow-toggle" onclick="toggleFlow(this)">Show diagram ▾</button>
+      </div>
+      <div id="flow-svg-wrap" style="display:none">
+        <div class="flow-diagram-svg">${renderFlow(activeNodes, activeEdges)}</div>
+        <div class="flow-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Active path</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#CBD5E1"></div>Not taken</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Urgent box</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>No further action</div>
+        </div>
+      </div>
+    </div>`;
+
+  // Secondary cards (collapsed)
+  if (secondaries.length) {
+    out.innerHTML += `<div class="section-divider">Also relevant to this pattern</div>`;
+    secondaries.forEach(s => {
+      out.innerHTML += renderSecondary(s);
+    });
+  }
+
+  // Pathway note
+  out.innerHTML += `<div class="section-divider">Pathway note (always)</div>
+    <div class="secondary-card info">
+      <div class="secondary-head" onclick="toggleSecondary(this)">
+        <span class="secondary-tag">Source</span>
+        <span class="secondary-title">Global guideline note — "the degree of abnormality is not an indication of the severity of disease"</span>
+        <span class="chev">▾</span>
+      </div>
+      <div class="secondary-body">
+        <div class="verbatim-quote">"The degree of abnormality is not an indication of the severity of disease."<div class="verbatim-source">— NW London Outpatient Pathways · Abnormal LFT V1.6 Oct 2019 / V1.4 Aug 2019 (both pages, top annotation)</div></div>
+        <p style="margin-top:8px;font-size:12px;color:var(--text2)">This applies to every output above. A mildly raised result may indicate severe disease, and a markedly raised result may indicate mild or transient disease. Clinical context, history, and the full pattern of results take precedence over the magnitude of any one abnormality.</p>
+      </div>
+    </div>`;
+
+  // Build & show the copy-to-EMR bar
+  buildCopyText(d, primary, secondaries);
+  document.getElementById('copy-record').classList.add('show');
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ═══════════════════════════════════════════════════
+// RESULT SUMMARY
+// ═══════════════════════════════════════════════════
+function resultSummaryHTML(d) {
+  const chips = [
+    { name:'Bilirubin', val: d.bili !== null ? d.bili + ' µmol/L' : '—', cls: d.bili !== null ? (d.biliRaised ? 'c-high' : 'c-normal') : 'c-empty' },
+    { name:'ALT',  val: d.alt !== null ? d.alt + ' IU/L' : '—',  cls: d.alt !== null ? (d.altRaised ? 'c-high' : 'c-normal') : 'c-empty' },
+    { name:'AST',  val: d.ast !== null ? d.ast + ' IU/L' : '—',  cls: d.ast !== null ? (d.astRaised ? 'c-high' : 'c-normal') : 'c-empty' },
+    { name:'ALP',  val: d.alp !== null ? d.alp + ' IU/L' : '—',  cls: d.alp !== null ? (d.alpRaised ? 'c-high' : 'c-normal') : 'c-empty' },
+    { name:'GGT',  val: d.ggt !== null ? d.ggt + ' IU/L' : '—',  cls: d.ggt !== null ? (d.ggtRaised ? 'c-high' : 'c-normal') : 'c-empty' },
+    { name:'Albumin', val: d.alb !== null ? d.alb + ' g/L' : '—', cls: d.alb !== null ? (d.albLow ? 'c-urgent' : 'c-normal') : 'c-empty' },
+    { name:'INR',  val: d.inr !== null ? d.inr : '—', cls: d.inr !== null ? (d.inrHigh ? 'c-urgent' : 'c-normal') : 'c-empty' },
+  ];
+  return `<div class="result-summary">${chips.map(c => `<div class="result-chip"><div class="result-chip-name">${c.name}</div><div class="result-chip-val ${c.cls}">${c.val}</div></div>`).join('')}</div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// PRIMARY ACTION BUILDERS
+// Each returns: { type, flag, title, subtitle, actions, verbatim, source, sourceType, logic, contextWarning, recordSummary, recordPlan }
+// ═══════════════════════════════════════════════════
+
+function buildUrgent(d) {
+  const reasons = [];
+  if (d.jaundiceY) reasons.push('clinical jaundice');
+  if (d.albLow) reasons.push(`low albumin (${d.alb} g/L)`);
+  if (d.inrHigh) reasons.push(`prolonged INR (${d.inr})`);
+  if (d.wtlossY) reasons.push('unexplained weight loss');
+  return {
+    type: 'urgent',
+    flag: '⚡ Urgent — action required today',
+    title: d.malignancy && d.syntheticFailure ? 'Synthetic failure AND suspected malignancy' :
+           d.syntheticFailure ? 'Synthetic failure suspected' : 'Suspected malignancy',
+    subtitle: `Findings: ${reasons.join(', ')}. This patient should NOT follow the routine outpatient pathway.`,
+    actions: [
+      { text: `Consider <strong>2-week wait (2WW)</strong> referral to hepatology.`, localKey: 'hepatology_referral', localFallback: 'Use your local 2WW referral route (e-RS hepatology)' },
+      { text: `Contact the <strong>jaundice hotline</strong>.`, localKey: 'jaundice_hotline', localFallback: 'Number not yet set — add via admin' },
+      { text: `If emergency admission: contact the <strong>accepting team or AMU/AAU</strong>.`, localKey: 'amu_aau', localFallback: 'AMU/AAU contact not yet set — add via admin' }
+    ],
+    verbatim: `Synthetic failure: Jaundice, low albumin, prolonged INR. Suspected Malignancy: Weight loss. Marked Cholestasis: Consider: 2WW referral to hepatology / Contact jaundice hotline / If considering emergency admission contact accepting team or AMU/AAU.`,
+    source: 'NW London Outpatient Pathways — Abnormal LFT Page 1, urgent action branch, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'jaundice present', met: d.jaundiceY },
+      { kw: 'OR', text: 'low albumin (Albumin <35 g/L; threshold not in PDF, standard reference used)', met: d.albLow },
+      { kw: 'OR', text: 'prolonged INR (>1.2; threshold not in PDF, standard reference used)', met: d.inrHigh },
+      { kw: 'OR', text: 'unexplained weight loss', met: d.wtlossY },
+      { kw: 'THEN', text: 'urgent action: 2WW / jaundice hotline / emergency admission', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Urgent finding — synthetic failure or suspected malignancy',
+    recordPlan: 'Per NWL pathway: 2WW hepatology referral / contact jaundice hotline / consider emergency admission.'
+  };
+}
+
+function buildSplitBili(d) {
+  return {
+    type: 'gp',
+    flag: 'GP action — repeat test',
+    title: 'Isolated raised bilirubin — repeat with fasting split bilirubin',
+    subtitle: `Bilirubin is ${d.bili} µmol/L with all other LFTs in normal range. Most commonly Gilbert's syndrome; less commonly haemolysis.`,
+    actions: [
+      { text: 'Repeat LFTs with <strong>split bilirubin and FBC — FASTING sample</strong>.', local: null },
+      { text: 'If haemolysis suspected: also consider <strong>reticulocyte count, LDH, haptoglobin</strong>.', local: null }
+    ],
+    verbatim: `Isolated raised bilirubin with otherwise normal liver blood results. Most commonly due to Gilbert\'s syndrome (unconjuncted hyperbilirubinaemia). Less commonly due to haemolysis (consider reticulocyte count, LDH, haptoglobin). Repeat LFTs with split bilirubin and FBC.`,
+    source: 'NW London Outpatient Pathways — Page 1, isolated bilirubin branch, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'bilirubin raised in isolation', met: d.biliRaised },
+      { kw: 'AND', text: 'all other LFTs normal', met: d.allEnzymesNormal },
+      { kw: 'THEN', text: 'repeat with split bilirubin + FBC (fasting)', met: true }
+    ],
+    contextWarning: 'The split bilirubin must be from a <strong>fasting sample</strong> to confirm or exclude Gilbert\'s. A non-fasting sample cannot be used.',
+    recordSummary: 'Isolated raised bilirubin, other LFTs normal',
+    recordPlan: 'Per NWL pathway: repeat LFTs with split bilirubin + FBC (fasting). Consider reticulocytes/LDH/haptoglobin if haemolysis suspected.'
+  };
+}
+
+function buildGilberts(d) {
+  return {
+    type: 'noaction',
+    flag: '✓ No further investigation',
+    title: 'Gilbert\'s syndrome — confirmed',
+    subtitle: `All four diagnostic criteria are met: total bilirubin ${d.bili} µmol/L (criterion <85), conjugated fraction ${d.conjPct}% (criterion <20%), normal FBC, other LFTs normal.`,
+    actions: [
+      { text: 'Confirm diagnosis of <strong>Gilbert\'s syndrome</strong> to the patient.', local: null },
+      { text: 'Provide patient information.', localKey: 'gilberts_leaflet', localFallback: 'Leaflet URL not yet set — admin can add' },
+      { text: '<strong>No further investigation required.</strong>', local: null }
+    ],
+    verbatim: `Gilbert's Syndrome: Diagnose Gilbert's if: Total bilirubin <85 / Conjugated fraction <20% total / Normal FBC / no haemolysis / Other LFTs normal. Confirm diagnosis to patient. Provide information.`,
+    source: 'NW London Outpatient Pathways — Page 1, Gilbert\'s confirmation box, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'total bilirubin <85 µmol/L', met: d.bili < 85 },
+      { kw: 'AND', text: 'conjugated fraction <20% of total', met: d.conjPct !== null && d.conjPct < 20 },
+      { kw: 'AND', text: 'normal FBC / no haemolysis', met: true },
+      { kw: 'AND', text: 'other LFTs normal', met: d.allEnzymesNormal },
+      { kw: 'THEN', text: 'diagnose Gilbert\'s, no further investigation', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Gilbert\'s syndrome confirmed on fasting split bilirubin',
+    recordPlan: 'Per NWL pathway: diagnose Gilbert\'s, inform patient with leaflet, no further investigation.'
+  };
+}
+
+function buildHepaticScreen(d) {
+  const which = [];
+  if (d.altRaised) which.push(`ALT ${d.alt}`);
+  if (d.astRaised) which.push(`AST ${d.ast}`);
+  return {
+    type: 'gp',
+    flag: 'GP action — investigation panel',
+    title: 'Hepatic enzymes raised — full liver aetiology screen',
+    subtitle: `${which.join(', ')} IU/L. Request the full liver aetiology screen per the NW London pathway.`,
+    actions: [
+      { text: '<strong>Blood panel:</strong> AST, GGT, FBC, INR.', local: null },
+      { text: '<strong>Imaging:</strong> arrange ultrasound (USS).', local: null },
+      { text: '<strong>Serology:</strong> Hep B surface antigen, Hep C antibody.', local: null },
+      { text: '<strong>Autoimmune:</strong> ANA, AMA, ASMA, LKM. Immunoglobulins: IgA, IgG, IgM.', local: null },
+      { text: '<strong>Metabolic:</strong> ferritin (+ transferrin saturation if ferritin elevated). HbA1C and lipids if no recent result.', local: null }
+    ],
+    verbatim: `Liver aetiology screen: AST, GGT, FBC, INR / Ultrasound / Hep B surface antigen / Hep C antibody / Autoantibodies (ANA, AMA, ASMA, LKM) / Immunoglobulins (IgA, IgG, IgM) / Ferritin / Transferrin saturation (for elevated ferritin only) / HbA1C (if no recent results) / Lipids (if no recent results).`,
+    source: 'NW London Outpatient Pathways — Page 1 aetiology screen, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'ALT raised', met: d.altRaised },
+      { kw: 'OR', text: 'AST raised', met: d.astRaised },
+      { kw: 'AND', text: 'synthetic failure NOT met', met: !d.syntheticFailure },
+      { kw: 'THEN', text: 'full liver aetiology screen + USS', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Hepatic pattern (ALT/AST raised)',
+    recordPlan: 'Per NWL pathway: full liver aetiology screen (AST, GGT, FBC, INR, USS, Hep B sAg, Hep C Ab, autoantibodies, Igs, ferritin ± TfSat, HbA1C, lipids).'
+  };
+}
+
+function buildNAFLD(d) {
+  return {
+    type: 'amber-action',
+    flag: 'GP action — follow NAFLD pathway',
+    title: 'USS normal/fatty + NAFLD risk factors → NAFLD pathway',
+    subtitle: 'One or more NAFLD risk factors (T2DM, BMI >25, dyslipidaemia, or hypertension) are present. With a normal or fatty liver USS, the pathway directs to the NAFLD pathway. Statins may still be prescribed.',
+    actions: [
+      { text: 'Follow the <strong>NAFLD pathway</strong>.', localKey: 'nafld_url', localFallback: 'URL not yet set — admin can add' }
+    ],
+    verbatim: `USS is either normal or has fatty liver changes. With risk factors: T2DM / BMI>25 / Dyslipidaemia / Hypertension. Follow NAFLD pathway. Note: Patients with NAFLD may still be prescribed statins.`,
+    source: 'NW London Outpatient Pathways — Page 1 NAFLD branch, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'USS normal or fatty liver', met: true },
+      { kw: 'AND', text: 'NAFLD risk factor present (T2DM, BMI>25, dyslipidaemia, HTN)', met: d.nafldY },
+      { kw: 'THEN', text: 'follow NAFLD pathway', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Hepatic pattern with NAFLD risk factors',
+    recordPlan: 'Per NWL pathway: follow NAFLD pathway. Statins may still be prescribed.'
+  };
+}
+
+function buildReferPersistent(d) {
+  return {
+    type: 'refer',
+    flag: 'Refer — hepatology',
+    title: 'Persistent abnormal ALT/AST → refer hepatology',
+    subtitle: 'Normal USS, negative aetiology screen, no NAFLD risk factors, but ALT/AST remain abnormal on repeat testing. The pathway directs to hepatology referral.',
+    actions: [
+      { text: 'Refer to <strong>hepatology</strong>.', localKey: 'hepatology_referral', localFallback: 'Referral route not yet set — admin can add' }
+    ],
+    verbatim: `Normal USS / Normal liver aetiology screen / No NALFD risk factors / ALT and/or AST remain abnormal → Refer to hepatology.`,
+    source: 'NW London Outpatient Pathways — Page 1 persistent abnormal branch, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'USS normal', met: true },
+      { kw: 'AND', text: 'aetiology screen negative', met: true },
+      { kw: 'AND', text: 'no NAFLD risk factors', met: !d.nafldY },
+      { kw: 'AND', text: 'ALT/AST remain abnormal on REPEAT', met: d.isRepeat },
+      { kw: 'THEN', text: 'refer to hepatology', met: true }
+    ],
+    contextWarning: 'The word <strong>"remain"</strong> in the pathway implies a repeat result. Make sure this is a confirmed repeat, not the first abnormal.',
+    recordSummary: 'Persistent abnormal ALT/AST, normal workup',
+    recordPlan: 'Per NWL pathway: refer to hepatology — persistent unexplained ALT/AST elevation.'
+  };
+}
+
+function buildALPNeedsGGT(d) {
+  return {
+    type: 'gp',
+    flag: '⚠ Context required',
+    title: 'ALP raised — GGT result needed before pathway can proceed',
+    subtitle: `ALP is ${d.alp} IU/L but GGT has not been entered. The NW London pathway distinguishes liver cause (GGT also raised) from bone/drug cause (GGT normal). The branch cannot resolve without GGT.`,
+    actions: [
+      { text: 'Ensure <strong>GGT is requested</strong> and re-analyse once available.', local: null }
+    ],
+    verbatim: `Isolated cholestatic liver enzymes and not bone related: ALP and GGT. Isolated ALP: Consider drug or bone causes including Vit D deficiency.`,
+    source: 'NW London Outpatient Pathways — Page 2, ALP/GGT context, V1.4 Aug 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'ALP raised', met: d.alpRaised },
+      { kw: 'CTX', text: 'GGT result required to distinguish liver vs bone aetiology', met: false }
+    ],
+    contextWarning: 'ALP cannot be interpreted in this pathway without GGT. Request GGT, then return.',
+    recordSummary: 'ALP raised, GGT awaited',
+    recordPlan: 'Per NWL pathway: GGT result needed to interpret raised ALP (liver vs bone). Re-review when result available.'
+  };
+}
+
+function buildCholestaticScreen(d) {
+  return {
+    type: 'gp',
+    flag: 'GP action — investigation panel',
+    title: 'ALP and GGT both raised → cholestatic liver aetiology screen',
+    subtitle: `ALP ${d.alp} IU/L and GGT ${d.ggt} IU/L. GGT confirms liver source. Request the Page 2 aetiology screen.`,
+    actions: [
+      { text: '<strong>Blood panel:</strong> AST, GGT, FBC.', local: null },
+      { text: '<strong>Imaging:</strong> arrange USS.', local: null },
+      { text: '<strong>Serology:</strong> Hep B surface antigen, Hep C antibody.', local: null },
+      { text: '<strong>Autoimmune:</strong> ANA, AMA, ASMA, LKM. IgA, IgG, IgM.', local: null },
+      { text: '<strong>Metabolic:</strong> ferritin (+ transferrin sat if elevated). HbA1C.', local: null }
+    ],
+    verbatim: `Liver aetiology screen: AST, GGT, FBC / Ultrasound / Hep B surface antigen / Hep C antibody / Autoantibodies (ANA, AMA, ASMA, LKM) / Immunoglobulins (IgA, IgG, IgM) / Ferritin / Transferrin saturation (for ferritin only) / HbA1C.`,
+    source: 'NW London Outpatient Pathways — Page 2 aetiology screen, V1.4 Aug 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'ALP raised', met: d.alpRaised },
+      { kw: 'AND', text: 'GGT raised', met: d.ggtRaised },
+      { kw: 'THEN', text: 'Page 2 liver aetiology screen + USS', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Cholestatic pattern (ALP + GGT both raised)',
+    recordPlan: 'Per NWL pathway: Page 2 aetiology screen (AST, GGT, FBC, USS, Hep B sAg, Hep C Ab, autoantibodies, Igs, ferritin ± TfSat, HbA1C).'
+  };
+}
+
+function buildBoneCause(d) {
+  return {
+    type: 'amber-action',
+    flag: 'GP action — non-liver investigation',
+    title: 'Isolated ALP raised, GGT normal → bone or drug cause',
+    subtitle: `ALP ${d.alp} IU/L but GGT ${d.ggt} IU/L is within range. The pathway directs to bone or drug investigation, not liver.`,
+    actions: [
+      { text: '<strong>Consider:</strong> drug or bone causes including <strong>Vitamin D deficiency</strong>.', local: null },
+      { text: '<strong>Investigate:</strong> bone profile, Vitamin D level, medication review.', local: null }
+    ],
+    verbatim: `Isolated ALP: Consider drug or bone causes including Vit D deficiency.`,
+    source: 'NW London Outpatient Pathways — Page 2 isolated ALP section, V1.4 Aug 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'ALP raised', met: d.alpRaised },
+      { kw: 'AND', text: 'GGT normal (not raised)', met: d.ggtNormal },
+      { kw: 'THEN', text: 'consider drug or bone, including Vitamin D deficiency', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Isolated raised ALP with normal GGT',
+    recordPlan: 'Per NWL pathway: consider drug or bone causes, including Vitamin D deficiency. Bone profile + Vit D + medication review.'
+  };
+}
+
+function buildIsolatedGGT(d) {
+  return {
+    type: 'amber-action',
+    flag: 'GP action — alcohol/metabolic/drug review',
+    title: 'Isolated raised GGT → consider alcohol, drugs, metabolic syndrome',
+    subtitle: `GGT ${d.ggt} IU/L is raised but ALP is not. Isolated GGT elevation is not specific for liver disease.`,
+    actions: [
+      { text: '<strong>Consider:</strong> alcohol consumption, drug history, metabolic syndrome.', local: null },
+      { text: 'If alcohol: follow alcohol guidelines.', localKey: 'alcohol_url', localFallback: 'Alcohol pathway URL not yet set' },
+      { text: 'If metabolic syndrome: follow NAFLD pathway.', localKey: 'nafld_url', localFallback: 'NAFLD pathway URL not yet set' }
+    ],
+    verbatim: `Isolated elevation GGT: Consider alcohol, drug history or metabolic syndrome. Alcohol: Follow alcohol guidelines. Metabolic Syndrome: Follow NAFLD guidelines.`,
+    source: 'NW London Outpatient Pathways — Page 2 isolated GGT, V1.4 Aug 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'GGT raised', met: d.ggtRaised },
+      { kw: 'AND', text: 'ALP not raised', met: !d.alpRaised },
+      { kw: 'THEN', text: 'consider alcohol/drug/metabolic causes', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Isolated raised GGT',
+    recordPlan: 'Per NWL pathway: consider alcohol, drug history, metabolic syndrome.'
+  };
+}
+
+function buildAlcohol(d) {
+  return {
+    type: 'amber-action',
+    flag: 'GP action — alcohol pathway',
+    title: 'Alcohol >14 units/week → follow alcohol guidelines',
+    subtitle: 'Alcohol consumption is above the pathway threshold of 14 units/week. The NW London pathway directs to local alcohol guidelines.',
+    actions: [
+      { text: 'Follow the <strong>local alcohol guidelines</strong>.', localKey: 'alcohol_url', localFallback: 'Alcohol pathway URL not yet set' }
+    ],
+    verbatim: `Suspected alcohol cause: Follow alcohol guidelines.`,
+    source: 'NW London Outpatient Pathways — Page 1 alcohol branch, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'alcohol >14 units/week', met: d.alcoholHigh },
+      { kw: 'THEN', text: 'follow alcohol guidelines', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'Alcohol >14 units/week',
+    recordPlan: 'Per NWL pathway: follow alcohol guidelines.'
+  };
+}
+
+function buildNormal(d) {
+  return {
+    type: 'noaction',
+    flag: 'No pathway branch triggered',
+    title: 'Results do not trigger any pathway branch',
+    subtitle: 'The values entered do not meet the trigger criteria in the NW London Abnormal LFT pathway. If the lab has reported these as abnormal, please double-check the values and the local reference range.',
+    actions: [
+      { text: 'Re-check the values against the lab reference ranges.', local: null },
+      { text: 'If a value is borderline or just outside the reference range, consider a repeat in 1–3 months.', local: null }
+    ],
+    verbatim: `The degree of abnormality is not an indication of the severity of disease.`,
+    source: 'NW London Outpatient Pathways — global note, V1.6 Oct 2019',
+    sourceType: 'explicit',
+    logic: [
+      { kw: 'IF', text: 'no urgent flags', met: !d.syntheticFailure && !d.malignancy },
+      { kw: 'AND', text: 'no hepatic pattern', met: !d.hepaticPattern },
+      { kw: 'AND', text: 'no cholestatic pattern', met: !d.cholestaticPattern },
+      { kw: 'AND', text: 'no isolated bilirubin', met: !d.isolatedBili },
+      { kw: 'AND', text: 'no alcohol flag', met: !d.alcoholHigh },
+      { kw: 'THEN', text: 'no pathway branch entered', met: true }
+    ],
+    contextWarning: null,
+    recordSummary: 'LFTs reviewed — no pathway branch triggered',
+    recordPlan: 'No specific NWL pathway action triggered. Use clinical judgement.'
+  };
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER HELPERS
+// ═══════════════════════════════════════════════════
+function renderPrimary(p) {
+  if (!p) return '';
+  const actions = p.actions.map((a, i) => {
+    let block = `<div class="primary-action-item"><div class="primary-action-num">${i+1}</div><div>${a.text}`;
+    if (a.localKey) {
+      block += localStr(a.localKey, a.localFallback || '');
+      block += editableLocal(a.localKey, a.localFallback || '');
+    }
+    block += `</div></div>`;
+    return block;
+  }).join('');
+
+  const logicHTML = p.logic.map(l =>
+    `<div class="logic-line ${l.met ? 'matched' : 'unmet'}"><span class="logic-kw kw-${l.kw}">${l.kw}</span>${l.text}</div>`
+  ).join('');
+
+  const ctxHTML = p.contextWarning ? `<div class="ctx-warning-strip"><div class="ctx-warning-icon">⚠</div><div>${p.contextWarning}</div></div>` : '';
+
+  return `
+    <div class="primary-card ${p.type}">
+      <div class="primary-flag"><span class="pulse"></span>${p.flag}</div>
+      <h2 class="primary-title">${p.title}</h2>
+      <p class="primary-subtitle">${p.subtitle}</p>
+      ${ctxHTML}
+      <div class="primary-actions">${actions}</div>
+
+      <button class="details-toggle" onclick="toggleDetails(this)">
+        <span>📖 Show why (verbatim guideline text &amp; logic trace)</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="details-content">
+
+        <div class="detail-block">
+          <div class="detail-block-label">📜 Verbatim NW London pathway text</div>
+          <div class="verbatim-quote">"${p.verbatim}"
+            <div class="verbatim-source">— ${p.source}</div>
+          </div>
+        </div>
+
+        <div class="detail-block">
+          <div class="detail-block-label">🔍 Logic trace — how the engine got here</div>
+          <div class="logic-trace">${logicHTML}</div>
+        </div>
+
+        <div class="detail-block">
+          <div class="detail-block-label">📋 Source attribution</div>
+          <div class="source-attr">
+            <span class="source-tag ${p.sourceType}">${p.sourceType}</span>
+            ${p.source}
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+}
+
+function renderSecondary(s) {
+  if (!s) return '';
+  const actions = s.actions.map((a, i) => `<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:13px"><strong style="color:var(--text3);min-width:18px">${i+1}.</strong><div>${a.text}</div></div>`).join('');
+  return `
+    <div class="secondary-card ${s.type}">
+      <div class="secondary-head" onclick="toggleSecondary(this)">
+        <span class="secondary-tag">${s.flag}</span>
+        <span class="secondary-title">${s.title}</span>
+        <span class="chev">▾</span>
+      </div>
+      <div class="secondary-body">
+        <p style="margin-bottom:8px">${s.subtitle}</p>
+        ${actions}
+        <div class="verbatim-quote" style="margin-top:10px">"${s.verbatim}"<div class="verbatim-source">— ${s.source}</div></div>
+      </div>
+    </div>`;
+}
+
+function toggleDetails(btn) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('open');
+}
+function toggleSecondary(head) { head.parentElement.classList.toggle('open'); }
+function toggleFlow(btn) {
+  const wrap = document.getElementById('flow-svg-wrap');
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? 'Show diagram ▾' : 'Hide diagram ▴';
+}
+
+// ═══════════════════════════════════════════════════
+// COPY FOR EMR / CLINICAL RECORD
+// ═══════════════════════════════════════════════════
+let copyTextCache = '';
+
+function buildCopyText(d, primary, secondaries) {
+  const now = new Date();
+  const dt = now.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const patient = txt('ctx-patient');
+  const results = [];
+  if (d.bili !== null) results.push(`Bili ${d.bili} µmol/L`);
+  if (d.alt !== null) results.push(`ALT ${d.alt} IU/L`);
+  if (d.ast !== null) results.push(`AST ${d.ast} IU/L`);
+  if (d.alp !== null) results.push(`ALP ${d.alp} IU/L`);
+  if (d.ggt !== null) results.push(`GGT ${d.ggt} IU/L`);
+  if (d.alb !== null) results.push(`Alb ${d.alb} g/L`);
+  if (d.inr !== null) results.push(`INR ${d.inr}`);
+  const ctxBits = [];
+  if (d.jaundiceY) ctxBits.push('jaundice present');
+  if (d.wtlossY) ctxBits.push('unexplained weight loss');
+  if (d.alcoholHigh) ctxBits.push('alcohol >14u/wk');
+  if (d.nafldY) ctxBits.push('NAFLD risk factors present');
+  if (d.isRepeat) ctxBits.push('repeat result — persistent');
+
+  copyTextCache =
+`LFTs reviewed ${dt}${patient ? ' — Pt: ' + patient : ''}
+Per NW London Outpatient Pathways — Abnormal LFT V1.6 Oct 2019 / V1.4 Aug 2019.
+
+Results: ${results.join(', ') || '(none entered)'}
+Context: ${ctxBits.join(', ') || 'none specified'}
+
+Interpretation: ${primary.recordSummary}
+Plan: ${primary.recordPlan}
+
+Source: NWL Abnormal LFT pathway (verbatim guideline text reviewed via ResultDoctor).
+Disclaimer: Pathway logic only; does not replace clinical judgement.`;
+
+  document.getElementById('copy-record-summary').textContent = primary.recordSummary;
+}
+
+function copyForRecord() {
+  navigator.clipboard.writeText(copyTextCache).then(() => {
+    const btn = document.getElementById('copy-record-btn');
+    btn.textContent = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy for EMR'; btn.classList.remove('copied'); }, 2200);
+  });
+}
+
+function updateCopyBar() {
+  // Patient ID changed — if we already have an analysis, re-render to refresh the copy text
+  if (lastAnalysisData) renderOutput(lastAnalysisData);
+}
+</script>
+</body>
+</html>

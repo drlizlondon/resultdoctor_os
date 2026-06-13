@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResultDoctor — NCL Abnormal FBC Pathway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1C3D; --navy2: #162545;
+  --blue: #1859CC; --blue-lt: #E8F0FD; --blue-mid: #4A7DE8;
+  --green: #00703C; --green-lt: #E3F5EC;
+  --red: #B91C1C; --red-lt: #FEF2F2;
+  --amber: #92400E; --amber-lt: #FFFBEB; --amber-bd: #FCD34D;
+  --purple: #7C3AED; --purple-lt: #FDF4FF;
+  --grey: #6B7280; --grey-lt: #F9FAFB;
+  --border: #E5E7EB; --border2: #D1D5DB;
+  --text: #111827; --text2: #374151; --text3: #6B7280;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --radius: 12px; --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: #F8F9FB; color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+header { background: var(--navy); color: white; padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.logo { font-family: var(--serif); font-size: 20px; color: white; text-decoration: none; letter-spacing: -.02em; }
+.logo span { color: #60A5FA; }
+.header-nav { display: flex; align-items: center; gap: 24px; }
+.back-link { color: rgba(255,255,255,.7); text-decoration: none; font-size: 13px; font-weight: 500; }
+.back-link:hover { color: white; }
+.breadcrumb { font-size: 12px; color: rgba(255,255,255,.5); }
+
+.pathway-header { background: var(--navy2); color: white; padding: 32px 0 0; border-bottom: 1px solid rgba(255,255,255,.06); }
+.pathway-header-inner { max-width: 880px; margin: 0 auto; padding: 0 32px 28px; }
+.pathway-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; letter-spacing: .04em; text-transform: uppercase; }
+.tag-live { background: var(--green); color: white; }
+.tag-icb { background: rgba(255,255,255,.12); color: rgba(255,255,255,.8); }
+.tag-version { background: rgba(255,255,255,.08); color: rgba(255,255,255,.6); }
+.pathway-title { font-family: var(--serif); font-size: 32px; font-weight: 400; line-height: 1.2; margin-bottom: 8px; letter-spacing: -.02em; }
+.pathway-subtitle { font-size: 13px; color: rgba(255,255,255,.55); }
+.pathway-source-strip { background: rgba(0,0,0,.2); padding: 10px 32px; font-size: 11px; color: rgba(255,255,255,.45); display: flex; align-items: center; gap: 8px; }
+.source-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue-mid); }
+
+.page { max-width: 880px; margin: 0 auto; padding: 32px; }
+
+.panel { background: white; border: 1px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 20px; box-shadow: var(--shadow); overflow: hidden; }
+.panel-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.panel-head-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); }
+.panel-body { padding: 20px; }
+.panel-note { background: var(--grey-lt); border-top: 1px solid var(--border); padding: 10px 20px; font-size: 12px; color: var(--text3); }
+
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.result-field { display: flex; flex-direction: column; gap: 5px; }
+.result-label { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; }
+.result-unit { font-size: 10px; color: var(--text3); margin-top: 1px; }
+.result-input { padding: 10px 12px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 15px; font-family: var(--sans); font-weight: 500; color: var(--text); background: white; width: 100%; }
+.result-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,89,204,.12); }
+.result-input.abnormal { border-color: var(--red); background: var(--red-lt); }
+.result-input.warning { border-color: #F59E0B; background: var(--amber-lt); }
+.result-input.normal { border-color: var(--green); background: var(--green-lt); }
+.analyse-btn { width: 100%; padding: 14px 24px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+.analyse-btn:hover { background: #1348B0; }
+.reset-link { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--text3); cursor: pointer; text-decoration: underline; }
+
+.section-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; margin: 14px 0 10px; }
+.context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.ctx-q { display: flex; flex-direction: column; gap: 5px; }
+.ctx-q label { font-size: 12px; font-weight: 600; color: var(--text2); }
+.ctx-select { padding: 8px 10px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); background: white; }
+
+.output-section { display: none; }
+.output-section.show { display: block; }
+.section-divider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text3); margin: 24px 0 14px; display: flex; align-items: center; gap: 10px; }
+.section-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.primary-card { border-radius: 20px; padding: 28px 28px 24px; margin-bottom: 16px; border: 2px solid; box-shadow: 0 4px 24px rgba(0,0,0,.06); }
+.primary-card.urgent { background: #FEF2F2; border-color: #DC2626; }
+.primary-card.gp { background: #EFF6FF; border-color: var(--blue); }
+.primary-card.refer { background: #FAF5FF; border-color: #9333EA; }
+.primary-card.noaction { background: #ECFDF5; border-color: var(--green); }
+.primary-card.amber-action { background: #FFFBEB; border-color: #D97706; }
+.primary-card.info { background: #F9FAFB; border-color: var(--grey); }
+.primary-flag { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .08em; }
+.primary-card.urgent .primary-flag { background: var(--red); color: white; }
+.primary-card.gp .primary-flag { background: var(--blue); color: white; }
+.primary-card.refer .primary-flag { background: #9333EA; color: white; }
+.primary-card.noaction .primary-flag { background: var(--green); color: white; }
+.primary-card.amber-action .primary-flag { background: #D97706; color: white; }
+.primary-card.info .primary-flag { background: var(--grey); color: white; }
+.pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1.5s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+.primary-title { font-family: var(--serif); font-size: 28px; line-height: 1.2; margin-bottom: 6px; letter-spacing: -.01em; }
+.primary-card.urgent .primary-title { color: #7F1D1D; }
+.primary-card.gp .primary-title { color: var(--navy); }
+.primary-card.refer .primary-title { color: #581C87; }
+.primary-card.noaction .primary-title { color: #064E3B; }
+.primary-card.amber-action .primary-title { color: #78350F; }
+.primary-subtitle { font-size: 14px; color: var(--text2); margin-bottom: 18px; line-height: 1.55; }
+.primary-actions { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.primary-action-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: white; border-radius: 10px; border: 1px solid rgba(0,0,0,.06); font-size: 14px; line-height: 1.55; }
+.primary-action-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; color: white; }
+.urgent .primary-action-num { background: var(--red); }
+.gp .primary-action-num { background: var(--blue); }
+.refer .primary-action-num { background: #9333EA; }
+.noaction .primary-action-num { background: var(--green); }
+.amber-action .primary-action-num { background: #D97706; }
+.info .primary-action-num { background: var(--grey); }
+
+.details-toggle { width: 100%; padding: 12px 16px; border-radius: 10px; background: rgba(255,255,255,.5); border: 1px solid rgba(0,0,0,.08); cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text2); }
+.details-toggle:hover { background: white; }
+.details-toggle .chev { font-size: 12px; transition: transform .2s; }
+.details-toggle.open .chev { transform: rotate(180deg); }
+.details-content { display: none; padding-top: 16px; }
+.details-content.open { display: block; }
+.detail-block { background: rgba(255,255,255,.7); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,.05); }
+.detail-block-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 8px; }
+.verbatim-quote { font-family: 'Georgia', serif; font-style: italic; font-size: 13px; line-height: 1.65; color: var(--text); padding: 12px 16px; background: white; border-left: 3px solid var(--blue); border-radius: 0 8px 8px 0; margin: 6px 0; }
+.verbatim-source { font-size: 11px; font-style: normal; color: var(--text3); margin-top: 8px; font-family: var(--sans); }
+.logic-trace { font-size: 12px; line-height: 1.7; }
+.logic-line { padding: 3px 0; }
+.logic-kw { display: inline-block; font-weight: 700; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-right: 6px; vertical-align: 1px; }
+.kw-IF { background: var(--blue-lt); color: var(--blue); }
+.kw-AND { background: var(--green-lt); color: var(--green); }
+.kw-OR { background: var(--amber-lt); color: var(--amber); }
+.kw-THEN { background: var(--navy); color: white; }
+.logic-line.matched { color: var(--text); font-weight: 500; }
+.logic-line.matched::before { content: '✓ '; color: var(--green); font-weight: 700; }
+.logic-line.unmet { color: var(--text3); }
+.logic-line.unmet::before { content: '· '; color: var(--text3); }
+.source-attr { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text3); margin-top: 6px; }
+.source-tag { padding: 2px 7px; border-radius: 4px; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+.source-tag.explicit { background: rgba(0,112,60,.1); color: var(--green); }
+
+.secondary-card { background: white; border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; }
+.secondary-head { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.secondary-head .chev { margin-left: auto; font-size: 11px; color: var(--text3); transition: transform .2s; }
+.secondary-card.open .chev { transform: rotate(180deg); }
+.secondary-title { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.secondary-tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: .05em; }
+.secondary-card.urgent .secondary-tag { background: var(--red-lt); color: var(--red); }
+.secondary-card.gp .secondary-tag { background: var(--blue-lt); color: var(--blue); }
+.secondary-card.refer .secondary-tag { background: var(--purple-lt); color: var(--purple); }
+.secondary-card.noaction .secondary-tag { background: var(--green-lt); color: var(--green); }
+.secondary-card.amber-action .secondary-tag { background: var(--amber-lt); color: var(--amber); }
+.secondary-card.info .secondary-tag { background: var(--grey-lt); color: var(--grey); }
+.secondary-body { display: none; padding-top: 12px; margin-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text2); }
+.secondary-card.open .secondary-body { display: block; }
+
+.ctx-warning-strip { background: #FFF7ED; border: 1px solid #FED7AA; border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; font-size: 12px; color: #92400E; line-height: 1.6; display: flex; gap: 10px; }
+.ctx-warning-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+.result-summary { background: var(--navy); color: white; border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+.result-chip { text-align: center; }
+.result-chip-name { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.5); margin-bottom: 3px; }
+.result-chip-val { font-size: 17px; font-weight: 600; font-family: var(--serif); }
+.result-chip-val.c-high { color: #FCA5A5; }
+.result-chip-val.c-normal { color: #6EE7B7; }
+.result-chip-val.c-urgent { color: #FCA5A5; }
+.result-chip-val.c-empty { color: rgba(255,255,255,.25); font-size: 13px; }
+
+.copy-record-bar { position: sticky; bottom: 20px; margin: 24px auto 0; max-width: 600px; background: var(--navy); color: white; border-radius: 14px; padding: 14px 18px; display: none; align-items: center; gap: 12px; box-shadow: 0 8px 32px rgba(11,28,61,.3); z-index: 50; }
+.copy-record-bar.show { display: flex; }
+.copy-record-text { flex: 1; font-size: 13px; }
+.copy-record-text strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.5); margin-bottom: 2px; font-weight: 700; }
+.copy-record-btn { padding: 9px 18px; background: white; color: var(--navy); border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.copy-record-btn.copied { background: var(--green); color: white; }
+
+.empty-output { text-align: center; padding: 40px 24px; color: var(--text3); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; opacity: .4; }
+.empty-title { font-family: var(--serif); font-size: 18px; color: var(--text2); margin-bottom: 6px; }
+.empty-sub { font-size: 13px; }
+
+footer { background: var(--navy); color: rgba(255,255,255,.45); font-size: 11px; padding: 24px 32px; margin-top: 40px; line-height: 1.6; }
+footer strong { color: rgba(255,255,255,.7); }
+
+@media(max-width:640px) {
+  .page { padding: 20px 16px; }
+  .results-grid { grid-template-columns: 1fr 1fr; }
+  .context-grid { grid-template-columns: 1fr; }
+  .primary-title { font-size: 22px; }
+  .primary-card { padding: 22px 20px 20px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">Result<span>Doctor</span></a>
+  <div class="header-nav">
+    <a class="back-link" href="index.html">← Pathways</a>
+    <span class="breadcrumb">Abnormal FBC</span>
+  </div>
+</header>
+
+<div class="pathway-header">
+  <div class="pathway-header-inner">
+    <div class="pathway-meta">
+      <span class="tag tag-live">Live</span>
+      <span class="tag tag-icb">North Central London ICB</span>
+      <span class="tag tag-version">Final Jan 2023 · Review Jan 2026</span>
+    </div>
+    <h1 class="pathway-title">Abnormal Full Blood Count (FBC) in Adults</h1>
+    <p class="pathway-subtitle">
+      NCL Primary Care Clinical Pathway · Authors: Dr Sarah Morgan, Dr Sajir Mohamedbhai · Approved by NCL ICB CAG. Investigations must be within 6 months of date of referral.
+    </p>
+  </div>
+  <div class="pathway-source-strip">
+    <div class="source-dot"></div>
+    Source: NCL Abnormal FBC Adults Primary Care Clinical Pathway (Final Jan 2023) — every recommendation traceable to the PDF
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-head-label">Enter FBC results &amp; context</span>
+      <span style="font-size:12px;color:var(--text3)">Leave blank if unknown</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="section-label">Red blood cells</div>
+      <div class="results-grid">
+        <div class="result-field"><div><div class="result-label">Haemoglobin</div><div class="result-unit">g/L</div></div><input class="result-input" type="number" id="f-hb" placeholder="e.g. 135" min="0" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Haematocrit</div><div class="result-unit">L/L (e.g. 0.45)</div></div><input class="result-input" type="number" id="f-hct" placeholder="e.g. 0.45" min="0" max="1" step="0.01" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">MCV</div><div class="result-unit">fL</div></div><input class="result-input" type="number" id="f-mcv" placeholder="e.g. 88" min="0" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Reticulocytes</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-retic" placeholder="e.g. 50" min="0" step="1" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Ferritin</div><div class="result-unit">mcg/L</div></div><input class="result-input" type="number" id="f-ferritin" placeholder="e.g. 80" min="0" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">B12</div><div class="result-unit">ng/L</div></div><input class="result-input" type="number" id="f-b12" placeholder="e.g. 250" min="0" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Folate</div><div class="result-unit">µg/L</div></div><input class="result-input" type="number" id="f-folate" placeholder="e.g. 5" min="0" step="0.1" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">CRP</div><div class="result-unit">mg/L</div></div><input class="result-input" type="number" id="f-crp" placeholder="e.g. 4" min="0" oninput="clearOutput()"></div>
+      </div>
+
+      <div class="section-label">White cell count</div>
+      <div class="results-grid">
+        <div class="result-field"><div><div class="result-label">WCC</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-wcc" placeholder="e.g. 7.5" min="0" step="0.1" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Neutrophils</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-neut" placeholder="e.g. 4.0" min="0" step="0.1" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Lymphocytes</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-lymph" placeholder="e.g. 2.0" min="0" step="0.1" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Eosinophils</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-eos" placeholder="e.g. 0.2" min="0" step="0.01" oninput="clearOutput()"></div>
+        <div class="result-field"><div><div class="result-label">Monocytes</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-mono" placeholder="e.g. 0.5" min="0" step="0.01" oninput="clearOutput()"></div>
+      </div>
+
+      <div class="section-label">Platelets</div>
+      <div class="results-grid">
+        <div class="result-field"><div><div class="result-label">Platelets</div><div class="result-unit">×10⁹/L</div></div><input class="result-input" type="number" id="f-plt" placeholder="e.g. 250" min="0" oninput="clearOutput()"></div>
+      </div>
+
+      <div class="section-label">Clinical context</div>
+      <div class="context-grid">
+        <div class="ctx-q"><label>Sex</label>
+          <select class="ctx-select" id="ctx-sex" onchange="clearOutput()">
+            <option value="">Not specified</option>
+            <option value="f">Female (non-pregnant)</option>
+            <option value="m">Male</option>
+            <option value="preg">Female (pregnant)</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Age (years)</label>
+          <input class="ctx-select" type="number" id="ctx-age" placeholder="e.g. 58" min="15" max="120" oninput="clearOutput()">
+        </div>
+        <div class="ctx-q"><label>Patient unwell / febrile?</label>
+          <select class="ctx-select" id="ctx-unwell" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes — unwell or febrile</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Active bleeding?</label>
+          <select class="ctx-select" id="ctx-bleed" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Lymphadenopathy / splenomegaly?</label>
+          <select class="ctx-select" id="ctx-lymph-exam" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes — lymphadenopathy or splenomegaly</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>B-symptoms? (weight loss, fever, night sweats)</label>
+          <select class="ctx-select" id="ctx-bsym" onchange="clearOutput()">
+            <option value="">Not assessed</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+        <div class="ctx-q"><label>Patient identifier (optional)</label>
+          <input class="ctx-select" type="text" id="ctx-patient" placeholder="e.g. NHS number">
+        </div>
+      </div>
+
+      <button class="analyse-btn" onclick="analyse()">Analyse →</button>
+      <span class="reset-link" onclick="resetAll()">Reset all</span>
+    </div>
+    <div class="panel-note">
+      ℹ <strong>Note from pathway:</strong> Abnormalities affecting more than one cell type are more likely to be due to bone marrow causes rather than reactive. Always consider earlier referral when the patient is unwell. Investigations must be within 6 months of date of referral.
+    </div>
+  </div>
+
+  <div id="output-section" class="output-section"></div>
+
+  <div id="empty-state">
+    <div class="empty-output">
+      <div class="empty-icon">🩸</div>
+      <div class="empty-title">Enter FBC results to analyse</div>
+      <div class="empty-sub">Covers all NCL sub-pathways: anaemia (with MCV stratification &amp; ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="copy-record" class="copy-record-bar">
+  <div class="copy-record-text">
+    <strong>Ready for clinical record</strong>
+    <span id="copy-record-summary">—</span>
+  </div>
+  <button class="copy-record-btn" id="copy-record-btn" onclick="copyForRecord()">📋 Copy for EMR</button>
+</div>
+
+<footer>
+  <strong>ResultDoctor</strong> reproduces the NCL Abnormal FBC pathway verbatim from the published PDF (Final Jan 2023, review Jan 2026). Authors: Dr Sarah Morgan, Dr Sajir Mohamedbhai. Approved by NCL ICB CAG.<br>
+  Queries about the source pathway: nclicb.pathways@nhs.net. This tool supports navigation and does not replace clinical judgement.
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// NCL ABNORMAL FBC PATHWAY ENGINE
+// All thresholds and quotes traceable to the NCL PDF (Final Jan 2023)
+// ═══════════════════════════════════════════════════
+
+function val(id) { const v = (document.getElementById(id) || {}).value; return v == null || v === '' ? null : parseFloat(v); }
+function sel(id) { return (document.getElementById(id) || {}).value || ''; }
+function txt(id) { return (document.getElementById(id) || {}).value || ''; }
+
+// Pre-fill from router
+(function prefillFromRouter() {
+  const params = new URLSearchParams(window.location.search);
+  const stored = sessionStorage.getItem('resultdoctor_results');
+  let src = null;
+  if (stored) { try { src = JSON.parse(stored); } catch(e) {} }
+  const mapping = { 'hb':'f-hb', 'hct':'f-hct', 'mcv':'f-mcv', 'retic':'f-retic', 'ferritin':'f-ferritin', 'b12':'f-b12', 'folate':'f-folate', 'crp':'f-crp', 'wcc':'f-wcc', 'neut':'f-neut', 'lymph':'f-lymph', 'eos':'f-eos', 'mono':'f-mono', 'plt':'f-plt' };
+  const ctxMapping = { 'sex':'ctx-sex', 'age':'ctx-age', 'unwell':'ctx-unwell', 'bleed':'ctx-bleed', 'lymph-exam':'ctx-lymph-exam', 'bsym':'ctx-bsym', 'patient':'ctx-patient' };
+  Object.entries(mapping).forEach(([k, id]) => { const v = params.get(k) || (src && src[k]); if (v != null && v !== '') { const el = document.getElementById(id); if (el) el.value = v; } });
+  Object.entries(ctxMapping).forEach(([k, id]) => { const v = params.get(k) || (src && src[k]); if (v != null && v !== '') { const el = document.getElementById(id); if (el) el.value = v; } });
+})();
+
+let lastAnalysisData = null;
+
+function clearOutput() {
+  document.getElementById('output-section').classList.remove('show');
+  document.getElementById('output-section').innerHTML = '';
+  document.getElementById('empty-state').style.display = '';
+  document.getElementById('copy-record').classList.remove('show');
+  lastAnalysisData = null;
+}
+function resetAll() {
+  ['f-hb','f-hct','f-mcv','f-retic','f-ferritin','f-b12','f-folate','f-crp','f-wcc','f-neut','f-lymph','f-eos','f-mono','f-plt'].forEach(id => { const el = document.getElementById(id); if (el) { el.value=''; el.className='result-input'; }});
+  ['ctx-sex','ctx-unwell','ctx-bleed','ctx-lymph-exam','ctx-bsym'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+  ['ctx-age','ctx-patient'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  clearOutput();
+}
+
+function analyse() {
+  const hb = val('f-hb'), hct = val('f-hct'), mcv = val('f-mcv'), retic = val('f-retic');
+  const ferritin = val('f-ferritin'), b12 = val('f-b12'), folate = val('f-folate'), crp = val('f-crp');
+  const wcc = val('f-wcc'), neut = val('f-neut'), lymph = val('f-lymph'), eos = val('f-eos'), mono = val('f-mono');
+  const plt = val('f-plt');
+  const sex = sel('ctx-sex'), age = val('ctx-age'), unwell = sel('ctx-unwell');
+  const bleed = sel('ctx-bleed'), lymphExam = sel('ctx-lymph-exam'), bsym = sel('ctx-bsym');
+
+  const anyResult = [hb,hct,mcv,retic,ferritin,b12,folate,crp,wcc,neut,lymph,eos,mono,plt].some(v => v !== null);
+  if (!anyResult) { alert('Please enter at least one FBC value.'); return; }
+
+  const d = { hb, hct, mcv, retic, ferritin, b12, folate, crp, wcc, neut, lymph, eos, mono, plt, sex, age, unwell, bleed, lymphExam, bsym };
+
+  // Thresholds per NCL pathway
+  d.anaemia = hb !== null && hb < 110;
+  d.severeAnaemia = hb !== null && hb < 50;
+  d.microcytic = mcv !== null && mcv < 80;
+  d.normocytic = mcv !== null && mcv >= 80 && mcv <= 100;
+  d.macrocytic = mcv !== null && mcv > 100;
+  d.polycythaemia = hct !== null && ((sex === 'm' && hct > 0.52) || ((sex === 'f' || sex === 'preg') && hct > 0.48));
+  d.polycythaemiaUrgent = hct !== null && ((sex === 'm' && hct > 0.60) || ((sex === 'f' || sex === 'preg') && hct > 0.56));
+  d.isolatedMacrocytosis = d.macrocytic && !d.anaemia;
+  d.persistMacrocytosis = mcv !== null && mcv > 105;
+  d.reticLow = retic !== null && retic < 80;
+  d.reticHigh = retic !== null && retic >= 80;
+  d.ferritinLow = ferritin !== null && ferritin < 30;
+  d.ferritinIndet = ferritin !== null && ferritin >= 30 && ferritin <= 150;
+  d.ferritinHigh = ferritin !== null && ferritin > 150;
+  d.ferritinVeryHigh = ferritin !== null && ferritin > 1000;
+  d.b12Low = b12 !== null && b12 < 170;
+  d.folateLow = folate !== null && folate < 3;
+  d.folateBorderline = folate !== null && folate >= 3 && folate <= 4.5;
+  d.crpRaised = crp !== null && crp > 30;
+  d.crpNormal = crp !== null && crp <= 30;
+  d.neutropenia = neut !== null && neut < 1.5;
+  d.neutMild = neut !== null && neut >= 1 && neut < 1.5;
+  d.neutMod = neut !== null && neut >= 0.5 && neut < 1.0;
+  d.neutSev = neut !== null && neut >= 0.2 && neut < 0.5;
+  d.neutVerySev = neut !== null && neut < 0.2;
+  d.neutrophilia = neut !== null && neut > 7.5;
+  d.neutroMild = neut !== null && neut > 7.5 && neut <= 15;
+  d.neutroMod = neut !== null && neut > 15 && neut <= 50;
+  d.neutroSev = neut !== null && neut > 50;
+  d.lymphopenia = lymph !== null && lymph < 1.0;
+  d.lymphopeniaSev = lymph !== null && lymph < 0.5;
+  d.lymphocytosis = lymph !== null && lymph > 3.5;
+  d.lymphocytosisHigh = lymph !== null && lymph > 20;
+  d.eosinophilia = eos !== null && eos > 0.5;
+  d.hyperEos = eos !== null && eos > 1.5;
+  d.monocytosis = mono !== null && mono > 1.0;
+  d.monocytosisExtreme = mono !== null && mono > 5.0;
+  d.monocytosisMid = mono !== null && mono >= 1.2 && mono <= 5.0;
+  d.thrombocytosis = plt !== null && plt > 450;
+  d.thrombocytosisExtreme = plt !== null && plt > 1000;
+  d.thrombocytopenia = plt !== null && plt < 150;
+  d.thrombocytopeniaSevere = plt !== null && plt < 20;
+  d.thrombocytopeniaMod = plt !== null && plt >= 20 && plt < 50;
+  d.thrombocytopeniaMild = plt !== null && plt >= 50 && plt < 100;
+  const linesAbnormal = [d.anaemia, d.neutropenia || d.neutrophilia, d.thrombocytopenia || d.thrombocytosis].filter(Boolean).length;
+  d.pancytopenia = d.anaemia && d.neutropenia && d.thrombocytopenia;
+  d.multipleLines = linesAbnormal >= 2;
+  d.unwellPatient = unwell === 'yes';
+  d.activeBleed = bleed === 'yes';
+  d.bsymY = bsym === 'yes';
+  d.lymphExamY = lymphExam === 'yes';
+
+  lastAnalysisData = d;
+  colourInputs(d);
+  renderOutput(d);
+}
+
+function colourInputs(d) {
+  const set = (id, cls) => { const el = document.getElementById(id); if (el && el.value !== '') el.className = 'result-input ' + cls; };
+  if (d.hb !== null) set('f-hb', d.severeAnaemia ? 'abnormal' : d.anaemia ? 'warning' : 'normal');
+  if (d.hct !== null) set('f-hct', d.polycythaemiaUrgent ? 'abnormal' : d.polycythaemia ? 'warning' : 'normal');
+  if (d.mcv !== null) set('f-mcv', (d.microcytic || d.macrocytic) ? 'warning' : 'normal');
+  // WCC: PDF mentions WCC >50 (monocytosis red flag) and >100 (neutrophilia admission threshold); use standard reference <4 or >11 as a visual warning
+  if (d.wcc !== null) {
+    if (d.wcc > 50 || d.wcc < 2) set('f-wcc', 'abnormal');
+    else if (d.wcc > 11 || d.wcc < 4) set('f-wcc', 'warning');
+    else set('f-wcc', 'normal');
+  }
+  if (d.neut !== null) set('f-neut', d.neutSev || d.neutVerySev || d.neutroSev ? 'abnormal' : d.neutropenia || d.neutrophilia ? 'warning' : 'normal');
+  if (d.lymph !== null) set('f-lymph', d.lymphocytosisHigh || d.lymphopeniaSev ? 'abnormal' : d.lymphopenia || d.lymphocytosis ? 'warning' : 'normal');
+  if (d.eos !== null) set('f-eos', d.hyperEos ? 'abnormal' : d.eosinophilia ? 'warning' : 'normal');
+  if (d.mono !== null) set('f-mono', d.monocytosisExtreme ? 'abnormal' : d.monocytosis ? 'warning' : 'normal');
+  if (d.plt !== null) set('f-plt', d.thrombocytosisExtreme || d.thrombocytopeniaSevere ? 'abnormal' : d.thrombocytopenia || d.thrombocytosis ? 'warning' : 'normal');
+  // Ferritin: <30 low, 30-150 normal-for-pathway, >150 raised, >1000 markedly raised
+  if (d.ferritin !== null) {
+    if (d.ferritinVeryHigh) set('f-ferritin', 'abnormal');
+    else if (d.ferritinHigh || d.ferritinLow) set('f-ferritin', 'warning');
+    else set('f-ferritin', 'normal');
+  }
+  // B12: <170 low per PDF; raised B12 not in PDF logic but >900 flagged informationally
+  if (d.b12 !== null) {
+    if (d.b12Low) set('f-b12', 'warning');
+    else if (d.b12 > 900) set('f-b12', 'warning');
+    else set('f-b12', 'normal');
+  }
+  // Folate: <3 low per PDF
+  if (d.folate !== null) set('f-folate', d.folateLow || d.folateBorderline ? 'warning' : 'normal');
+  // CRP: >30 raised per PDF (functional iron deficiency context); standard reference >10
+  if (d.crp !== null) {
+    if (d.crpRaised) set('f-crp', 'warning');
+    else if (d.crp > 10) set('f-crp', 'warning');
+    else set('f-crp', 'normal');
+  }
+  // Retic: <80 vs >80 per PDF anaemia branching
+  if (d.retic !== null) set('f-retic', (d.reticLow || d.reticHigh) ? 'warning' : 'normal');
+}
+
+function renderOutput(d) {
+  const out = document.getElementById('output-section');
+  document.getElementById('empty-state').style.display = 'none';
+  out.classList.add('show');
+  out.innerHTML = '';
+  const findings = [];
+
+  if (d.severeAnaemia) findings.push(buildSevereAnaemia(d));
+  if (d.pancytopenia) findings.push(buildPancytopenia(d));
+  if (d.polycythaemiaUrgent) findings.push(buildPolycythaemiaUrgent(d));
+  if (d.neutVerySev || (d.neutropenia && (d.unwellPatient || d.lymphExamY || d.bsymY))) findings.push(buildNeutropeniaUrgent(d));
+  if (d.neutroSev) findings.push(buildNeutrophiliaUrgent(d));
+  if (d.thrombocytopeniaSevere || (d.thrombocytopeniaMod && d.activeBleed)) findings.push(buildThrombocytopeniaUrgent(d));
+  if (d.thrombocytosisExtreme) findings.push(buildThrombocytosisUrgent(d));
+  if (d.lymphocytosisHigh || (d.lymphocytosis && d.bsymY) || (d.lymphocytosis && d.lymphExamY)) findings.push(buildLymphocytosisUrgent(d));
+  if (d.hyperEos) findings.push(buildHyperEos(d));
+  if (d.monocytosisExtreme && d.wcc !== null && d.wcc > 50) findings.push(buildMonocytosisUrgent(d));
+  if (d.lymphopenia && d.bsymY) findings.push(buildLymphopeniaUrgent(d));
+
+  if (d.anaemia && !d.severeAnaemia) findings.push(buildAnaemia(d));
+  if (d.polycythaemia && !d.polycythaemiaUrgent) findings.push(buildPolycythaemia(d));
+  if (d.isolatedMacrocytosis) findings.push(buildMacrocytosis(d));
+  if (d.neutropenia && !d.neutVerySev && !(d.unwellPatient || d.lymphExamY || d.bsymY)) findings.push(buildNeutropenia(d));
+  if (d.neutrophilia && !d.neutroSev) findings.push(buildNeutrophilia(d));
+  if (d.lymphopenia && !d.bsymY) findings.push(buildLymphopenia(d));
+  if (d.lymphocytosis && !d.lymphocytosisHigh && !d.bsymY && !d.lymphExamY) findings.push(buildLymphocytosis(d));
+  if (d.eosinophilia && !d.hyperEos) findings.push(buildEosinophilia(d));
+  if (d.monocytosis && !(d.monocytosisExtreme && d.wcc !== null && d.wcc > 50)) findings.push(buildMonocytosis(d));
+  if (d.thrombocytosis && !d.thrombocytosisExtreme) findings.push(buildThrombocytosis(d));
+  if (d.thrombocytopenia && !d.thrombocytopeniaSevere && !(d.thrombocytopeniaMod && d.activeBleed)) findings.push(buildThrombocytopenia(d));
+
+  // Isolated finding builders (fire when the abnormality exists but isn't part of an anaemia/cytopenia pattern already addressed)
+  // Raised ferritin: PDF mentions ferritin can be raised in inflammation/infection/malignancy/liver disease
+  if (d.ferritinHigh && !(d.microcytic && d.anaemia)) findings.push(buildRaisedFerritin(d));
+  // Isolated B12 deficiency without anaemia
+  if (d.b12Low && !d.anaemia) findings.push(buildIsolatedB12Low(d));
+  // Isolated folate deficiency without anaemia
+  if ((d.folateLow || d.folateBorderline) && !d.anaemia) findings.push(buildIsolatedFolateLow(d));
+
+  if (findings.length === 0) findings.push(buildNormal(d));
+
+  const urgencyOrder = { urgent: 0, refer: 1, gp: 2, 'amber-action': 3, noaction: 4, info: 5 };
+  findings.sort((a, b) => urgencyOrder[a.type] - urgencyOrder[b.type]);
+
+  let multiLineNote = '';
+  if (d.multipleLines) {
+    multiLineNote = '<div class="ctx-warning-strip"><div class="ctx-warning-icon">⚠</div><div><strong>Multiple cell lines abnormal.</strong> Per NCL pathway: <em>"Abnormalities affecting more than one cell type are more likely to be due to bone marrow causes rather than reactive."</em> Consider earlier referral.</div></div>';
+  }
+  if (d.unwellPatient) {
+    multiLineNote += '<div class="ctx-warning-strip"><div class="ctx-warning-icon">⚠</div><div><strong>Patient is unwell.</strong> Per NCL pathway: <em>"Always consider earlier referral when the patient is unwell."</em></div></div>';
+  }
+
+  out.innerHTML += resultSummaryHTML(d);
+  out.innerHTML += multiLineNote;
+  const primary = findings[0];
+  out.innerHTML += renderPrimary(primary);
+  if (findings.length > 1) {
+    out.innerHTML += '<div class="section-divider">Other findings in this FBC (' + (findings.length - 1) + ')</div>';
+    findings.slice(1).forEach(f => out.innerHTML += renderSecondary(f));
+  }
+  out.innerHTML += '<div class="section-divider">Pathway note (always)</div>' +
+    '<div class="secondary-card info">' +
+      '<div class="secondary-head" onclick="toggleSecondary(this)">' +
+        '<span class="secondary-tag">Global</span>' +
+        '<span class="secondary-title">"Abnormalities affecting more than one cell type are more likely to be due to bone marrow causes rather than reactive"</span>' +
+        '<span class="chev">▾</span>' +
+      '</div>' +
+      '<div class="secondary-body">' +
+        '<div class="verbatim-quote">"NB: Abnormalities affecting more than one cell type are more likely to be due to bone marrow causes rather than reactive. Always consider earlier referral when the patient is unwell."<div class="verbatim-source">— NCL Abnormal FBC pathway, page 1, box 18.0</div></div>' +
+        '<p style="margin-top:8px;font-size:12px">Investigations must be within 6 months of date of referral. Source: NCL Abnormal FBC Adults Primary Care Clinical Pathway, Final January 2023, Review January 2026. Authors: Dr Sarah Morgan, Dr Sajir Mohamedbhai.</p>' +
+      '</div>' +
+    '</div>';
+
+  buildCopyText(d, findings);
+  document.getElementById('copy-record').classList.add('show');
+  out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resultSummaryHTML(d) {
+  const chips = [];
+  if (d.hb !== null) chips.push({ name:'Hb', val: d.hb + ' g/L', cls: d.severeAnaemia ? 'c-urgent' : d.anaemia ? 'c-high' : 'c-normal' });
+  if (d.mcv !== null) chips.push({ name:'MCV', val: d.mcv + ' fL', cls: (d.microcytic || d.macrocytic) ? 'c-high' : 'c-normal' });
+  if (d.hct !== null) chips.push({ name:'Hct', val: d.hct, cls: d.polycythaemiaUrgent ? 'c-urgent' : d.polycythaemia ? 'c-high' : 'c-normal' });
+  if (d.wcc !== null) chips.push({ name:'WCC', val: d.wcc, cls: (d.wcc > 50 || d.wcc < 2) ? 'c-urgent' : (d.wcc > 11 || d.wcc < 4) ? 'c-high' : 'c-normal' });
+  if (d.neut !== null) chips.push({ name:'Neut', val: d.neut, cls: (d.neutVerySev || d.neutroSev) ? 'c-urgent' : (d.neutropenia || d.neutrophilia) ? 'c-high' : 'c-normal' });
+  if (d.lymph !== null) chips.push({ name:'Lymph', val: d.lymph, cls: (d.lymphocytosisHigh || d.lymphopeniaSev) ? 'c-urgent' : (d.lymphocytosis || d.lymphopenia) ? 'c-high' : 'c-normal' });
+  if (d.eos !== null) chips.push({ name:'Eos', val: d.eos, cls: d.hyperEos ? 'c-urgent' : d.eosinophilia ? 'c-high' : 'c-normal' });
+  if (d.mono !== null) chips.push({ name:'Mono', val: d.mono, cls: d.monocytosisExtreme ? 'c-urgent' : d.monocytosis ? 'c-high' : 'c-normal' });
+  if (d.plt !== null) chips.push({ name:'Plt', val: d.plt, cls: (d.thrombocytosisExtreme || d.thrombocytopeniaSevere) ? 'c-urgent' : (d.thrombocytosis || d.thrombocytopenia) ? 'c-high' : 'c-normal' });
+  if (d.ferritin !== null) chips.push({ name:'Ferritin', val: d.ferritin, cls: d.ferritinVeryHigh ? 'c-urgent' : (d.ferritinHigh || d.ferritinLow) ? 'c-high' : 'c-normal' });
+  if (d.b12 !== null) chips.push({ name:'B12', val: d.b12, cls: d.b12Low ? 'c-high' : 'c-normal' });
+  if (d.folate !== null) chips.push({ name:'Folate', val: d.folate, cls: (d.folateLow || d.folateBorderline) ? 'c-high' : 'c-normal' });
+  if (d.crp !== null) chips.push({ name:'CRP', val: d.crp, cls: d.crpRaised ? 'c-high' : 'c-normal' });
+  if (d.retic !== null) chips.push({ name:'Retic', val: d.retic, cls: (d.reticLow || d.reticHigh) ? 'c-high' : 'c-normal' });
+  return '<div class="result-summary">' + chips.map(c => '<div class="result-chip"><div class="result-chip-name">' + c.name + '</div><div class="result-chip-val ' + c.cls + '">' + c.val + '</div></div>').join('') + '</div>';
+}
+
+// PATHWAY BUILDERS (each traceable to PDF)
+
+function buildSevereAnaemia(d) {
+  return { type:'urgent', flag:'⚡ Urgent — Hb <50 g/L', title: 'Severe anaemia (Hb ' + d.hb + ' g/L) — consider admission',
+    subtitle: 'Per NCL pathway box 1.0(R): if Hb <50 g/L or very symptomatic, consider admission.',
+    actions: [
+      { text: '<strong>Consider admission</strong> — Hb <50 g/L or very symptomatic.' },
+      { text: 'Urgent/2WW haematology referral if: leukoerythroblastic anaemia, unexplained progressive symptomatic anaemia, associated splenomegaly/lymphadenopathy and other cytopenias, suspected haematological malignancy.' },
+      { text: 'Urgent/2WW GI/colorectal referral if: acute GI bleeding, >60yrs with IDA, <50yrs with IDA and rectal bleeding.' }
+    ],
+    verbatim:'If Hb <50g/l or very symptomatic- consider admission. Urgently/2ww refer to haematology: Leukoerythroblastic anaemia on blood film, Unexplained progressive symptomatic anaemia, Associated splenomegaly, lymphodenopathy and other cytopenias, Suspected haemotological malignancy or other blood disorders (2WW).',
+    source: 'NCL Abnormal FBC pathway, page 2 (Anaemia), box 1.0(R)',
+    logic: [ { kw: 'IF', text: 'Hb <50 g/L', met: d.severeAnaemia }, { kw: 'THEN', text: 'consider admission and urgent referral', met: true } ],
+    recordSummary: 'Severe anaemia (Hb ' + d.hb + ' g/L)',
+    recordPlan: 'Per NCL FBC pathway: consider admission; urgent haematology/GI referral as indicated.'
+  };
+}
+
+function buildPancytopenia(d) {
+  return { type:'urgent', flag:'⚡ Urgent — pancytopenia', title: 'Pancytopenia — urgent referral',
+    subtitle: 'All three cell lines reduced: Hb ' + d.hb + ', Neut ' + d.neut + ', Plt ' + d.plt + '. Per NCL pathway box 13.0(R), refer urgently if pancytopenia.',
+    actions: [
+      { text: '<strong>Urgent referral</strong> to haematology — pancytopenia.' },
+      { text: 'Abnormalities affecting more than one cell type are more likely to be due to bone marrow causes rather than reactive.' }
+    ],
+    verbatim: 'Refer urgently if pancytopenia.',
+    source: 'NCL Abnormal FBC pathway, page 2 (Anaemia), box 13.0(R)',
+    logic: [ { kw: 'IF', text: 'Hb low', met: d.anaemia }, { kw: 'AND', text: 'neutrophils low', met: d.neutropenia }, { kw: 'AND', text: 'platelets low', met: d.thrombocytopenia }, { kw: 'THEN', text: 'urgent haematology referral', met: true } ],
+    recordSummary: 'Pancytopenia (Hb ' + d.hb + ', Neut ' + d.neut + ', Plt ' + d.plt + ')',
+    recordPlan: 'Per NCL FBC pathway: urgent haematology referral for pancytopenia.'
+  };
+}
+
+function buildAnaemia(d) {
+  if (d.microcytic) return buildMicrocyticAnaemia(d);
+  if (d.macrocytic) return buildMacrocyticAnaemia(d);
+  if (d.normocytic) return buildNormocyticAnaemia(d);
+  return buildUnspecifiedAnaemia(d);
+}
+
+function buildMicrocyticAnaemia(d) {
+  if (d.ferritinLow) {
+    return { type:'gp', flag:'GP action — IDA', title: 'Iron deficiency anaemia (microcytic, Hb ' + d.hb + ', MCV ' + d.mcv + ')',
+      subtitle: 'Microcytic anaemia with low ferritin (' + d.ferritin + ' mcg/L) — iron deficiency anaemia per NCL box 19.0(B).',
+      actions: [
+        { text: '<strong>Follow Iron Deficiency Pathway</strong>: <a href="https://gps.northcentrallondon.icb.nhs.uk/pathways/iron-deficiency-primary-care-clinical-pathway" target="_blank">NCL Iron Deficiency Pathway</a>' },
+        { text: 'Ensure <strong>coeliac screen</strong> done if unexplained iron deficiency.' },
+        { text: 'Commence appropriate treatment and monitor response.' }
+      ],
+      verbatim: 'Low ferritin <30 mcg/L +/- low iron/high TIBC. Iron deficiency anaemia-IDA. See Iron deficiency pathway. Ensure Coeliac screen done if unexplained iron deficiency.',
+      source: 'NCL Abnormal FBC pathway, page 2, boxes 19.0/34.0',
+      logic: [ { kw: 'IF', text: 'Hb <110 (anaemia)', met: d.anaemia }, { kw: 'AND', text: 'MCV <80 (microcytic)', met: d.microcytic }, { kw: 'AND', text: 'ferritin <30 mcg/L', met: d.ferritinLow }, { kw: 'THEN', text: 'IDA — Iron Deficiency Pathway', met: true } ],
+      recordSummary: 'IDA (Hb ' + d.hb + ', MCV ' + d.mcv + ', Ferritin ' + d.ferritin + ')',
+      recordPlan: 'Per NCL FBC pathway: IDA — follow Iron Deficiency Pathway, coeliac screen if unexplained.'
+    };
+  }
+  if (d.ferritinIndet) {
+    if (d.crpRaised) {
+      return { type:'gp', flag:'GP action — functional iron deficiency', title: 'Functional iron deficiency (microcytic, Hb ' + d.hb + ')',
+        subtitle: 'Ferritin indeterminate (' + d.ferritin + ' mcg/L), CRP raised (' + d.crp + ' mg/L).',
+        actions: [ { text: 'Refer to <strong>Iron Deficiency Pathway</strong>: <a href="https://gps.northcentrallondon.icb.nhs.uk/pathways/iron-deficiency-primary-care-clinical-pathway" target="_blank">NCL Iron Deficiency Pathway</a>' } ],
+        verbatim: 'Indeterminate ferritin 30-150 mcg/L. If CRP>30mg/L, Iron <7 µmol/L, Iron saturation <20%, TIBC <45 µmol/L: Functional iron deficiency.',
+        source: 'NCL Abnormal FBC pathway, page 2, boxes 20.0/30.0/36.0',
+        logic: [ { kw: 'IF', text: 'microcytic anaemia', met: true }, { kw: 'AND', text: 'ferritin 30-150 mcg/L', met: d.ferritinIndet }, { kw: 'AND', text: 'CRP >30 mg/L', met: d.crpRaised }, { kw: 'THEN', text: 'functional iron deficiency', met: true } ],
+        recordSummary: 'Functional iron deficiency (microcytic, ferritin ' + d.ferritin + ')',
+        recordPlan: 'Per NCL FBC pathway: functional iron deficiency — follow Iron Deficiency Pathway.'
+      };
+    }
+    if (d.crpNormal) {
+      return { type:'gp', flag:'GP action — iron studies', title: 'Microcytic anaemia, indeterminate ferritin, CRP normal',
+        subtitle: 'Ferritin ' + d.ferritin + ' mcg/L, CRP normal. Iron studies needed.',
+        actions: [
+          { text: 'Iron studies pattern expected: CRP normal, iron >7 µmol/L, iron saturation >20%, TIBC >45 µmol/L = iron replete.' },
+          { text: 'If iron replete, investigate other cause if persistent.' }
+        ],
+        verbatim: 'Indeterminate ferritin 30-150 mcg/L. If CRP normal, Iron >7µmol/L, Iron saturation >20%, TIBC >45 µmol/L: Iron replete.',
+        source: 'NCL Abnormal FBC pathway, page 2, boxes 20.0/29.0/35.0',
+        logic: [ { kw: 'IF', text: 'microcytic, ferritin 30-150, CRP normal', met: true }, { kw: 'THEN', text: 'check iron/TIBC/iron sat', met: true } ],
+        recordSummary: 'Microcytic anaemia, indeterminate ferritin (' + d.ferritin + '), CRP normal',
+        recordPlan: 'Per NCL FBC pathway: check iron, TIBC, iron saturation.'
+      };
+    }
+  }
+  if (d.ferritinHigh) {
+    return { type:'gp', flag:'GP action — non-iron deficient microcytic',
+      title: 'Microcytic anaemia, high ferritin (' + d.ferritin + ')',
+      subtitle: 'High ferritin >150 mcg/L. Interpret with other iron study indices — but unlikely iron deficiency.',
+      actions: [
+        { text: 'Consider non-haematological causes: acute/chronic inflammation, chronic infection, malignancy, liver disease, renal failure, anaemia of chronic disease.' },
+        { text: 'Consider haematological causes: haemoglobinopathy (e.g. thalassaemia trait — screen if no previous Hb electrophoresis and ongoing microcytic parameters with replete Fe stores); sideroblastic anaemia.' }
+      ],
+      verbatim: 'High ferritin >150 mcg/L. Interpret with other iron study indices eg transferrin saturation but unlikely iron deficiency. Non-iron deficient microcytic anaemia or functional iron deficiency.',
+      source: 'NCL Abnormal FBC pathway, page 2, boxes 21.0/31.0',
+      logic: [ { kw: 'IF', text: 'microcytic anaemia', met: true }, { kw: 'AND', text: 'ferritin >150', met: d.ferritinHigh }, { kw: 'THEN', text: 'investigate non-iron-deficient causes', met: true } ],
+      recordSummary: 'Microcytic, high ferritin (' + d.ferritin + ')',
+      recordPlan: 'Per NCL FBC pathway: non-iron deficient microcytic — consider haemoglobinopathy / chronic disease / sideroblastic.'
+    };
+  }
+  return { type:'gp', flag:'GP action — check iron studies', title: 'Microcytic anaemia (Hb ' + d.hb + ', MCV ' + d.mcv + ')',
+    subtitle: 'Per NCL box 15.0(B): check iron studies and CRP. Ferritin can be raised in inflammation, infection, malignancy or liver disease.',
+    actions: [
+      { text: '<strong>Check iron studies and CRP</strong>.' },
+      { text: 'Consider iron deficiency, mixed haematinic deficiency, non-haematological cause/anaemia of chronic disease, or haematological disorder.' },
+      { text: 'Global investigations: repeat FBC, blood film, reticulocytes, U&E, creatinine, LFT, ferritin, B12, folate, CRP.' }
+    ],
+    verbatim: 'Check iron studies and CRP (Note: Ferritin can be raised in the presence of acute or chronic inflammation, infection, malignant disease or liver disease).',
+    source: 'NCL Abnormal FBC pathway, page 2, boxes 15.0/22.0',
+    logic: [ { kw: 'IF', text: 'microcytic anaemia', met: d.microcytic }, { kw: 'AND', text: 'ferritin not yet known', met: d.ferritin === null }, { kw: 'THEN', text: 'iron studies + CRP', met: true } ],
+    recordSummary: 'Microcytic anaemia (Hb ' + d.hb + ', MCV ' + d.mcv + ')',
+    recordPlan: 'Per NCL FBC pathway: check iron studies (ferritin, iron, TIBC, iron sat) and CRP.'
+  };
+}
+
+function buildNormocyticAnaemia(d) {
+  if (d.reticHigh) {
+    return { type:'gp', flag:'GP action — haemorrhage/haemolysis',
+      title: 'Normocytic anaemia with high reticulocytes',
+      subtitle: 'Reticulocytes ' + d.retic + ' (>80 / >2%). Per NCL box 22.0(B): consider haemorrhage or haemolysis.',
+      actions: [
+        { text: '<strong>Consider:</strong> haemorrhage, haemolysis (bilirubin elevated).' },
+        { text: 'Investigate and manage where appropriate.' },
+        { text: 'Refer to appropriate specialist in secondary care 2WW/urgent/routine where clinically indicated or if remains unexplained.' }
+      ],
+      verbatim: 'Consider Haemorrhage, Haemolysis (bilirubin elevated). Investigate and manage where appropriate.',
+      source: 'NCL Abnormal FBC pathway, page 2, boxes 22.0/41.0',
+      logic: [ { kw: 'IF', text: 'normocytic anaemia', met: d.normocytic }, { kw: 'AND', text: 'reticulocytes >80', met: d.reticHigh }, { kw: 'THEN', text: 'haemorrhage / haemolysis', met: true } ],
+      recordSummary: 'Normocytic anaemia, high reticulocytes',
+      recordPlan: 'Per NCL FBC pathway: investigate haemorrhage/haemolysis (bilirubin, LDH, haptoglobin).'
+    };
+  }
+  if (d.reticLow) return buildNormocyticLowRetic(d);
+  return { type:'gp', flag:'GP action — normocytic anaemia',
+    title: 'Normocytic anaemia (Hb ' + d.hb + ', MCV ' + d.mcv + ')',
+    subtitle: 'Per NCL box 10.0(B). Check reticulocyte count to direct workup.',
+    actions: [
+      { text: '<strong>Check reticulocyte count</strong>.' },
+      { text: 'Global investigations: blood film, reticulocytes, U&E, creatinine, LFT, ferritin, B12, folate, CRP.' }
+    ],
+    verbatim: 'Normocytic anaemia. Isolated anaemia. Reticulocyte count <80x10⁹/l / <2% or >80x10⁹/l / >2%.',
+    source: 'NCL Abnormal FBC pathway, page 2, boxes 10.0/12.0/16.0/17.0',
+    logic: [ { kw: 'IF', text: 'normocytic anaemia', met: d.normocytic }, { kw: 'THEN', text: 'reticulocyte count required', met: true } ],
+    recordSummary: 'Normocytic anaemia (Hb ' + d.hb + ')',
+    recordPlan: 'Per NCL FBC pathway: check reticulocyte count.'
+  };
+}
+
+function buildNormocyticLowRetic(d) {
+  if (d.b12Low) {
+    return { type:'gp', flag:'GP action — B12 deficiency',
+      title: 'B12 deficiency (normocytic anaemia, B12 ' + d.b12 + ' ng/L)',
+      subtitle: 'B12 <170 ng/L per box 24.0(B). Aetiology: GI/malabsorption, dietary, medication, pernicious anaemia.',
+      actions: [
+        { text: '<strong>Commence B12 replacement</strong>: hydroxocobalamin 1mg IM 3x weekly for 2 weeks.' },
+        { text: 'Maintenance: non-dietary cause = 1mg IM 3 monthly; dietary = 1mg IM 6 monthly OR oral cyanocobalamin 50-150 mcg daily.' },
+        { text: 'If neurological involvement: seek urgent advice from haematologist.' }
+      ],
+      verbatim: 'B12 <170ng/l and symptomatic. Aetiology consider: Gastro-intestinal/malabsorption, Dietary, Medication – colchicine, anticonvulsants, PPIs/H2RA, Pernicious anaemia.',
+      source: 'NCL Abnormal FBC pathway, pages 2 and 3, boxes 24.0/32.0/37.0',
+      logic: [ { kw: 'IF', text: 'normocytic anaemia, low retics', met: true }, { kw: 'AND', text: 'B12 <170 ng/L', met: d.b12Low }, { kw: 'THEN', text: 'B12 replacement', met: true } ],
+      recordSummary: 'B12 deficiency anaemia (B12 ' + d.b12 + ')',
+      recordPlan: 'Per NCL FBC pathway: hydroxocobalamin 1mg IM 3x/week for 2 weeks, then maintenance.'
+    };
+  }
+  if (d.folateLow || d.folateBorderline) {
+    return { type:'gp', flag:'GP action — folate deficiency',
+      title: 'Folate deficiency (folate ' + d.folate + ' µg/L)',
+      subtitle: 'Folate <3 µg/L OR 3-4.5 µg/L symptomatic per box 27.0(B).',
+      actions: [
+        { text: '<strong>Check B12 first</strong> (treating folate can mask B12 deficiency).' },
+        { text: 'Oral folic acid 5mg daily, usually 4 months.' },
+        { text: 'Ensure coeliac screen.' }
+      ],
+      verbatim: 'Serum folate <3ug/l or 3-4.5ug/l and symptomatic. Folate replacement, Monitor response.',
+      source: 'NCL Abnormal FBC pathway, page 2 boxes 27.0/33.0/39.0',
+      logic: [ { kw: 'IF', text: 'folate <3 or 3-4.5 symptomatic', met: d.folateLow || d.folateBorderline }, { kw: 'THEN', text: 'folic acid 5mg daily 4 months', met: true } ],
+      recordSummary: 'Folate deficiency (folate ' + d.folate + ')',
+      recordPlan: 'Per NCL FBC pathway: oral folic acid 5mg daily for 4 months. Check B12 first.'
+    };
+  }
+  return { type:'gp', flag:'GP action — normocytic anaemia, low retics',
+    title: 'Normocytic anaemia, low reticulocytes (Hb ' + d.hb + ')',
+    subtitle: 'Per NCL box 23.0(B): check B12, folate, non-haematological causes.',
+    actions: [
+      { text: 'Check B12 and folate.' },
+      { text: 'Look for non-haematological causes: chronic disease, renal failure (U&E), liver disease.' },
+      { text: 'Investigate and manage; refer if remains unexplained.' }
+    ],
+    verbatim: 'Reticulocyte count <80x10⁹/l / <2%. B12 <170ng/l and symptomatic; Serum folate <3ug/l or 3-4.5ug/l and symptomatic.',
+    source: 'NCL Abnormal FBC pathway, page 2, boxes 16.0/23.0/24.0/27.0',
+    logic: [ { kw: 'IF', text: 'normocytic anaemia, low retics', met: d.normocytic && d.reticLow }, { kw: 'THEN', text: 'check B12/folate, non-haem causes', met: true } ],
+    recordSummary: 'Normocytic anaemia, low reticulocytes',
+    recordPlan: 'Per NCL FBC pathway: check B12, folate, U&E, LFTs.'
+  };
+}
+
+function buildMacrocyticAnaemia(d) {
+  if (d.b12Low) {
+    return { type:'gp', flag:'GP action — B12 deficiency (macrocytic)',
+      title: 'Macrocytic anaemia, B12 deficiency (B12 ' + d.b12 + ')',
+      subtitle: 'Macrocytic anaemia (MCV ' + d.mcv + ') with B12 <170 ng/L per box 25.0(B).',
+      actions: [
+        { text: 'Commence B12 replacement: hydroxocobalamin 1mg IM 3x weekly for 2 weeks, then maintenance.' },
+        { text: 'If neurological involvement: seek urgent advice from haematologist. Whilst waiting: 1mg IM on alternate days until no further improvement, then 1mg every 2 months.' },
+        { text: 'Dietary advice. In vegans, treatment may be lifelong.' }
+      ],
+      verbatim: 'B12 <170ng/l and symptomatic. For people with neurological involvement: Seek urgent advice from haematologist.',
+      source: 'NCL Abnormal FBC pathway, pages 2/3, boxes 25.0/32.0/37.0',
+      logic: [ { kw: 'IF', text: 'macrocytic (MCV >100)', met: d.macrocytic }, { kw: 'AND', text: 'B12 <170 ng/L', met: d.b12Low }, { kw: 'THEN', text: 'B12 replacement', met: true } ],
+      recordSummary: 'Macrocytic B12 deficiency (MCV ' + d.mcv + ', B12 ' + d.b12 + ')',
+      recordPlan: 'Per NCL FBC pathway: B12 replacement, check for neurological involvement.'
+    };
+  }
+  if (d.folateLow || d.folateBorderline) {
+    return { type:'gp', flag:'GP action — folate deficiency (macrocytic)',
+      title: 'Macrocytic anaemia, folate deficiency (folate ' + d.folate + ')',
+      subtitle: 'Macrocytic anaemia with low folate per box 27.0(B).',
+      actions: [
+        { text: '<strong>Check B12 first</strong> (treating folate can mask B12 deficiency).' },
+        { text: 'Oral folic acid 5mg daily, usually 4 months.' },
+        { text: 'Coeliac screen.' }
+      ],
+      verbatim: 'Serum folate <3ug/l or 3-4.5ug/l and symptomatic.',
+      source: 'NCL Abnormal FBC pathway, page 2, boxes 27.0/33.0/39.0',
+      logic: [ { kw: 'IF', text: 'macrocytic + folate low', met: d.macrocytic && (d.folateLow || d.folateBorderline) }, { kw: 'THEN', text: 'folate replacement', met: true } ],
+      recordSummary: 'Macrocytic folate deficiency (MCV ' + d.mcv + ', folate ' + d.folate + ')',
+      recordPlan: 'Per NCL FBC pathway: folate replacement 5mg daily, check B12 first.'
+    };
+  }
+  return { type:'gp', flag:'GP action — macrocytic anaemia',
+    title: 'Macrocytic anaemia (Hb ' + d.hb + ', MCV ' + d.mcv + ')',
+    subtitle: 'Per NCL box 28.0(B): with normal B12/folate, consider alcohol, hypothyroidism, drugs, liver disease, pregnancy, or haematological disorder (MDS, myeloma).',
+    actions: [
+      { text: 'Check B12 and folate (if not done).' },
+      { text: '<strong>Consider:</strong> alcohol, hypothyroidism, drugs, liver disease, pregnancy.' },
+      { text: 'Haematological disorder e.g. MDS, myeloma — consider myeloma screen.' },
+      { text: 'Refer to secondary care 2WW/urgent/routine where clinically indicated or if remains unexplained.' }
+    ],
+    verbatim: 'Normal B12/folate and asymptomatic. Consider Alcohol, Hypothyroidism, drugs, liver disease, pregnancy. Haematological disorder e.g. MDS, Myeloma.',
+    source: 'NCL Abnormal FBC pathway, page 2, box 28.0(B)',
+    logic: [ { kw: 'IF', text: 'macrocytic, B12/folate normal', met: d.macrocytic && !d.b12Low && !d.folateLow }, { kw: 'THEN', text: 'consider alcohol/thyroid/drugs/liver/MDS/myeloma', met: true } ],
+    recordSummary: 'Macrocytic anaemia (MCV ' + d.mcv + ')',
+    recordPlan: 'Per NCL FBC pathway: consider alcohol/thyroid/drugs/liver/MDS/myeloma.'
+  };
+}
+
+function buildUnspecifiedAnaemia(d) {
+  return { type:'gp', flag:'GP action — investigate anaemia',
+    title: 'Anaemia (Hb ' + d.hb + ' g/L) — request MCV',
+    subtitle: 'Hb below NCL threshold of 110 g/L but MCV not entered. Request full anaemia panel per box 4.0(B).',
+    actions: [
+      { text: '<strong>Repeat FBC with full panel</strong>: blood film, reticulocytes, U&E, creatinine, LFT, ferritin, B12, folate, CRP.' },
+      { text: 'Once MCV known, stratify into microcytic/normocytic/macrocytic.' }
+    ],
+    verbatim: 'Rpt FBC, blood film, Reticulocytes, U+Es, Creatinine, LFT, Ferritin*, B12*, Folate*, CRP. *assess in all cases of anaemia irrespective of MCV.',
+    source: 'NCL Abnormal FBC pathway, page 2, box 4.0(B)',
+    logic: [ { kw: 'IF', text: 'Hb <110 g/L', met: d.anaemia }, { kw: 'AND', text: 'MCV unknown', met: d.mcv === null }, { kw: 'THEN', text: 'request full anaemia panel', met: true } ],
+    recordSummary: 'Anaemia (Hb ' + d.hb + '), MCV pending',
+    recordPlan: 'Per NCL FBC pathway: request blood film, reticulocytes, U&E, LFT, ferritin, B12, folate, CRP.'
+  };
+}
+
+function buildPolycythaemiaUrgent(d) {
+  return { type:'urgent', flag:'⚡ Urgent — on-call haematology + ED',
+    title: 'High haematocrit — Hct ' + d.hct,
+    subtitle: 'Per NCL box 5.0(R): Hct >0.60 (M) or >0.56 (F) with no congenital cyanotic heart disease/hypoxic lung disease, OR thromboembolism, neurological symptoms, visual loss, or abnormal bleeding.',
+    actions: [ { text: '<strong>Discuss urgently with Haematologist on-call</strong> for advice + refer to ED.' } ],
+    verbatim: 'Hct Male > 0.60, Female > 0.56 with no congenital cyanotic heart disease or hypoxic lung disease, Recent arterial or venous thromboembolism, Neurological symptoms, Visual Loss, Abnormal bleeding. Discuss urgently with Haematologist on-call for advice + refer to ED.',
+    source: 'NCL Abnormal FBC pathway, page 4 (Polycythaemia), boxes 5.0(R)/8.0(R)',
+    logic: [ { kw: 'IF', text: 'Hct >0.60 (M) or >0.56 (F)', met: d.polycythaemiaUrgent }, { kw: 'THEN', text: 'urgent haematology + ED', met: true } ],
+    recordSummary: 'High Hct ' + d.hct + ' — urgent',
+    recordPlan: 'Per NCL Polycythaemia pathway: discuss urgently with on-call haematologist + refer to ED.'
+  };
+}
+
+function buildPolycythaemia(d) {
+  return { type:'gp', flag:'GP action — polycythaemia',
+    title: 'High haematocrit (Hct ' + d.hct + ')',
+    subtitle: 'Per NCL pathway page 4: Hct >0.52 (M), >0.48 (F). Hct is a better marker than haemoglobin for raised red cell mass.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> evaluate for any possible reactive cause. Serial FBCs ≥2 consistently elevated results ≥2 months apart. Blood film. Ferritin/iron profile. U&E, LFT. Erythropoetin level if available. BP and SpO2. Consider CXR.' },
+      { text: '<strong>Causes:</strong> commonly spurious (diuretics, dehydration, alcohol), drugs (testosterone, anabolic steroids), lifestyle (smoking incl. shisha and cannabis, alcohol, gym, altitude), chronic hypoxia, sleep apnoea, poorly controlled HTN, erythropoietin-secreting tumours.' },
+      { text: 'If asymptomatic + persistent at 6-8 weeks + no secondary cause: routine haematology referral.' },
+      { text: 'If secondary cause apparent: A&G/Consultant Connect; intervention to target aetiology. <em>Current guidelines do not recommend venesection unless Hct >0.56.</em>' }
+    ],
+    verbatim: 'HIGH HAEMATOCRIT (HCT) >0.52 IN MEN, >0.48 IN WOMEN. Hct is a better marker of identifying patients with a raised red cell mass than haemoglobin concentration.',
+    source: 'NCL Abnormal FBC pathway, page 4 (Polycythaemia), boxes 2.0/4.0/6.0/7.0',
+    logic: [ { kw: 'IF', text: 'Hct >0.52 (M) or >0.48 (F)', met: d.polycythaemia }, { kw: 'THEN', text: 'assessment + serial FBCs', met: true } ],
+    recordSummary: 'Polycythaemia (Hct ' + d.hct + ')',
+    recordPlan: 'Per NCL Polycythaemia pathway: assessment, serial FBCs, identify cause. Routine haematology if persistent and unexplained.'
+  };
+}
+
+function buildMacrocytosis(d) {
+  return { type:'gp', flag:'GP action — macrocytosis',
+    title: 'Macrocytosis (MCV ' + d.mcv + ' fL) without anaemia',
+    subtitle: 'Per NCL pathway page 5. Common causes: alcohol, liver disease, medications, B12/folate deficiency, pregnancy, emphysema, hypothyroidism, acute bleeding. Less common: MDS, myeloma, haemolytic anaemia.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> history (alcohol/medications), LFTs/TFTs, B12/folate, blood film, myeloma screen, reticulocytes.' },
+      { text: '<strong>Referral NOT needed</strong> where underlying cause clear, or uncomplicated B12/folate deficiency.' },
+      { text: '<strong>Advice and guidance/Referral</strong> if: macrocytosis with abnormal FBC WITHOUT B12/folate deficiency, dysplasia on blood film, paraprotein, reticulocytosis without bleeding, persistent MCV >105 fL (>3m).' },
+      { text: 'Common medications causing macrocytosis: antifolates (methotrexate, azathioprine, sulfasalazine), anticancer drugs, antiretrovirals, antiepileptics (valproate, phenytoin), antibiotics (cotrimoxazole, trimethoprim), antimalarials.' }
+    ],
+    verbatim: 'Macrocytosis. Common causes: Alcohol excess, Chronic liver disease, Medications, B12 and folate deficiency, Pregnancy (mild), Emphysema (mild), Hypothyroidism, Acute bleeding. Less Common causes: Myelodysplasia, Myeloma, Haemolytic anaemia, Idiopathic, Familial.',
+    source: 'NCL Abnormal FBC pathway, page 5 (Macrocytosis), boxes 1.0-6.0',
+    logic: [ { kw: 'IF', text: 'MCV >100 fL', met: d.macrocytic }, { kw: 'AND', text: 'no anaemia', met: !d.anaemia }, { kw: 'THEN', text: 'assessment + medication review', met: true } ],
+    recordSummary: 'Isolated macrocytosis (MCV ' + d.mcv + ')',
+    recordPlan: 'Per NCL Macrocytosis pathway: LFTs, TFTs, B12, folate, blood film, myeloma screen, reticulocytes.'
+  };
+}
+
+function buildNeutropeniaUrgent(d) {
+  return { type:'urgent', flag:'⚡ Emergency referral',
+    title: 'Severe neutropenia (Neut ' + d.neut + ')',
+    subtitle: 'Per NCL box 5.0(R)/8.0(R): red flags = neutrophils <0.5, unwell/febrile, chemotherapy, lymphadenopathy, splenomegaly, other cytopenia → emergency referral.',
+    actions: [ { text: '<strong>Emergency referral.</strong>' } ],
+    verbatim: 'Any red flags: <0.5 x 10⁹/L, Unwell/ febrile, chemotherapy, lymphadenopathy, splenomegaly, other cytopenia. Emergency Referral.',
+    source: 'NCL Abnormal FBC pathway, page 6 (Neutropenia), boxes 5.0(R)/8.0(R)',
+    logic: [ { kw: 'IF', text: 'neut <0.5', met: d.neutVerySev || d.neutSev }, { kw: 'OR', text: 'unwell/febrile', met: d.unwellPatient }, { kw: 'OR', text: 'lymphadenopathy/splenomegaly', met: d.lymphExamY }, { kw: 'THEN', text: 'emergency referral', met: true } ],
+    recordSummary: 'Severe neutropenia (' + d.neut + ') — emergency',
+    recordPlan: 'Per NCL Neutropenia pathway: emergency referral for red flag.'
+  };
+}
+
+function buildNeutropenia(d) {
+  const stratText = d.neutMild ? 'Mild (1-1.5)' : d.neutMod ? 'Moderate (0.5-1.0)' : 'Severe (<0.5)';
+  return { type:'gp', flag:'GP action — investigate neutropenia',
+    title: 'Neutropenia (Neut ' + d.neut + ') — ' + stratText,
+    subtitle: 'Per NCL pathway page 6. Isolated neutropenia is common. Causes: ethnic variation (common Afro-Caribbean), infection, drugs, endocrine, malignancy (myeloma — consider urgent SPE/free light chains/urine BJP), autoimmune, B12/folate/copper deficiency, alcohol, liver disease.',
+    actions: [
+      d.neutMild ? 
+        { text: '<strong>Mild (1-1.5):</strong> Repeat FBC in 4-6 weeks. Check blood film, ANA, HIV/Hep screen +/- B12, folate. Consider A&G/Consultant Connect.' } : 
+        { text: '<strong>Moderate (0.5-1.0):</strong> If well and afebrile, repeat FBC and blood film in 1 week. ANA, HIV/Hep screen, screening tests by history. More concerning if <0.8, or 0.8-1 with no ethnic variation factor.' },
+      { text: 'Refer urgently if persists.' },
+      { text: 'Refer if persists and unexplained cause.' }
+    ],
+    verbatim: 'LOW = NEUTROPENIA (Isolated neutropenia is v.common). Moderate 0.5-1.0 x 10⁹/L, Severe 0.2-0.5 x 10⁹/L, Very severe < 0.2 x 10⁹/L, Mild 1-1.5 x 10⁹/L.',
+    source: 'NCL Abnormal FBC pathway, page 6 (Neutropenia), boxes 1.0/3.0/4.0/6.0/9.0',
+    logic: [ { kw: 'IF', text: 'neutrophils <1.5', met: d.neutropenia }, { kw: 'AND', text: 'no red flags', met: !d.unwellPatient && !d.lymphExamY && !d.multipleLines }, { kw: 'THEN', text: 'repeat FBC + screening bloods', met: true } ],
+    recordSummary: 'Neutropenia (' + d.neut + ')',
+    recordPlan: 'Per NCL Neutropenia pathway: repeat FBC, blood film, ANA, HIV/Hep screen, B12/folate.'
+  };
+}
+
+function buildNeutrophiliaUrgent(d) {
+  return { type:'urgent', flag:'⚡ Urgent referral — severe neutrophilia',
+    title: 'Severe neutrophilia (Neut ' + d.neut + ')',
+    subtitle: 'Per NCL box 9.0(R) page 7: neutrophils >50. Urgent referral. Admit if WCC>100 or hyperviscosity symptoms or new acute leukaemia.',
+    actions: [
+      { text: '<strong>Urgent referral</strong> if unexplained; leucoerythroblastic picture; no acute leukaemia features on blood film.' },
+      { text: '<strong>Escalate to admission</strong> if new CML with WCC>100; symptoms of hyperviscosity (headaches/visual disturbance/thrombosis); new acute leukaemia; patient unwell.' }
+    ],
+    verbatim: 'Severe > 50 x10⁹/l. Urgent referral if unexplained, Leucoerythroblastic picture, no acute leukaemia features on blood film. Escalate to admission if new CML with WCC>100x10⁹/l, sx of hyperviscosity, new acute leukaemia, Pt unwell.',
+    source: 'NCL Abnormal FBC pathway, page 7 (Neutrophilia), boxes 6.0/9.0(R)',
+    logic: [ { kw: 'IF', text: 'neutrophils >50', met: d.neutroSev }, { kw: 'THEN', text: 'urgent referral / admission', met: true } ],
+    recordSummary: 'Severe neutrophilia (' + d.neut + ')',
+    recordPlan: 'Per NCL Neutrophilia pathway: urgent referral; admission if WCC>100 or hyperviscosity.'
+  };
+}
+
+function buildNeutrophilia(d) {
+  return { type:'gp', flag:'GP action — neutrophilia',
+    title: 'Neutrophilia (Neut ' + d.neut + ')' + (d.neutroMild ? ' — mild' : ' — moderate'),
+    subtitle: 'Per NCL pathway page 7: raised >7.5×10⁹/L. Mild ≤15, moderate >15.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> history for reactive cases, lymphadenopathy/splenomegaly, blood film, U&E/LFT/LDH/Ca/urate/albumin, inflammatory markers, ANA/ANCA, consider CXR.' },
+      d.neutroMild ? 
+        { text: '<strong>Mild (≤15):</strong> most likely chronic inflammatory/infective. May be associated with smoking. A&G/Consultant Connect. No need to refer unless additional concerning features.' } : 
+        { text: '<strong>Moderate (>15):</strong> repeat FBC, blood film, inflammatory marker 4-6 weeks. Refer routinely if no obvious reactive cause or concerning features.' }
+    ],
+    verbatim: 'RAISED=NEUTROPHILIA >7.5 x 10⁹/L. Mild ≤ 15 x10⁹/l: Most likely associated with chronic inflammatory or infective process. May be associated with smoking. Moderate > 15 x10⁹/l: Rpt fbc, blood film and inflammatory marker 4-6 weeks.',
+    source: 'NCL Abnormal FBC pathway, page 7 (Neutrophilia), boxes 1.0/3.0/4.0/5.0/7.0/8.0',
+    logic: [ { kw: 'IF', text: 'neutrophils >7.5', met: d.neutrophilia }, { kw: 'THEN', text: 'reactive workup + repeat', met: true } ],
+    recordSummary: 'Neutrophilia (' + d.neut + ')',
+    recordPlan: 'Per NCL Neutrophilia pathway: assessment, blood film, inflammatory markers, repeat 4-6 weeks.'
+  };
+}
+
+function buildLymphopeniaUrgent(d) {
+  return { type:'urgent', flag:'⚡ 2WW referral',
+    title: 'Lymphopenia (Lymph ' + d.lymph + ') with red flags',
+    subtitle: 'Per NCL box 4.0(R)/5.0(R) page 8: red flag symptoms (weight loss >10%, fevers >38°C, drenching night sweats, recurrent infections, splenomegaly, lymphadenopathy) → 2WW.',
+    actions: [ { text: '<strong>Urgent referral to haematology via 2WW.</strong>' } ],
+    verbatim: 'If any red flag symptoms: Weight loss eg >10%, Fevers eg >38%, Drenching night sweats, Recurrent infections, Splenomegaly, Lymphadenopathy. Urgent referral to haematology via 2WW.',
+    source: 'NCL Abnormal FBC pathway, page 8 (Lymphopenia), boxes 4.0(R)/5.0(R)',
+    logic: [ { kw: 'IF', text: 'lymphopenia', met: d.lymphopenia }, { kw: 'AND', text: 'red flag symptoms', met: d.bsymY }, { kw: 'THEN', text: '2WW haematology', met: true } ],
+    recordSummary: 'Lymphopenia + red flags — 2WW',
+    recordPlan: 'Per NCL Lymphopenia pathway: 2WW haematology for red flag symptoms.'
+  };
+}
+
+function buildLymphopenia(d) {
+  return { type:'gp', flag:'GP action — investigate lymphopenia',
+    title: 'Lymphopenia (Lymph ' + d.lymph + ')',
+    subtitle: 'Per NCL pathway page 8: lymphocytes <1.0. Causes: age >70 (physiological), infections (postviral, HIV, hepB/C, TB), alcohol, malnutrition, medications, autoimmune, chronic illness, lymphoma/myeloma.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> systemic symptoms, medications/alcohol, lymphadenopathy/splenomegaly, blood film, B12/folate, ANA/ANCA/Rh, HIV/Hep serology, myeloma screen (SPE + SFLC), LDH, inflammatory marker, ferritin, abdominal USS if liver concerns.' },
+      (d.age !== null && d.age < 70) || d.lymphopeniaSev ? 
+        { text: '<strong>Look for causes</strong> and repeat FBC in 4-8 weeks. Consider A&G/Consultant Connect. Refer routinely if persistent and unexplained.' } : 
+        { text: '<strong>>70 years + lymph >0.5:</strong> no need for further investigations. A&G/Consultant Connect if concerns.' }
+    ],
+    verbatim: 'LYMPHOPENIA. Lymhocytes <1.0x10⁹/L. No Red flag symptoms < 70 years of age Or Lymphocyte count <0.5 x10⁹/L: Look for causes and repeat FBC in 4-8 weeks.',
+    source: 'NCL Abnormal FBC pathway, page 8 (Lymphopenia), boxes 1.0/6.0/7.0/8.0/9.0',
+    logic: [ { kw: 'IF', text: 'lymphocytes <1.0', met: d.lymphopenia }, { kw: 'AND', text: 'no red flags', met: !d.bsymY }, { kw: 'THEN', text: 'age/severity-based management', met: true } ],
+    recordSummary: 'Lymphopenia (' + d.lymph + ')',
+    recordPlan: 'Per NCL Lymphopenia pathway: full workup, age/severity-dependent management.'
+  };
+}
+
+function buildLymphocytosisUrgent(d) {
+  return { type:'urgent', flag:'⚡ Refer urgently',
+    title: 'Lymphocytosis (' + d.lymph + ') with red flags',
+    subtitle: 'Per NCL box 4.0(R)/5.0(R) page 9: red flags (>20×10⁹/L, lymphadenopathy, hepatosplenomegaly, anaemia, other cytopenia, weight loss, night sweats/PUO) → urgent.',
+    actions: [ { text: '<strong>Refer urgently.</strong>' } ],
+    verbatim: 'If any red flag symptoms: >20 x 10⁹/L, Lymphadenopathy, Hepatosplenomegaly, anaemia, other cytopenia, unexplained weight loss, night sweats/PUO. Refer urgently.',
+    source: 'NCL Abnormal FBC pathway, page 9 (Lymphocytosis), boxes 4.0(R)/5.0(R)',
+    logic: [ { kw: 'IF', text: 'lymphocytes >20', met: d.lymphocytosisHigh }, { kw: 'OR', text: 'lymphadenopathy / splenomegaly', met: d.lymphExamY }, { kw: 'OR', text: 'B-symptoms', met: d.bsymY }, { kw: 'THEN', text: 'urgent referral', met: true } ],
+    recordSummary: 'Lymphocytosis with red flags',
+    recordPlan: 'Per NCL Lymphocytosis pathway: urgent referral for red flag.'
+  };
+}
+
+function buildLymphocytosis(d) {
+  return { type:'gp', flag:'GP action — lymphocytosis',
+    title: 'Lymphocytosis (Lymph ' + d.lymph + ')',
+    subtitle: 'Per NCL pathway page 9: lymphocytes >3.5×10⁹/L. Causes: smoking, infection (transient viral, EBV, CMV, pertussis, mumps, rubella), exercise, post-splenectomy, haem malignancies (ALL, CLL, NHL), autoimmune, drugs, asthma, COPD.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> history, examine lymph nodes/spleen, blood film, CRP/ESR.' },
+      { text: 'If no red flags: IM screen if relevant, repeat FBC + film in 4-6 weeks (once symptoms resolved if viral).' },
+      { text: 'A&G if lymphocytes 6-20 and explanatory cause.' },
+      { text: 'Refer routinely if persistent and unexplained.' }
+    ],
+    verbatim: 'LYMPHOCYTOSIS Lymhocytes >3.5x10⁹/L. If no red flag symptoms: IM screen if relevant, rpt FBC and Film in 4 – 6 weeks. Refer routinely if persistent and unexplained.',
+    source: 'NCL Abnormal FBC pathway, page 9 (Lymphocytosis), boxes 1.0/3.0/6.0/8.0',
+    logic: [ { kw: 'IF', text: 'lymphocytes >3.5', met: d.lymphocytosis }, { kw: 'AND', text: 'no red flags', met: !d.bsymY && !d.lymphExamY }, { kw: 'THEN', text: 'IM screen + repeat 4-6 weeks', met: true } ],
+    recordSummary: 'Lymphocytosis (' + d.lymph + ')',
+    recordPlan: 'Per NCL Lymphocytosis pathway: viral screen, blood film, CRP/ESR, repeat 4-6 weeks.'
+  };
+}
+
+function buildHyperEos(d) {
+  return { type:'urgent', flag:'⚡ Urgent — hypereosinophilia',
+    title: 'Hypereosinophilia (Eos ' + d.eos + ')',
+    subtitle: 'Per NCL pathway page 10: eosinophils >1.5. Red flags (cardiovascular, neurological end organ involvement, see Appendix 1) or blood film suggesting haematological malignancy → urgent referral.',
+    actions: [
+      { text: '<strong>Urgent referral to haematology</strong> OR specialist guided by predominant symptoms.' },
+      { text: 'Assess for end-organ damage: cardiovascular (chest pain, heart failure, unprovoked thromboembolic), respiratory (dyspnoea, cough/wheeze with parenchymal infiltration), neurological (altered mental state, CVA, peripheral neuropathy), GI (dysphagia, refractory GORD, HSM).' },
+      { text: 'Refer to Haematology if persistent ≥1.5×10⁹/L for 1 month with no obvious cause, OR persistent 0.5-1.5×10⁹/L for 2 months.' }
+    ],
+    verbatim: 'Red flags: Symptoms suggestive of end organ involvement (in particular cardiovascular and neurological) or Blood film suggestive of haematological malignancy. Urgent referral to haematology OR specialist guided by predominant symptoms.',
+    source: 'NCL Abnormal FBC pathway, page 10 (Eosinophilia), boxes 11.0(R)/12.0(R)/36.0(O)',
+    logic: [ { kw: 'IF', text: 'eosinophils >1.5', met: d.hyperEos }, { kw: 'THEN', text: 'urgent referral', met: true } ],
+    recordSummary: 'Hypereosinophilia (' + d.eos + ')',
+    recordPlan: 'Per NCL Eosinophilia pathway: urgent haematology referral, end-organ assessment.'
+  };
+}
+
+function buildEosinophilia(d) {
+  return { type:'gp', flag:'GP action — eosinophilia',
+    title: 'Eosinophilia (Eos ' + d.eos + ')',
+    subtitle: 'Per NCL pathway page 10: eosinophils >0.5×10⁹/L on two tests >1 month apart.',
+    actions: [
+      { text: '<strong>History/examination:</strong> atopy/allergy, respiratory, cardiovascular, GI, neurological, constitutional symptoms; drug history; detailed travel history.' },
+      { text: '<strong>Initial blood tests:</strong> FBC, blood film, inflammatory markers (ESR or CRP).' },
+      { text: 'Symptom-guided workup: atopy/asthma (NICE), travel (parasites/HIV), GI (coeliac/calprotectin), rheumatology (RF/anti-CCP/ANA/ANCA), drugs (stop likely cause, repeat FBC 3m).' },
+      { text: 'Common medications causing eosinophilia: penicillins, cephalosporins, nitrofurantoin, minocycline, phenytoin, carbamazepine, lamotrigine, antiretrovirals, ranitidine, allopurinol, ACEi, 5-ASA.' }
+    ],
+    verbatim: 'Eosinophilia> 0.5 × 10⁹/L on two tests separated by >1 month (Hypereosinophilia >1.5 × 10⁹/L).',
+    source: 'NCL Abnormal FBC pathway, page 10 (Eosinophilia), boxes 1.0/2.0/3.0',
+    logic: [ { kw: 'IF', text: 'eosinophils >0.5', met: d.eosinophilia }, { kw: 'THEN', text: 'history + bloods + symptom-guided', met: true } ],
+    recordSummary: 'Eosinophilia (' + d.eos + ')',
+    recordPlan: 'Per NCL Eosinophilia pathway: history (atopy/travel/drugs), blood film, CRP/ESR, symptom-guided investigation.'
+  };
+}
+
+function buildMonocytosisUrgent(d) {
+  return { type:'urgent', flag:'⚡ Immediate — A+E / on-call haematology',
+    title: 'Monocytosis (Mono ' + d.mono + ') with WCC ' + d.wcc,
+    subtitle: 'Per NCL box 4.0(B)/8.0(R) page 11: new onset monocytosis with WBC >50×10⁹/L, or with >5% blasts on blood film → immediate referral.',
+    actions: [ { text: '<strong>Immediate referral to haematology / A+E transfer. Please discuss with on call haematologist.</strong>' } ],
+    verbatim: 'New onset monocytosis with extremely high WBC (>50 x 10⁹/l). Monocytosis in combination with > 5% blasts on blood film. Immediate referral to haematology/ A+E transfer. Please discuss with on call haematologist.',
+    source: 'NCL Abnormal FBC pathway, page 11 (Monocytosis), boxes 4.0/8.0(R)',
+    logic: [ { kw: 'IF', text: 'monocytosis with WCC >50', met: d.monocytosisExtreme && d.wcc > 50 }, { kw: 'THEN', text: 'immediate referral / A+E', met: true } ],
+    recordSummary: 'Monocytosis with high WCC',
+    recordPlan: 'Per NCL Monocytosis pathway: immediate referral / A+E, discuss with on-call haematologist.'
+  };
+}
+
+function buildMonocytosis(d) {
+  if (d.monocytosisExtreme || (d.monocytosisMid && (d.multipleLines || d.bsymY))) {
+    return { type:'refer', flag:'Urgent/2WW referral',
+      title: 'Monocytosis (' + d.mono + ') — urgent referral',
+      subtitle: 'Per NCL box 5.0(B)/9.0(R): monocyte >5×10⁹/L with no symptoms, OR 1.2-5 with cytopenias/macrocytosis/B-symptoms → urgent/2WW.',
+      actions: [ { text: '<strong>Urgent/2WW referral as appropriate to haematology.</strong>' } ],
+      verbatim: 'Monocyte count > 5 x10⁹/L with no adverse symptoms. Monocyte count > 1.2- 5 x10⁹/L with cytopenias, macrocytosis, B symptoms. Urgent/2ww referral as appropriate to haematology.',
+      source: 'NCL Abnormal FBC pathway, page 11 (Monocytosis), boxes 5.0/9.0(R)',
+      logic: [ { kw: 'IF', text: 'monocytes >5', met: d.monocytosisExtreme }, { kw: 'OR', text: 'monocytes 1.2-5 with cytopenias/B-symptoms', met: d.monocytosisMid && (d.multipleLines || d.bsymY) }, { kw: 'THEN', text: '2WW referral', met: true } ],
+      recordSummary: 'Monocytosis (' + d.mono + ') — 2WW',
+      recordPlan: 'Per NCL Monocytosis pathway: 2WW haematology referral.'
+    };
+  }
+  return { type:'gp', flag:'GP action — monocytosis',
+    title: 'Monocytosis (Mono ' + d.mono + ')',
+    subtitle: 'Per NCL pathway page 11: monocytes >1.0. Causes: infective (malaria, TB), autoimmune (SLE, RA, temporal arteritis), stress response (MI), sarcoidosis, hyposplenism, malignancy, MDS (typically with high MCV) including CMML.',
+    actions: [
+      { text: '<strong>Suggested tests:</strong> inflammatory markers, blood film, MCV, TFTs, iron profile/ferritin, virology (HIV, HepB/C), travel history.' },
+      { text: 'If monocytes 1.2-5 with no cytopenias/constitutional symptoms/splenomegaly: repeat FBC in 6-8 weeks. If still abnormal: A&G/Consultant Connect; refer routinely.' },
+      { text: 'If evidence of inflammatory or infective cause: treat reactive cause first and retest FBC after 2-3 months.' }
+    ],
+    verbatim: 'MONOCYTOSIS (>1.0 X 10⁹/L). Monocyte count is between 1.2- 5 x10⁹/L with no adverse cytopenias or constitutional symptoms or splenomegaly: Repeat FBC in 6-8/52.',
+    source: 'NCL Abnormal FBC pathway, page 11 (Monocytosis), boxes 1.0/6.0/10.0/12.0/13.0',
+    logic: [ { kw: 'IF', text: 'monocytes >1.0', met: d.monocytosis }, { kw: 'AND', text: 'no red flags', met: !d.multipleLines && !d.bsymY }, { kw: 'THEN', text: 'workup + repeat 6-8 weeks', met: true } ],
+    recordSummary: 'Monocytosis (' + d.mono + ')',
+    recordPlan: 'Per NCL Monocytosis pathway: inflammatory markers, blood film, MCV, TFTs, iron, virology. Repeat 6-8 weeks.'
+  };
+}
+
+function buildThrombocytopeniaUrgent(d) {
+  return { type:'urgent', flag:'⚡ Urgent — severe thrombocytopenia',
+    title: 'Severe thrombocytopenia (Plt ' + d.plt + ')' + (d.activeBleed ? ' + active bleeding' : ''),
+    subtitle: 'Per NCL box 4.0(B)/7.0(R) page 13: platelets <20 OR 20-50 with active bleeding/blasts/fragments/altered consciousness → discuss with on-call haematologist for urgent direct assessment.',
+    actions: [ { text: '<strong>Discuss with On-call Haematologist to arrange urgent direct assessment.</strong>' } ],
+    verbatim: 'Platelets <20 x10⁹/l OR Plt 20-50 x10⁹/l with Active bleeding, Blasts In film, Fragments in film, Altered conscious level or confusion. Discuss with On-call Haematologist to arrange urgent direct assessment.',
+    source: 'NCL Abnormal FBC pathway, page 13 (Thrombocytopenia), boxes 4.0/7.0(R)',
+    logic: [ { kw: 'IF', text: 'platelets <20', met: d.thrombocytopeniaSevere }, { kw: 'OR', text: 'platelets 20-50 + active bleeding', met: d.thrombocytopeniaMod && d.activeBleed }, { kw: 'THEN', text: 'urgent direct assessment', met: true } ],
+    recordSummary: 'Severe thrombocytopenia (' + d.plt + ')',
+    recordPlan: 'Per NCL Thrombocytopenia pathway: urgent direct haematology assessment.'
+  };
+}
+
+function buildThrombocytopenia(d) {
+  return { type:'gp', flag:'GP action — investigate thrombocytopenia',
+    title: 'Thrombocytopenia (Plt ' + d.plt + ')',
+    subtitle: 'Per NCL pathway page 13: platelets <150. Causes: spurious (clumping — check blood film, repeat with citrate), alcohol, liver disease, hypersplenism, medications, B12/folate deficiency, viral (EBV/HIV/HepB/C), ITP, bone marrow failure/infiltration.',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> review medications, alcohol, lymphadenopathy/splenomegaly exam, coag screen + fibrinogen, blood film (exclude clumping), B12/folate, ANA/ANCA, HIV/Hep serology, U&E/LFTs, CRP/ESR/LDH, consider abdominal USS.' },
+      d.thrombocytopeniaMild ? 
+        { text: '<strong>Plt 50-100:</strong> repeat FBC in 6 weeks; consider non-haematological causes. If persistent and unexplained: A&G/Consultant Connect +/- routine haematology.' } : 
+        { text: '<strong>Plt 20-50</strong> (no active bleeding/blasts) with cytopenias/splenomegaly/lymphadenopathy/pregnancy/upcoming surgery: repeat FBC in 1 week. If persistent/unexplained: urgent/2WW haematology.' }
+    ],
+    verbatim: 'THROMBOCYTOPENIA Platelets <150 x10⁹/l. Platelets 20-50 x10⁹/l: Repeat FBC in 1 week. Platelets>50x10⁹/l -100x10⁹/l: Repeat FBC in 6 weeks and consider non-haematological causes.',
+    source: 'NCL Abnormal FBC pathway, page 13 (Thrombocytopenia), boxes 1.0/2.0/3.0/5.0/6.0/8.0/9.0/10.0/11.0',
+    logic: [ { kw: 'IF', text: 'platelets <150', met: d.thrombocytopenia }, { kw: 'AND', text: 'not severe/bleeding', met: !d.thrombocytopeniaSevere && !d.activeBleed }, { kw: 'THEN', text: 'investigate + repeat', met: true } ],
+    recordSummary: 'Thrombocytopenia (Plt ' + d.plt + ')',
+    recordPlan: 'Per NCL Thrombocytopenia pathway: full workup, repeat (1 week if 20-50, 6 weeks if 50-100).'
+  };
+}
+
+function buildThrombocytosisUrgent(d) {
+  return { type:'urgent', flag:'⚡ Urgent/2WW — extreme thrombocytosis',
+    title: 'Thrombocytosis (Plt ' + d.plt + ') >1000',
+    subtitle: 'Per NCL box 4.0(R)/7.0(R) page 12: platelets >1000 OR recent thromboembolism, neurological symptoms, abnormal bleeding, other significantly abnormal FBC indices, other red flags → urgent/2WW haematology (unless features of alternative malignancy).',
+    actions: [
+      { text: '<strong>Urgent/2WW referral as appropriate to haematology</strong> (unless features of alternative malignancy).' },
+      { text: '<strong>Cancer marker workup:</strong> thrombocytosis is a risk marker of cancer (11.6% M / 6.2% F cancer incidence). Take history/exam, CXR, QFIT (and consider PSA in males / CA125 in females).' }
+    ],
+    verbatim: 'Any of following: Platelets >1000 x10⁹/l, Recent arterial or venous thromboembolism, Neurological symptoms, Abnormal bleeding, Other significantly abnormal FBC indices, Other red flag symptoms. Urgent/2WW referral as appropriate to Haematology (unless features of alternative malignancy).',
+    source: 'NCL Abnormal FBC pathway, page 12 (Thrombocytosis), boxes 4.0(R)/7.0(R)',
+    logic: [ { kw: 'IF', text: 'platelets >1000', met: d.thrombocytosisExtreme }, { kw: 'THEN', text: '2WW haematology', met: true } ],
+    recordSummary: 'Thrombocytosis (' + d.plt + ') — 2WW',
+    recordPlan: 'Per NCL Thrombocytosis pathway: 2WW haematology + cancer marker workup.'
+  };
+}
+
+function buildThrombocytosis(d) {
+  return { type:'gp', flag:'GP action — thrombocytosis',
+    title: 'Thrombocytosis (Plt ' + d.plt + ')',
+    subtitle: 'Per NCL pathway page 12: platelets >450. Causes: iron deficiency, inflammation, infection, post-splenectomy/hyposplenism (e.g. coeliac), myeloproliferative disorders, post-operatively. <strong>Thrombocytosis is a risk marker of cancer in adults</strong> (11.6% M, 6.2% F cancer incidence).',
+    actions: [
+      { text: '<strong>Primary care assessment:</strong> serial FBCs, blood film, CRP/ESR, ferritin/iron profile, U&E/LFT, LDH.' },
+      { text: '<strong>Cancer screening:</strong> history/exam, CXR, QFIT (and consider PSA male / CA125 female).' },
+      { text: 'Repeat FBC in 6 weeks; look for reactive causes.' },
+      { text: 'If persistent >450 and no obvious cause: routine haematology. Thresholds: >600 on at least 2 occasions (4-6 weeks apart) OR 450-600 with other haematological abnormalities.' }
+    ],
+    verbatim: 'THROMBOCYTOSIS Platelets >450 x10⁹/l. Potential Causes: Iron Deficiency Anaemia, Inflammation, Infection, Post-Splenectony and Hyposplenism (e.g. Coeliac Disease), Myeloproliferative Disorders, Post-Operatively. Thrombocytosis is a risk marker of cancer in adults. 11.6% and 6.2% cancer incidence in males and females, respectively.',
+    source: 'NCL Abnormal FBC pathway, page 12 (Thrombocytosis), boxes 1.0/2.0/3.0/3.1/5.0/6.0/8.0',
+    logic: [ { kw: 'IF', text: 'platelets >450', met: d.thrombocytosis }, { kw: 'AND', text: 'not extreme', met: !d.thrombocytosisExtreme }, { kw: 'THEN', text: 'reactive workup + cancer screening + repeat', met: true } ],
+    recordSummary: 'Thrombocytosis (' + d.plt + ')',
+    recordPlan: 'Per NCL Thrombocytosis pathway: serial FBC, blood film, ferritin, CXR, QFIT, PSA/CA125. Repeat 6 weeks.'
+  };
+}
+
+function buildRaisedFerritin(d) {
+  const isVeryHigh = d.ferritinVeryHigh;
+  return {
+    type: isVeryHigh ? 'refer' : 'gp',
+    flag: isVeryHigh ? 'Markedly raised ferritin' : 'Raised ferritin — investigate',
+    title: (isVeryHigh ? 'Markedly raised ferritin' : 'Raised ferritin') + ' (' + d.ferritin + ' µg/L)' + (d.anaemia ? '' : ' — outside anaemia branch'),
+    subtitle: 'Ferritin ' + d.ferritin + ' µg/L is ' + (isVeryHigh ? 'markedly raised (>1000)' : 'raised (>150)') + '. The NCL FBC pathway notes ferritin can be raised in inflammation, infection, malignant disease, or liver disease. ' + (d.anaemia ? '' : 'No anaemia pattern is present in these results, so this is a standalone finding.'),
+    actions: [
+      { text: '<strong>Consider underlying causes:</strong> acute or chronic inflammation, chronic infection, malignancy, liver disease.' },
+      { text: 'Investigate clinical context: CRP/ESR, liver function tests, screen for infection.' },
+      isVeryHigh ? { text: '<strong>Markedly raised ferritin (>1000)</strong> may warrant additional consideration — haemochromatosis (genetic iron overload), haematological malignancy, severe inflammation/infection, liver disease. Outside the strict NCL FBC pathway scope but clinically important. Use clinical judgement on referral pathway.' } : { text: 'If no clear inflammatory or infective cause, consider further investigation for less common causes (e.g. iron overload, haematological disorder).' },
+      { text: 'Interpret with other iron study indices (e.g. transferrin saturation) per NCL pathway note.' }
+    ],
+    verbatim: 'Ferritin can be raised in the presence of acute or chronic inflammation, infection, malignant disease or liver disease.',
+    source: 'NCL Abnormal FBC pathway, page 2 (Anaemia) — note within box 15.0(B)',
+    logic: [
+      { kw: 'IF', text: 'ferritin >150 µg/L', met: d.ferritinHigh },
+      { kw: 'AND', text: 'ferritin >1000 (markedly raised)', met: isVeryHigh },
+      { kw: 'THEN', text: 'investigate inflammation / infection / malignancy / liver disease', met: true }
+    ],
+    recordSummary: (isVeryHigh ? 'Markedly raised' : 'Raised') + ' ferritin (' + d.ferritin + ')',
+    recordPlan: 'Per NCL FBC pathway note: ferritin can be raised in inflammation, infection, malignancy or liver disease. Investigate clinical context (CRP, LFTs, infection screen). ' + (isVeryHigh ? 'Markedly raised value — broader differential including iron overload, haematological disease.' : '')
+  };
+}
+
+function buildIsolatedB12Low(d) {
+  return {
+    type: 'gp',
+    flag: 'GP action — isolated B12 low',
+    title: 'B12 ' + d.b12 + ' ng/L — low (without anaemia)',
+    subtitle: 'B12 <170 ng/L per NCL threshold. No anaemia pattern in these results, but B12 deficiency may still need replacement and warrants investigation.',
+    actions: [
+      { text: 'Repeat B12 if 1st result borderline and clinical suspicion low; check intrinsic factor antibody.' },
+      { text: 'If symptomatic or persistently low: commence B12 replacement per page 3 — hydroxocobalamin 1mg IM 3x weekly for 2 weeks then maintenance.' },
+      { text: 'For people with neurological involvement: seek urgent advice from haematologist.' },
+      { text: 'Aetiology: consider GI/malabsorption, dietary, medication (PPIs/H2RA), pernicious anaemia.' }
+    ],
+    verbatim: 'B12 <170ng/l and symptomatic. For people with neurological involvement: Seek urgent advice from haematologist.',
+    source: 'NCL Abnormal FBC pathway, pages 2/3, boxes 24.0/32.0/37.0 + treatment box',
+    logic: [
+      { kw: 'IF', text: 'B12 <170 ng/L', met: d.b12Low },
+      { kw: 'AND', text: 'no anaemia (isolated)', met: !d.anaemia },
+      { kw: 'THEN', text: 'B12 replacement + investigate aetiology', met: true }
+    ],
+    recordSummary: 'Isolated B12 low (' + d.b12 + ')',
+    recordPlan: 'Per NCL FBC pathway: B12 replacement (hydroxocobalamin 1mg IM 3x/week for 2 weeks, then maintenance). Investigate aetiology.'
+  };
+}
+
+function buildIsolatedFolateLow(d) {
+  return {
+    type: 'gp',
+    flag: 'GP action — isolated folate low',
+    title: 'Folate ' + d.folate + ' µg/L — low (without anaemia)',
+    subtitle: 'Folate <3 µg/L (or 3-4.5 if symptomatic) per NCL threshold. No anaemia pattern, but folate deficiency may still need replacement.',
+    actions: [
+      { text: '<strong>Check B12 first</strong> — treating folate can mask B12 deficiency and allow neurological disease to develop.' },
+      { text: 'Oral folic acid 5mg daily for 4 months (longer if underlying cause persists).' },
+      { text: 'Coeliac screen; dietary advice.' }
+    ],
+    verbatim: 'Serum folate <3ug/l or 3-4.5ug/l and symptomatic. Check vitamin B12 level in all people before starting folic acid- treatment can improve wellbeing, mask underlying B12 deficiency and allow neurological disease to develop.',
+    source: 'NCL Abnormal FBC pathway, page 2 box 27.0(B) + page 3 treatment',
+    logic: [
+      { kw: 'IF', text: 'folate <3 OR 3-4.5 symptomatic', met: d.folateLow || d.folateBorderline },
+      { kw: 'AND', text: 'no anaemia (isolated)', met: !d.anaemia },
+      { kw: 'THEN', text: 'folate replacement, check B12 first', met: true }
+    ],
+    recordSummary: 'Isolated folate low (' + d.folate + ')',
+    recordPlan: 'Per NCL FBC pathway: oral folic acid 5mg daily for 4 months. Check B12 first.'
+  };
+}
+
+function buildNormal(d) {
+  return { type:'noaction', flag:'No pathway branch triggered',
+    title: 'FBC within normal limits per NCL thresholds',
+    subtitle: 'The values entered do not trigger any branch of the NCL Abnormal FBC pathway. If the lab has flagged any value as abnormal, please check against the local lab reference range.',
+    actions: [
+      { text: 'Re-check values against your lab\'s reference range.' },
+      { text: 'Note: NCL pathway uses Hb <110 g/L as anaemia threshold for both men and non-pregnant women (over 15 years).' }
+    ],
+    verbatim: 'Abnormal Full Blood Count (FBC) in Adults Primary Care Clinical Pathway.',
+    source: 'NCL Abnormal FBC pathway, page 1',
+    logic: [{ kw: 'IF', text: 'all values within thresholds', met: true }],
+    recordSummary: 'FBC normal per NCL thresholds',
+    recordPlan: 'No NCL FBC pathway action triggered.'
+  };
+}
+
+// RENDER
+function renderPrimary(p) {
+  const actions = p.actions.filter(a => a).map(function(a, i) { return '<div class="primary-action-item"><div class="primary-action-num">' + (i+1) + '</div><div>' + a.text + '</div></div>'; }).join('');
+  const logicHTML = p.logic.map(function(l) { return '<div class="logic-line ' + (l.met ? 'matched' : 'unmet') + '"><span class="logic-kw kw-' + l.kw + '">' + l.kw + '</span>' + l.text + '</div>'; }).join('');
+  return '<div class="primary-card ' + p.type + '">' +
+    '<div class="primary-flag"><span class="pulse"></span>' + p.flag + '</div>' +
+    '<h2 class="primary-title">' + p.title + '</h2>' +
+    '<p class="primary-subtitle">' + p.subtitle + '</p>' +
+    '<div class="primary-actions">' + actions + '</div>' +
+    '<button class="details-toggle" onclick="this.classList.toggle(\'open\'); this.nextElementSibling.classList.toggle(\'open\')">' +
+      '<span>📖 Show why (verbatim source &amp; logic)</span><span class="chev">▾</span>' +
+    '</button>' +
+    '<div class="details-content">' +
+      '<div class="detail-block">' +
+        '<div class="detail-block-label">📜 Verbatim NCL pathway text</div>' +
+        '<div class="verbatim-quote">"' + p.verbatim + '"<div class="verbatim-source">— ' + p.source + '</div></div>' +
+      '</div>' +
+      '<div class="detail-block">' +
+        '<div class="detail-block-label">🔍 Logic trace</div>' +
+        '<div class="logic-trace">' + logicHTML + '</div>' +
+      '</div>' +
+      '<div class="detail-block">' +
+        '<div class="detail-block-label">📋 Source attribution</div>' +
+        '<div class="source-attr"><span class="source-tag explicit">explicit</span>' + p.source + '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderSecondary(s) {
+  const actions = s.actions.filter(a => a).map(function(a, i) { return '<div style="display:flex;gap:8px;align-items:flex-start;padding:5px 0;font-size:13px"><strong style="color:var(--text3);min-width:18px">' + (i+1) + '.</strong><div>' + a.text + '</div></div>'; }).join('');
+  return '<div class="secondary-card ' + s.type + '">' +
+    '<div class="secondary-head" onclick="toggleSecondary(this)">' +
+      '<span class="secondary-tag">' + s.flag + '</span>' +
+      '<span class="secondary-title">' + s.title + '</span>' +
+      '<span class="chev">▾</span>' +
+    '</div>' +
+    '<div class="secondary-body">' +
+      '<p style="margin-bottom:8px">' + s.subtitle + '</p>' +
+      actions +
+      '<div class="verbatim-quote" style="margin-top:10px">"' + s.verbatim + '"<div class="verbatim-source">— ' + s.source + '</div></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function toggleSecondary(head) { head.parentElement.classList.toggle('open'); }
+
+// COPY FOR EMR
+let copyTextCache = '';
+function buildCopyText(d, findings) {
+  const now = new Date();
+  const dt = now.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  const patient = txt('ctx-patient');
+  const results = [];
+  if (d.hb !== null) results.push('Hb ' + d.hb + ' g/L');
+  if (d.mcv !== null) results.push('MCV ' + d.mcv + ' fL');
+  if (d.hct !== null) results.push('Hct ' + d.hct);
+  if (d.wcc !== null) results.push('WCC ' + d.wcc);
+  if (d.neut !== null) results.push('Neut ' + d.neut);
+  if (d.lymph !== null) results.push('Lymph ' + d.lymph);
+  if (d.eos !== null) results.push('Eos ' + d.eos);
+  if (d.mono !== null) results.push('Mono ' + d.mono);
+  if (d.plt !== null) results.push('Plt ' + d.plt);
+  if (d.ferritin !== null) results.push('Ferritin ' + d.ferritin);
+  if (d.b12 !== null) results.push('B12 ' + d.b12);
+  if (d.folate !== null) results.push('Folate ' + d.folate);
+
+  const primary = findings[0];
+  const others = findings.slice(1).map(f => '- ' + f.recordSummary + ': ' + f.recordPlan).join('\n');
+
+  copyTextCache = 'FBC reviewed ' + dt + (patient ? ' — Pt: ' + patient : '') + '\n' +
+    'Per NCL Abnormal FBC pathway (Final Jan 2023, Review Jan 2026).\n\n' +
+    'Results: ' + results.join(', ') + '\n\n' +
+    'Primary interpretation: ' + primary.recordSummary + '\n' +
+    'Plan: ' + primary.recordPlan + '\n' +
+    (findings.length > 1 ? '\nOther findings:\n' + others + '\n' : '') +
+    '\nSource: NCL Abnormal FBC Adults Primary Care Clinical Pathway. Authors: Dr Sarah Morgan, Dr Sajir Mohamedbhai. Approved by NCL ICB CAG.\n' +
+    'Disclaimer: Pathway logic only; does not replace clinical judgement.';
+
+  document.getElementById('copy-record-summary').textContent = primary.recordSummary;
+}
+
+function copyForRecord() {
+  navigator.clipboard.writeText(copyTextCache).then(function() {
+    const btn = document.getElementById('copy-record-btn');
+    btn.textContent = '✓ Copied'; btn.classList.add('copied');
+    setTimeout(function() { btn.textContent = '📋 Copy for EMR'; btn.classList.remove('copied'); }, 2200);
+  });
+}
+</script>
+</body>
+</html>

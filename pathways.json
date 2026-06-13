@@ -1,0 +1,62 @@
+{
+  "pathways": [
+    {
+      "id": "nwl_lft",
+      "title": "Abnormal LFT",
+      "icb": "NW London",
+      "version": "V1.6 Oct 2019 / V1.4 Aug 2019",
+      "status": "live",
+      "tool_path": "lft.html",
+      "admin_path": "lft_admin.html",
+      "description": "Hepatic and cholestatic patterns, Gilbert's syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.",
+      "trigger_variables": ["bilirubin", "alt", "ast", "alp", "ggt", "albumin", "inr", "conjugated_bilirubin"],
+      "trigger_context": ["jaundice", "weight_loss", "alcohol", "nafld_risk", "repeat_result"]
+    },
+    {
+      "id": "ncl_fbc",
+      "title": "Abnormal FBC",
+      "icb": "North Central London ICB",
+      "version": "Final Jan 2023 · Review Jan 2026",
+      "status": "live",
+      "tool_path": "fbc.html",
+      "admin_path": null,
+      "description": "Anaemia (with MCV stratification, ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.",
+      "trigger_variables": ["haemoglobin", "haematocrit", "mcv", "reticulocytes", "ferritin", "b12", "folate", "crp", "wcc", "neutrophils", "lymphocytes", "eosinophils", "monocytes", "platelets"],
+      "trigger_context": ["sex", "age", "unwell", "bleeding", "lymphadenopathy_splenomegaly", "b_symptoms"],
+      "authors": "Dr Sarah Morgan, Dr Sajir Mohamedbhai",
+      "approving_body": "NCL ICB CAG"
+    },
+    {
+      "id": "nwl_anaemia",
+      "title": "NWL Anaemia",
+      "icb": "NW London ICB",
+      "version": "V1 · 9 July 2020 (review due 2021)",
+      "status": "live",
+      "tool_path": "nwl_anaemia.html",
+      "admin_path": null,
+      "description": "Adult anaemia (Hb <130 M / <114 F) with strict iron deficiency criteria (Hb + MCV <83.5 + ferritin <10 F / <20 M) and sex/menopausal-status GI investigation routing. Flow diagram highlights route taken.",
+      "trigger_variables": ["haemoglobin", "mcv", "ferritin", "b12", "folate", "reticulocytes", "crp"],
+      "trigger_context": ["sex", "menopausal_status", "gi_symptoms", "fh_colorectal", "iron_treatment"],
+      "note": "Different thresholds from NCL FBC pathway — clinician picks which applies."
+    },
+    {
+      "id": "ncl_iron_deficiency",
+      "title": "Adult Iron Deficiency",
+      "icb": "North Central London ICB",
+      "version": "Final Aug 2022",
+      "status": "live",
+      "tool_path": "iron_deficiency.html",
+      "admin_path": null,
+      "description": "Adult iron deficiency primary care pathway. CV stability triage, 2WW gastroenterology criteria, routine gastro referral, non-GI bleeding routes, iron replacement and follow-up. SVG flow diagram with per-rule active path highlighting (post-v5 fixes).",
+      "trigger_variables": ["haemoglobin", "mcv", "ferritin", "crp", "platelets"],
+      "trigger_context": ["sex", "menopausal_status", "age", "cv_unstable", "gi_bleeding", "rectal_bleeding"],
+      "note": "Patched post-build to fix empty-input handling, missing SVG arrows, hardcoded active path, and sex-conditional blocking. Triggered the v5 master prompt enforceability tightenings."
+    }
+  ],
+  "schema_version": "v3",
+  "router_principles": [
+    "Router matches trigger_variables to entered fields by name only.",
+    "Router does NOT make clinical decisions — actual logic runs inside each pathway tool.",
+    "Where multiple pathways trigger on the same result (e.g. NCL FBC + NWL Anaemia on Hb), both surface and the clinician picks."
+  ]
+}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ResultDoctor — Enter results, find pathways</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1C3D; --navy2: #162545;
+  --blue: #1859CC; --blue-lt: #E8F0FD; --blue-mid: #4A7DE8;
+  --green: #00703C; --green-lt: #E3F5EC;
+  --red: #B91C1C; --red-lt: #FEF2F2;
+  --amber: #92400E; --amber-lt: #FFFBEB;
+  --grey: #6B7280; --grey-lt: #F9FAFB;
+  --border: #E5E7EB; --border2: #D1D5DB;
+  --text: #111827; --text2: #374151; --text3: #6B7280;
+  --serif: 'DM Serif Display', Georgia, serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --radius: 12px; --radius-lg: 16px;
+  --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--sans); background: #F8F9FB; color: var(--text); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+
+header { background: var(--navy); color: white; padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.logo { font-family: var(--serif); font-size: 20px; color: white; text-decoration: none; letter-spacing: -.02em; }
+.logo span { color: #60A5FA; }
+.header-nav { display: flex; align-items: center; gap: 16px; font-size: 12px; color: rgba(255,255,255,.5); }
+
+.hero { background: var(--navy2); color: white; padding: 48px 0; }
+.hero-inner { max-width: 880px; margin: 0 auto; padding: 0 32px; }
+.hero-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: .04em; text-transform: uppercase; background: rgba(96,165,250,.15); color: #93C5FD; margin-bottom: 16px; }
+.hero-title { font-family: var(--serif); font-size: 38px; font-weight: 400; line-height: 1.15; letter-spacing: -.02em; margin-bottom: 12px; }
+.hero-sub { font-size: 15px; color: rgba(255,255,255,.65); max-width: 580px; line-height: 1.55; }
+.hero-sub strong { color: white; }
+
+.page { max-width: 880px; margin: -28px auto 0; padding: 0 32px 32px; }
+
+/* RESULT ENTRY */
+.entry-panel { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 24px; border: 1px solid var(--border); margin-bottom: 24px; }
+.entry-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.entry-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); }
+.entry-hint { font-size: 12px; color: var(--text3); }
+
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin: 16px 0 10px; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.result-field { display: flex; flex-direction: column; gap: 4px; }
+.result-label { font-size: 11px; font-weight: 600; color: var(--text2); }
+.result-unit { font-size: 10px; color: var(--text3); }
+.result-input { padding: 9px 11px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 14px; font-family: var(--sans); font-weight: 500; color: var(--text); background: white; width: 100%; }
+.result-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,89,204,.1); }
+.result-input:not(:placeholder-shown) { border-color: var(--blue); background: var(--blue-lt); }
+
+.context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ctx-q { display: flex; flex-direction: column; gap: 4px; }
+.ctx-q label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.ctx-select { padding: 8px 10px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); background: white; }
+
+.analyse-btn { width: 100%; padding: 16px 24px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; font-family: var(--sans); cursor: pointer; margin-top: 24px; letter-spacing: -.01em; }
+.analyse-btn:hover { background: #1348B0; }
+.analyse-btn:disabled { background: var(--grey); cursor: not-allowed; }
+.reset-link { display: block; text-align: center; margin-top: 10px; font-size: 12px; color: var(--text3); cursor: pointer; text-decoration: underline; }
+
+/* PATHWAY RESULTS */
+.routed-section { display: none; }
+.routed-section.show { display: block; }
+
+.routed-title { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 6px; letter-spacing: -.01em; }
+.routed-sub { font-size: 13px; color: var(--text3); margin-bottom: 18px; }
+
+.pathway-card { background: white; border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 14px; box-shadow: var(--shadow); transition: all .15s; cursor: pointer; display: block; text-decoration: none; color: inherit; }
+.pathway-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.08); }
+.pathway-card.triggered { border-color: var(--blue); background: linear-gradient(180deg, var(--blue-lt) 0%, white 30%); }
+.pathway-card.demo { border-color: #FECACA; }
+
+.pc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.pc-title { font-family: var(--serif); font-size: 22px; font-weight: 400; line-height: 1.25; color: var(--text); }
+.pc-badges { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
+.pc-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 12px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
+.pc-badge.live { background: var(--green-lt); color: var(--green); }
+.pc-badge.demo { background: #FEE2E2; color: var(--red); }
+.pc-badge.icb { background: var(--blue-lt); color: var(--blue); }
+.pc-badge.version { background: var(--grey-lt); color: var(--grey); }
+
+.pc-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 12px; }
+
+.pc-match { background: var(--blue-lt); border: 1px solid #BFDBFE; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: var(--blue); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.pc-match strong { font-weight: 600; }
+
+.pc-cta { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); }
+.pc-cta-text { font-size: 12px; color: var(--text3); }
+.pc-cta-btn { font-size: 13px; font-weight: 600; color: var(--blue); display: flex; align-items: center; gap: 4px; }
+.pathway-card.triggered .pc-cta-btn { font-weight: 700; }
+
+.no-match { background: var(--grey-lt); border: 1px dashed var(--border2); border-radius: var(--radius); padding: 28px 24px; text-align: center; color: var(--text3); }
+.no-match-title { font-family: var(--serif); font-size: 18px; color: var(--text2); margin-bottom: 6px; }
+
+.available-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.available-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin-bottom: 14px; }
+
+footer { background: var(--navy); color: rgba(255,255,255,.45); font-size: 11px; padding: 24px 32px; margin-top: 40px; line-height: 1.6; }
+footer strong { color: rgba(255,255,255,.7); }
+
+@media(max-width:640px) {
+  .hero-title { font-size: 28px; }
+  .results-grid { grid-template-columns: 1fr 1fr; }
+  .context-grid { grid-template-columns: 1fr; }
+  .pc-head { flex-direction: column; gap: 8px; }
+  .pc-badges { flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+  .page { padding: 0 16px 24px; }
+  header { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">Result<span>Doctor</span></a>
+  <div class="header-nav">
+    <span>NHS clinical pathways · NW London</span>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-tag">Result-first navigation</span>
+    <h1 class="hero-title">Enter the results.<br>We'll find the pathway.</h1>
+    <p class="hero-sub">
+      Type any blood results you have in front of you. ResultDoctor will surface every clinical pathway that applies, with the verbatim guideline text and flow diagram for each. <strong>Built from published NHS pathways</strong>, never from clinical inference.
+    </p>
+  </div>
+</div>
+
+<div class="page">
+
+  <div class="entry-panel">
+    <div class="entry-head">
+      <span class="entry-title">Enter results &amp; context</span>
+      <span class="entry-hint">Leave anything blank you don't have</span>
+    </div>
+
+    <div class="section-label">LFTs (liver function)</div>
+    <div class="results-grid">
+      <div class="result-field"><div class="result-label">Bilirubin <span class="result-unit">µmol/L</span></div><input class="result-input" type="number" id="r-bili" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">ALT <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-alt" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">AST <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-ast" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">ALP <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-alp" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">GGT <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-ggt" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">Albumin <span class="result-unit">g/L</span></div><input class="result-input" type="number" id="r-alb" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">INR <span class="result-unit">ratio</span></div><input class="result-input" type="number" id="r-inr" placeholder="—" min="0" step="0.1" oninput="match()"></div>
+    </div>
+
+    <div class="section-label">FBC (full blood count)</div>
+    <div class="results-grid">
+      <div class="result-field"><div class="result-label">Haemoglobin <span class="result-unit">g/L</span></div><input class="result-input" type="number" id="r-hb" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">MCV <span class="result-unit">fL</span></div><input class="result-input" type="number" id="r-mcv" placeholder="—" min="0" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">WCC <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-wcc" placeholder="—" min="0" step="0.1" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">Neutrophils <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-neut" placeholder="—" min="0" step="0.1" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">Lymphocytes <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-lymph" placeholder="—" min="0" step="0.1" oninput="match()"></div>
+      <div class="result-field"><div class="result-label">Platelets <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-plt" placeholder="—" min="0" oninput="match()"></div>
+    </div>
+
+    <div class="section-label">Clinical context</div>
+    <div class="context-grid">
+      <div class="ctx-q"><label>Jaundice?</label>
+        <select class="ctx-select" id="c-jaundice" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes — clinically jaundiced</option><option value="no">No</option></select>
+      </div>
+      <div class="ctx-q"><label>Weight loss?</label>
+        <select class="ctx-select" id="c-wtloss" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes — unexplained</option><option value="no">No</option></select>
+      </div>
+      <div class="ctx-q"><label>Bleeding / petechiae?</label>
+        <select class="ctx-select" id="c-bleed" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select>
+      </div>
+      <div class="ctx-q"><label>Alcohol</label>
+        <select class="ctx-select" id="c-alcohol" onchange="match()"><option value="">Not assessed</option><option value="high">&gt;14 units/week</option><option value="low">≤14 units/week</option></select>
+      </div>
+      <div class="ctx-q"><label>Patient identifier (optional)</label>
+        <input class="ctx-select" type="text" id="c-patient" placeholder="e.g. NHS number">
+      </div>
+    </div>
+
+    <button class="analyse-btn" id="analyse-btn" onclick="findPathways()" disabled>Find pathways →</button>
+    <span class="reset-link" onclick="resetAll()">Reset all</span>
+  </div>
+
+  <!-- ROUTED RESULTS -->
+  <div id="routed" class="routed-section">
+    <h2 class="routed-title" id="routed-title">Triggered pathways</h2>
+    <p class="routed-sub" id="routed-sub">Click any pathway to see the full analysis with your results carried through.</p>
+    <div id="pathway-list"></div>
+  </div>
+
+  <!-- AVAILABLE PATHWAYS (always shown at bottom for browsing) -->
+  <div class="available-section">
+    <div class="available-title">All available pathways</div>
+    <div id="all-pathways"></div>
+  </div>
+
+</div>
+
+<footer>
+  <strong>ResultDoctor</strong> — Result-first navigation across published NHS clinical pathways. Each pathway reproduces its source guideline verbatim. This is not an NHS service. Supports clinical navigation and does not replace clinical judgement.<br>
+  Master prompt v3 · Pathway registry-driven router · Adding a new pathway = appending one JSON entry.
+</footer>
+
+<script>
+// ═══════════════════════════════════════════════════
+// PATHWAY REGISTRY
+// In production, this lives in pathways.json and is loaded.
+// Adding a new pathway = one entry. The router does NOT contain pathway logic.
+// ═══════════════════════════════════════════════════
+const PATHWAYS = [
+  {
+    id: 'nwl_lft',
+    title: 'Abnormal LFT',
+    icb: 'NW London',
+    version: 'V1.6 Oct 2019 / V1.4 Aug 2019',
+    status: 'live',
+    tool_path: 'lft.html',
+    description: 'Hepatic and cholestatic patterns, Gilbert\'s syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.',
+    trigger_results: ['r-bili', 'r-alt', 'r-ast', 'r-alp', 'r-ggt', 'r-alb', 'r-inr'],
+    trigger_context: ['c-jaundice', 'c-wtloss', 'c-alcohol'],
+    primary_pattern: 'Any abnormal LFT value or related clinical feature'
+  },
+  {
+    id: 'ncl_fbc',
+    title: 'Abnormal FBC',
+    icb: 'North Central London ICB',
+    version: 'Final Jan 2023 · Review Jan 2026',
+    status: 'live',
+    tool_path: 'fbc.html',
+    description: 'Anaemia (with MCV stratification, ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.',
+    trigger_results: ['r-hb', 'r-mcv', 'r-wcc', 'r-neut', 'r-lymph', 'r-plt'],
+    trigger_context: ['c-bleed'],
+    primary_pattern: 'Any abnormal FBC value'
+  },
+  {
+    id: 'nwl_anaemia',
+    title: 'NWL Anaemia',
+    icb: 'NW London ICB',
+    version: 'V1 · 9 July 2020',
+    status: 'live',
+    tool_path: 'nwl_anaemia.html',
+    description: 'Focused adult anaemia pathway — Hb <130 (M) / <114 (F), strict iron deficiency criteria (Hb low + MCV <83.5 + ferritin <10 F / <20 M), sex/menopausal-status GI investigation routing. Flow diagram highlights route taken.',
+    trigger_results: ['r-hb', 'r-mcv'],
+    trigger_context: [],
+    primary_pattern: 'Hb (anaemia trigger)'
+  },
+  {
+    id: 'ncl_iron_deficiency',
+    title: 'Adult Iron Deficiency',
+    icb: 'North Central London ICB',
+    version: 'Final Aug 2022',
+    status: 'live',
+    tool_path: 'iron_deficiency.html',
+    description: 'Adult iron deficiency primary care pathway — CV stability check, 2WW gastroenterology criteria, routine gastro referral routes, non-GI bleeding referral, iron replacement and follow-up. Flow diagram highlights route taken per rule.',
+    trigger_results: ['r-hb', 'r-mcv'],
+    trigger_context: [],
+    primary_pattern: 'Suspected iron deficiency'
+  }
+];
+
+// Map of router input IDs to the corresponding tool's URL param keys
+const RESULT_TO_PARAM = {
+  'r-bili':'bili', 'r-alt':'alt', 'r-ast':'ast', 'r-alp':'alp', 'r-ggt':'ggt', 'r-alb':'alb', 'r-inr':'inr',
+  'r-hb':'hb', 'r-mcv':'mcv', 'r-wcc':'wcc', 'r-neut':'neut', 'r-lymph':'lymph', 'r-plt':'plt'
+};
+const CONTEXT_TO_PARAM = {
+  'c-jaundice':'jaundice', 'c-wtloss':'wtloss', 'c-bleed':'bleed', 'c-alcohol':'alcohol', 'c-patient':'patient'
+};
+
+// ═══════════════════════════════════════════════════
+// MATCH — which pathways are triggered by current input?
+// ═══════════════════════════════════════════════════
+function val(id) { const v = (document.getElementById(id) || {}).value; return v == null || v === '' ? null : v; }
+
+function pathwayTriggered(p) {
+  // Triggered if any of its trigger_results have a value, OR any of its trigger_context is non-empty
+  for (const r of p.trigger_results) if (val(r) !== null) return true;
+  for (const c of p.trigger_context) if (val(c) !== null) return true;
+  return false;
+}
+
+function matchedFields(p) {
+  const results = p.trigger_results.filter(r => val(r) !== null);
+  const ctx = p.trigger_context.filter(c => val(c) !== null);
+  return { results, ctx };
+}
+
+function match() {
+  const anyInput = Object.keys(RESULT_TO_PARAM).some(id => val(id) !== null)
+                || Object.keys(CONTEXT_TO_PARAM).some(id => val(id) !== null);
+  document.getElementById('analyse-btn').disabled = !anyInput;
+  document.getElementById('analyse-btn').textContent = anyInput ? 'Find pathways →' : 'Enter at least one result to continue';
+  if (!anyInput) {
+    document.getElementById('routed').classList.remove('show');
+  }
+}
+
+function resetAll() {
+  ['r-bili','r-alt','r-ast','r-alp','r-ggt','r-alb','r-inr','r-hb','r-mcv','r-wcc','r-neut','r-lymph','r-plt'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  ['c-jaundice','c-wtloss','c-bleed','c-alcohol'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.selectedIndex = 0;
+  });
+  const pi = document.getElementById('c-patient'); if (pi) pi.value = '';
+  document.getElementById('routed').classList.remove('show');
+  match();
+}
+
+// ═══════════════════════════════════════════════════
+// FIND PATHWAYS — runs when user clicks Analyse
+// ═══════════════════════════════════════════════════
+function findPathways() {
+  const triggered = PATHWAYS.filter(pathwayTriggered);
+  const routed = document.getElementById('routed');
+  const list = document.getElementById('pathway-list');
+
+  if (triggered.length === 0) {
+    list.innerHTML = `<div class="no-match">
+      <div class="no-match-title">No pathway matched these results</div>
+      <div>The values entered don't trigger any of the currently registered pathways. You can still browse all available pathways below.</div>
+    </div>`;
+    document.getElementById('routed-title').textContent = 'No pathway triggered';
+    document.getElementById('routed-sub').textContent = 'Try entering different results or check the available pathways below.';
+  } else {
+    document.getElementById('routed-title').textContent = triggered.length === 1
+      ? '1 pathway triggered'
+      : `${triggered.length} pathways triggered`;
+    document.getElementById('routed-sub').textContent = 'Click any pathway to see the full analysis with your results carried through.';
+    list.innerHTML = triggered.map(p => renderCard(p, true)).join('');
+  }
+  routed.classList.add('show');
+
+  // Save current results to sessionStorage so the pathway tools can read them
+  saveResultsToSession();
+
+  routed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function saveResultsToSession() {
+  const payload = {};
+  Object.entries(RESULT_TO_PARAM).forEach(([id, key]) => {
+    const v = val(id); if (v !== null) payload[key] = v;
+  });
+  Object.entries(CONTEXT_TO_PARAM).forEach(([id, key]) => {
+    const v = val(id); if (v !== null) payload[key] = v;
+  });
+  sessionStorage.setItem('resultdoctor_results', JSON.stringify(payload));
+}
+
+function buildQueryString() {
+  const params = new URLSearchParams();
+  Object.entries(RESULT_TO_PARAM).forEach(([id, key]) => {
+    const v = val(id); if (v !== null) params.set(key, v);
+  });
+  Object.entries(CONTEXT_TO_PARAM).forEach(([id, key]) => {
+    const v = val(id); if (v !== null) params.set(key, v);
+  });
+  return params.toString();
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER PATHWAY CARDS
+// ═══════════════════════════════════════════════════
+function renderCard(p, isTriggered) {
+  const matched = matchedFields(p);
+  const matchSummary = isTriggered ?
+    `<div class="pc-match">📍 <strong>Matched</strong> by ${matched.results.length} result${matched.results.length === 1 ? '' : 's'}${matched.ctx.length ? ` + ${matched.ctx.length} context flag${matched.ctx.length === 1 ? '' : 's'}` : ''}</div>` : '';
+
+  const qs = isTriggered ? '?' + buildQueryString() : '';
+  const url = p.tool_path + qs;
+  const cardClass = `pathway-card ${isTriggered ? 'triggered' : ''} ${p.status === 'demo' ? 'demo' : ''}`;
+
+  return `
+    <a href="${url}" class="${cardClass}">
+      <div class="pc-head">
+        <div class="pc-title">${p.title}</div>
+        <div class="pc-badges">
+          ${p.status === 'live' ? '<span class="pc-badge live">Live</span>' : '<span class="pc-badge demo">⚠ Demo</span>'}
+          <span class="pc-badge icb">${p.icb}</span>
+          <span class="pc-badge version">${p.version}</span>
+        </div>
+      </div>
+      <div class="pc-desc">${p.description}</div>
+      ${matchSummary}
+      <div class="pc-cta">
+        <span class="pc-cta-text">${isTriggered ? 'Your results will be carried through →' : 'View pathway →'}</span>
+        <span class="pc-cta-btn">Open pathway →</span>
+      </div>
+    </a>`;
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER ALL PATHWAYS (always-visible browse list)
+// ═══════════════════════════════════════════════════
+function renderAllPathways() {
+  document.getElementById('all-pathways').innerHTML = PATHWAYS.map(p => renderCard(p, false)).join('');
+}
+renderAllPathways();
+match();
+</script>
+</body>
+</html>

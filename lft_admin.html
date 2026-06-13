@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NW London — Abnormal LFT Pathway Rule Engine</title>
+<style>
+:root {
+  --bg:#f7f6f3; --surface:#fff; --surface2:#f2f1ee; --surface3:#e8e7e3;
+  --border:#e0ddd6; --border2:#c5c1b8;
+  --text:#1a1916; --text2:#55534e; --text3:#8a8880;
+  --r:#A32D2D; --r-bg:#FCEBEB; --r-bd:#F09595;
+  --b:#185FA5; --b-bg:#E6F1FB; --b-bd:#85B7EB;
+  --pi:#993556; --pi-bg:#FBEAF0; --pi-bd:#ED93B1;
+  --o:#854F0B; --o-bg:#FAEEDA; --o-bd:#EF9F27;
+  --g:#3B6D11; --g-bg:#EAF3DE; --g-bd:#97C459;
+  --gr:#444441; --gr-bg:#F1EFE8; --gr-bd:#B4B2A9;
+  --pu:#5B2D8E; --pu-bg:#F0EAF8; --pu-bd:#B89FD4;
+  --rad:8px; --rad-lg:12px; --rad-xl:16px;
+  --mono:'Courier New',monospace; --sans:system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;}
+.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh;}
+.side{background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+.main{padding:28px 36px;max-width:960px;}
+/* Sidebar */
+.side-top{padding:16px 16px 14px;border-bottom:1px solid var(--border);}
+.side-pill{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--b-bg);color:var(--b);border:0.5px solid var(--b-bd);margin-bottom:6px;}
+.side-title{font-size:14px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:2px;}
+.side-sub{font-size:11px;color:var(--text3);}
+.side-sep{padding:10px 14px 3px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);}
+.nav{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;font-size:13px;color:var(--text2);border-left:3px solid transparent;transition:all .12s;user-select:none;}
+.nav:hover{background:var(--bg);color:var(--text);}
+.nav.on{background:var(--b-bg);color:var(--b);border-left-color:var(--b);font-weight:500;}
+.nav-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.nav-count{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:700;}
+.side-foot{margin-top:auto;padding:14px 16px;border-top:1px solid var(--border);}
+.mode-row{display:flex;gap:4px;background:var(--bg);border-radius:var(--rad);padding:3px;}
+.mode-btn{flex:1;padding:6px 6px;font-size:12px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:var(--text2);font-family:var(--sans);}
+.mode-btn.on{background:var(--surface);color:var(--text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.1);}
+.edit-notice{display:none;font-size:11px;color:var(--o);margin-top:7px;text-align:center;line-height:1.4;}
+.edit-notice.show{display:block;}
+/* Page tabs */
+.pg-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:24px;}
+.pg-tab{padding:9px 18px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text3);border-bottom:2px solid transparent;margin-bottom:-1px;}
+.pg-tab:hover{color:var(--text2);}
+.pg-tab.on{color:var(--b);border-bottom-color:var(--b);}
+/* Provenance card */
+.prov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-xl);padding:18px 22px;margin-bottom:24px;}
+.prov-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px;padding-bottom:12px;border-bottom:0.5px solid var(--border);}
+.prov-org{font-size:18px;font-weight:500;color:var(--text);}
+.prov-org-sub{font-size:12px;color:var(--text3);margin-top:2px;}
+.prov-badges{display:flex;gap:6px;flex-wrap:wrap;}
+.pbadge{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:500;white-space:nowrap;}
+.pbadge-warn{background:var(--r-bg);color:var(--r);border:0.5px solid var(--r-bd);}
+.pbadge-amber{background:var(--o-bg);color:var(--o);border:0.5px solid var(--o-bd);}
+.pbadge-status{background:var(--g-bg);color:var(--g);border:0.5px solid var(--g-bd);}
+.prov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+.pf{background:var(--surface2);border-radius:var(--rad);padding:8px 12px;}
+.pf-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:3px;}
+.pf-val{font-size:13px;color:var(--text);line-height:1.4;}
+.pf-val.ns{color:var(--text3);font-style:italic;}
+/* Info band */
+.info-band{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;}
+.info-box{border-radius:var(--rad-lg);padding:14px 16px;border:0.5px solid;}
+.info-box.excl{background:var(--r-bg);border-color:var(--r-bd);}
+.info-box.pat{background:var(--g-bg);border-color:var(--g-bd);}
+.info-box.esc{background:var(--o-bg);border-color:var(--o-bd);}
+.info-box-title{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;}
+.excl .info-box-title{color:var(--r);}
+.pat .info-box-title{color:var(--g);}
+.esc .info-box-title{color:var(--o);}
+.info-box ul{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.info-box li{font-size:12px;color:var(--text2);padding-left:12px;position:relative;line-height:1.5;}
+.info-box li::before{content:'•';position:absolute;left:0;color:var(--text3);}
+/* Tab panels */
+.tab-panel{display:none;}
+.tab-panel.on{display:block;}
+.sec-title{font-size:16px;font-weight:500;color:var(--text);margin:0 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+/* Variables */
+.var-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;}
+.vc{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;}
+.vc-head{padding:10px 14px 8px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.vc-code{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--text);}
+.vc-full{font-size:11px;color:var(--text3);margin-top:1px;}
+.vc-also{font-size:11px;color:var(--text3);font-style:italic;}
+.vc-pills{display:flex;gap:5px;padding:7px 14px;border-top:0.5px solid var(--border);background:var(--surface2);flex-wrap:wrap;}
+.pill{font-size:11px;padding:3px 8px;border-radius:20px;white-space:nowrap;}
+.p-n{background:var(--g-bg);color:var(--g);}
+.p-hi{background:var(--r-bg);color:var(--r);}
+.p-th{background:var(--o-bg);color:var(--o);}
+.p-bin{background:var(--gr-bg);color:var(--gr);}
+.p-ctx{background:var(--pu-bg);color:var(--pu);}
+.vc-note{padding:6px 14px;font-size:11px;color:var(--text3);border-top:0.5px solid var(--border);font-style:italic;}
+.vc-edit{display:none;padding:8px 14px;border-top:0.5px solid var(--border);gap:8px;flex-wrap:wrap;align-items:center;}
+.vc-edit.show{display:flex;}
+.ef{display:flex;flex-direction:column;gap:2px;}
+.ef label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;}
+.ef input{width:80px;padding:4px 6px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);}
+.ef input:focus{outline:none;border-color:var(--b);}
+.mod-badge{font-size:10px;background:var(--o-bg);color:var(--o);padding:2px 6px;border-radius:10px;border:0.5px solid var(--o-bd);}
+/* Rules */
+.rule-filter{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
+.rfbtn{padding:5px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--surface);cursor:pointer;font-size:12px;color:var(--text2);font-family:var(--sans);}
+.rfbtn:hover{background:var(--bg);}
+.rfbtn.on{background:var(--b);color:#fff;border-color:var(--b);}
+.srch{flex:1;min-width:150px;padding:6px 12px;border:0.5px solid var(--border2);border-radius:20px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);}
+.srch:focus{outline:none;border-color:var(--b);}
+.rb{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);margin-bottom:10px;overflow:hidden;}
+.rb-head{display:flex;align-items:center;gap:10px;padding:11px 15px;cursor:pointer;}
+.rb-head:hover{background:var(--surface2);}
+.rb-step{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:80px;}
+.rb-title{flex:1;font-size:13px;font-weight:500;}
+.rb-badge{font-size:10px;padding:2px 8px;border-radius:10px;white-space:nowrap;font-weight:600;}
+.badge-R{background:var(--r-bg);color:var(--r);border:0.5px solid var(--r-bd);}
+.badge-B{background:var(--b-bg);color:var(--b);border:0.5px solid var(--b-bd);}
+.badge-Pi{background:var(--pi-bg);color:var(--pi);border:0.5px solid var(--pi-bd);}
+.badge-O{background:var(--o-bg);color:var(--o);border:0.5px solid var(--o-bd);}
+.badge-G{background:var(--g-bg);color:var(--g);border:0.5px solid var(--g-bd);}
+.badge-EXP{background:var(--g-bg);color:var(--g);border:0.5px solid var(--g-bd);font-size:9px;}
+.badge-INF{background:var(--o-bg);color:var(--o);border:0.5px solid var(--o-bd);font-size:9px;}
+.chev{font-size:10px;color:var(--text3);transition:transform .15s;}
+.chev.open{transform:rotate(90deg);}
+.rb-body{display:none;border-top:0.5px solid var(--border);}
+.rb-body.open{display:block;}
+.rb-sec{padding:12px 16px;border-bottom:0.5px solid var(--border);}
+.rb-sec:last-child{border-bottom:none;}
+.rb-sec-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+/* Logic lines */
+.ll{font-size:13px;padding:3px 10px;border-left:2px solid var(--border);color:var(--text2);line-height:1.65;margin:2px 0;}
+.ll.IF{border-left-color:var(--b);color:var(--text);}
+.ll.AND{border-left-color:var(--g);}
+.ll.OR{border-left-color:var(--o);}
+.ll.THEN{border-left-color:var(--b);background:var(--b-bg);color:var(--text);font-weight:500;border-radius:0 4px 4px 0;}
+.ll.NOT{border-left-color:var(--r);}
+.ll.CTX{border-left-color:var(--pu);background:var(--pu-bg);border-radius:0 4px 4px 0;}
+.kw{font-weight:700;margin-right:5px;}
+.kw-IF{color:var(--b);}
+.kw-AND{color:var(--g);}
+.kw-OR{color:var(--o);}
+.kw-THEN{color:var(--b);}
+.kw-NOT{color:var(--r);}
+.kw-CTX{color:var(--pu);}
+/* Management */
+.mgmt-list{list-style:none;display:flex;flex-direction:column;gap:5px;}
+.mi{display:flex;align-items:flex-start;gap:9px;font-size:13px;padding:6px 9px;border-radius:var(--rad);}
+.mi.p1{background:var(--r-bg);border-left:3px solid var(--r);}
+.mi.p2{background:var(--o-bg);border-left:3px solid var(--o-bd);}
+.mi.p3{background:var(--b-bg);border-left:3px solid var(--b-bd);}
+.mi.p4{background:var(--g-bg);border-left:3px solid var(--g-bd);}
+.mi.p5{background:var(--surface2);border-left:3px solid var(--border2);}
+.mi.p0{background:var(--g-bg);border-left:3px solid var(--g);}
+.mi-pri{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;min-width:78px;padding-top:2px;flex-shrink:0;}
+.p1 .mi-pri{color:var(--r);}
+.p2 .mi-pri{color:var(--o);}
+.p3 .mi-pri{color:var(--b);}
+.p4 .mi-pri{color:var(--g);}
+.p5 .mi-pri{color:var(--text3);}
+.p0 .mi-pri{color:var(--g);}
+/* Source trail */
+.src-trail{display:flex;flex-direction:column;gap:5px;}
+.src-item{font-size:12px;padding:6px 10px;border-radius:var(--rad);border:0.5px solid var(--border);background:var(--surface2);}
+.src-item.explicit{border-color:var(--g-bd);background:var(--g-bg);}
+.src-item.inferred{border-color:var(--o-bd);background:var(--o-bg);}
+.src-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;}
+.explicit .src-label{color:var(--g);}
+.inferred .src-label{color:var(--o);}
+.src-quote{font-size:12px;color:var(--text2);font-style:italic;line-height:1.55;}
+/* Repeat flag */
+.repeat-flag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:10px;background:var(--pi-bg);color:var(--pi);border:0.5px solid var(--pi-bd);margin-bottom:7px;}
+/* Note */
+.note{font-size:12px;color:var(--text2);background:var(--surface2);border-radius:var(--rad);padding:8px 11px;margin-top:8px;line-height:1.6;border-left:2px solid var(--gr-bd);}
+/* Copy box */
+.cbox{position:relative;margin:6px 0;}
+.cbox-content{background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 44px 10px 12px;font-size:12px;color:var(--text);line-height:1.65;white-space:pre-wrap;word-break:break-word;max-height:130px;overflow-y:auto;}
+.cbox-btn{position:absolute;top:8px;right:8px;background:var(--surface);border:0.5px solid var(--border2);border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;color:var(--text2);font-family:var(--sans);white-space:nowrap;}
+.cbox-btn:hover{background:var(--bg);}
+.cbox-btn.ok{color:var(--g);border-color:var(--g-bd);}
+/* Copy sheet */
+.cs-sec{margin-bottom:14px;}
+.cs-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:5px;}
+/* Changes */
+.ch-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad);padding:10px 14px;margin-bottom:8px;}
+.ch-meta{display:flex;gap:8px;align-items:center;margin-bottom:4px;}
+.ch-time{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.ch-var{font-weight:500;}
+.ch-tag{font-size:10px;padding:2px 6px;border-radius:4px;background:var(--o-bg);color:var(--o);}
+.ch-diff{color:var(--text2);font-size:13px;}
+.ch-old{text-decoration:line-through;color:var(--text3);margin-right:5px;}
+.ch-new{font-weight:500;color:var(--g);}
+/* Empty state */
+.empty{font-size:13px;color:var(--text3);padding:24px;text-align:center;background:var(--surface);border-radius:var(--rad-lg);border:0.5px solid var(--border);}
+/* Admin / user output panel */
+.ao-panel{border:0.5px solid var(--b-bd);border-radius:var(--rad-lg);overflow:hidden;margin-top:4px;}
+.ao-panel-head{background:var(--b-bg);padding:7px 12px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--b);}
+.ao-cols{display:grid;grid-template-columns:1fr 1fr;}
+.ao-col{padding:10px 12px;}
+.ao-col:first-child{border-right:0.5px solid var(--b-bd);background:var(--surface2);}
+.ao-col-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px;}
+.ao-locked{font-size:12px;color:var(--text2);line-height:1.55;}
+.ao-textarea{width:100%;min-height:54px;padding:5px 8px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);resize:vertical;display:none;}
+.ao-textarea.show{display:block;}
+.ao-placeholder{font-size:12px;color:var(--text3);font-style:italic;}
+.ao-save{margin-top:5px;display:none;padding:4px 10px;font-size:11px;border-radius:4px;background:var(--b);color:#fff;border:none;cursor:pointer;font-family:var(--sans);}
+.ao-save.show{display:inline-block;}
+.ao-preview{padding:10px 12px;border-top:0.5px solid var(--b-bd);background:#fff;}
+.ao-preview-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:4px;}
+.ao-preview-text{font-size:12px;color:var(--text);line-height:1.55;}
+.ao-link{display:inline-block;font-size:11px;color:var(--b);margin-top:4px;}
+/* Context warning */
+.ctx-warn{background:var(--pu-bg);border:0.5px solid var(--pu-bd);border-radius:var(--rad);padding:8px 11px;font-size:12px;color:var(--pu);margin-top:6px;line-height:1.6;}
+.ctx-warn strong{display:block;margin-bottom:2px;}
+/* ═══ GAPS TAB ═══ */
+.gap-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px;}
+.gap-stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:12px 14px;text-align:center;}
+.gap-stat-n{font-size:24px;font-weight:600;margin-bottom:2px;}
+.gap-stat-l{font-size:11px;color:var(--text3);}
+.gap-open .gap-stat-n{color:var(--r);}
+.gap-resolved .gap-stat-n{color:var(--g);}
+.gap-partial .gap-stat-n{color:var(--o);}
+.gap-total .gap-stat-n{color:var(--b);}
+.gap-item{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);margin-bottom:10px;overflow:hidden;}
+.gap-head{display:flex;align-items:center;gap:10px;padding:11px 15px;cursor:pointer;}
+.gap-head:hover{background:var(--surface2);}
+.gap-type{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:2px 8px;border-radius:10px;white-space:nowrap;}
+.gt-contact{background:var(--o-bg);color:var(--o);border:0.5px solid var(--o-bd);}
+.gt-metadata{background:var(--b-bg);color:var(--b);border:0.5px solid var(--b-bd);}
+.gt-exclusion{background:var(--r-bg);color:var(--r);border:0.5px solid var(--r-bd);}
+.gt-url{background:var(--pi-bg);color:var(--pi);border:0.5px solid var(--pi-bd);}
+.gt-population{background:var(--r-bg);color:var(--r);border:0.5px solid var(--r-bd);}
+.gap-title{flex:1;font-size:13px;font-weight:500;}
+.gap-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;}
+.status-open{background:var(--r-bg);color:var(--r);border:0.5px solid var(--r-bd);}
+.status-resolved{background:var(--g-bg);color:var(--g);border:0.5px solid var(--g-bd);}
+.status-partial{background:var(--o-bg);color:var(--o);border:0.5px solid var(--o-bd);}
+.gap-body{display:none;border-top:0.5px solid var(--border);padding:0;}
+.gap-body.open{display:block;}
+.gap-row{display:grid;grid-template-columns:1fr 1fr;border-bottom:0.5px solid var(--border);}
+.gap-row:last-child{border-bottom:none;}
+.gap-col{padding:12px 14px;}
+.gap-col:first-child{background:var(--surface2);border-right:0.5px solid var(--border);}
+.gap-col-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:5px;}
+.gap-source-text{font-size:12px;color:var(--text2);font-style:italic;line-height:1.6;}
+.gap-instruction-area{font-size:12px;color:var(--text2);line-height:1.6;}
+.gap-textarea{width:100%;min-height:60px;padding:6px 8px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);resize:vertical;display:none;}
+.gap-textarea.show{display:block;}
+.gap-placeholder{font-size:12px;color:var(--text3);font-style:italic;}
+.gap-actions{display:flex;gap:6px;margin-top:6px;display:none;}
+.gap-actions.show{display:flex;}
+.gap-btn{padding:4px 12px;font-size:11px;border-radius:4px;border:0.5px solid;cursor:pointer;font-family:var(--sans);}
+.gap-btn-save{background:var(--b);color:#fff;border-color:var(--b);}
+.gap-btn-resolve{background:var(--g-bg);color:var(--g);border-color:var(--g-bd);}
+.gap-btn-partial{background:var(--o-bg);color:var(--o);border-color:var(--o-bd);}
+.gap-log{padding:8px 14px;font-size:11px;color:var(--text3);border-top:0.5px solid var(--border);background:var(--surface2);}
+.gap-log span{font-family:var(--mono);}
+.gap-filter-row{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap;}
+/* Context map */
+.ctx-map-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px;}
+.ctx-map-table th{background:var(--b);color:#fff;padding:8px 12px;text-align:left;font-size:11px;font-weight:600;}
+.ctx-map-table td{padding:8px 12px;border-bottom:0.5px solid var(--border);vertical-align:top;}
+.ctx-map-table tr:hover td{background:var(--surface2);}
+.ctx-detail{background:var(--pu-bg);border:0.5px solid var(--pu-bd);border-radius:var(--rad-lg);margin-bottom:12px;overflow:hidden;}
+.ctx-detail-head{background:var(--pu);color:#fff;padding:9px 14px;font-size:13px;font-weight:500;}
+.ctx-detail-body{padding:12px 14px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="side">
+  <div class="side-top">
+    <div class="side-pill">NWL · North West London</div>
+    <div class="side-title">Abnormal Liver Function Tests<br>Outpatient Pathway Rule Engine</div>
+    <div class="side-sub">V1.6 Oct 2019 (P1) · V1.4 Aug 2019 (P2)</div>
+  </div>
+
+  <div class="side-sep">Navigate</div>
+  <div class="nav on" id="n-prov" onclick="showTab('prov',this)"><div class="nav-dot" style="background:var(--gr)"></div>Provenance &amp; metadata</div>
+  <div class="nav" id="n-vars" onclick="showTab('vars',this)"><div class="nav-dot" style="background:var(--b)"></div>Variables &amp; ranges</div>
+  <div class="nav" id="n-rules" onclick="showTab('rules',this)"><div class="nav-dot" style="background:var(--g)"></div>Decision rules</div>
+  <div class="nav" id="n-ctx" onclick="showTab('ctx',this)"><div class="nav-dot" style="background:var(--pu)"></div>Context map</div>
+  <div class="nav" id="n-gaps" onclick="showTab('gaps',this)"><div class="nav-dot" style="background:var(--r)"></div>Gaps &amp; resolution <span class="nav-count" id="gaps-count" style="background:var(--r-bg);color:var(--r)"></span></div>
+  <div class="nav" id="n-copy" onclick="showTab('copy',this)"><div class="nav-dot" style="background:var(--pi)"></div>Copy sheet</div>
+  <div class="nav" id="n-changes" onclick="showTab('changes',this)"><div class="nav-dot" style="background:var(--o)"></div>Change log</div>
+
+  <div class="side-sep">Filter rules</div>
+  <div class="nav" onclick="setFilter('urgent')"><div class="nav-dot" style="background:var(--r)"></div>Urgent / Red flag (R)</div>
+  <div class="nav" onclick="setFilter('gp')"><div class="nav-dot" style="background:var(--b)"></div>GP action (B)</div>
+  <div class="nav" onclick="setFilter('refer')"><div class="nav-dot" style="background:var(--pi)"></div>Refer (Pi)</div>
+  <div class="nav" onclick="setFilter('noaction')"><div class="nav-dot" style="background:var(--g)"></div>No action / confirmed normal</div>
+  <div class="nav" onclick="setFilter('all')"><div class="nav-dot" style="background:var(--gr)"></div>Show all rules</div>
+
+  <div class="side-foot">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;">Document mode</div>
+    <div class="mode-row">
+      <button class="mode-btn on" id="btn-m" onclick="setMode('master')">Master</button>
+      <button class="mode-btn" id="btn-w" onclick="setMode('working')">Working</button>
+    </div>
+    <div class="edit-notice" id="edit-notice">✏ Working copy — edits tracked</div>
+  </div>
+</div>
+
+<!-- ═══ MAIN ═══ -->
+<div class="main">
+
+<!-- PROVENANCE TAB -->
+<div class="tab-panel on" id="tab-prov">
+  <div class="sec-title">Pathway provenance &amp; metadata</div>
+  <div class="prov-card">
+    <div class="prov-header">
+      <div>
+        <div class="prov-org">NW London — Outpatient Pathways</div>
+        <div class="prov-org-sub">NHS North West London · Abnormal LFT pathway (both pages)</div>
+      </div>
+      <div class="prov-badges">
+        <span class="pbadge pbadge-warn">Population not stated ⚠</span>
+        <span class="pbadge pbadge-amber">Primary care [INFERRED]</span>
+        <span class="pbadge pbadge-amber">No review date stated</span>
+      </div>
+    </div>
+    <div class="prov-grid">
+      <div class="pf"><div class="pf-label">ICB / Organisation</div><div class="pf-val">NW London (NWL)</div></div>
+      <div class="pf"><div class="pf-label">Area covered</div><div class="pf-val">North West London</div></div>
+      <div class="pf"><div class="pf-label">Pathway title</div><div class="pf-val">NW London Outpatient Pathways — Abnormal LFT (1/2 and 2/2)</div></div>
+      <div class="pf"><div class="pf-label">Population</div><div class="pf-val ns">Not stated in source — flag for clinical review</div></div>
+      <div class="pf"><div class="pf-label">Setting</div><div class="pf-val">Primary care [INFERRED from flow content]</div></div>
+      <div class="pf"><div class="pf-label">Version / date (P1)</div><div class="pf-val">V1.6 Oct 2019</div></div>
+      <div class="pf"><div class="pf-label">Version / date (P2)</div><div class="pf-val">V1.4 Aug 2019</div></div>
+      <div class="pf"><div class="pf-label">Previous versions</div><div class="pf-val ns">Not stated in source document</div></div>
+      <div class="pf"><div class="pf-label">Review date</div><div class="pf-val ns">Not stated in source document</div></div>
+      <div class="pf"><div class="pf-label">Author(s)</div><div class="pf-val ns">Not stated in source document</div></div>
+      <div class="pf"><div class="pf-label">Approving body</div><div class="pf-val ns">Not stated in source document</div></div>
+      <div class="pf"><div class="pf-label">Contact</div><div class="pf-val">Local liver team (no number given) · Jaundice hotline (no number given)</div></div>
+      <div class="pf"><div class="pf-label">Source URL</div><div class="pf-val ns" id="prov-url">⚠ Not provided — add before distributing</div></div>
+      <div class="pf" style="grid-column:1/-1"><div class="pf-label">Variables indexed</div><div class="pf-val" style="font-size:12px;">ALT, AST, GGT, ALP, Bilirubin (total), Bilirubin (split/conjugated), INR, Albumin, FBC, Ferritin, Transferrin saturation, Hep B surface antigen, Hep C antibody, ANA, AMA, ASMA, LKM, IgA, IgG, IgM, HbA1C, Lipids, USS, BMI, Alcohol (units/week), Reticulocyte count, LDH, Haptoglobin, Vitamin D</div></div>
+    </div>
+  </div>
+
+  <div class="info-band">
+    <div class="info-box excl">
+      <div class="info-box-title">Exclusion criteria — who this pathway does NOT cover</div>
+      <ul>
+        <li>Not stated in source document — clinical team must define before deployment</li>
+        <li style="font-style:italic;color:var(--text3)">Suggested items for clinical review: paediatric patients, pregnancy, known acute liver failure, patients already under hepatology</li>
+      </ul>
+    </div>
+    <div class="info-box pat">
+      <div class="info-box-title">Patient-facing information &amp; leaflets</div>
+      <ul>
+        <li>Gilbert's syndrome: confirm diagnosis to patient, provide information — specific leaflet not stated in source</li>
+        <li>Alcohol-related findings: follow alcohol guidelines — URL not stated in source</li>
+        <li>NAFLD pathway: follow NAFLD pathway — URL not stated in source</li>
+      </ul>
+    </div>
+    <div class="info-box esc">
+      <div class="info-box-title">Escalation contacts</div>
+      <ul>
+        <li>Local liver team — for advice (no number in source)</li>
+        <li>Jaundice hotline — suspected malignancy / marked cholestasis (no number in source)</li>
+        <li>Accepting team / AMU / AAU — if considering emergency admission (no number)</li>
+        <li>Hepatology — referral route (no specific contact)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">⚠ Global pathway note (both pages): <em>"The degree of abnormality is not an indication of the severity of disease."</em> This applies to all rules. · Built from NWL Abnormal LFT pathway PDFs, V1.6/V1.4. Source URL not yet provided — see Gaps tab to resolve.</div>
+</div>
+
+<!-- VARIABLES TAB -->
+<div class="tab-panel" id="tab-vars">
+  <div class="pg-tabs">
+    <div class="pg-tab on" id="vt1" onclick="showVarPage(1,this)">Page 1 — Hepatic / Hepatitic algorithm</div>
+    <div class="pg-tab" id="vt2" onclick="showVarPage(2,this)">Page 2 — Cholestatic / ALP &amp; GGT</div>
+  </div>
+  <div class="sec-title" id="vars-title">Variables — Page 1: Hepatic / Hepatitic algorithm</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">All measurable values, serology, and imaging outcomes used in this pathway. In <strong>Working</strong> mode, numeric cut-offs become editable — changes are tracked in the Change Log.</p>
+  <div class="var-grid" id="var-grid"></div>
+</div>
+
+<!-- RULES TAB -->
+<div class="tab-panel" id="tab-rules">
+  <div class="pg-tabs">
+    <div class="pg-tab on" id="rt1" onclick="showRulePage(1,this)">Page 1 — Hepatic / Hepatitic algorithm</div>
+    <div class="pg-tab" id="rt2" onclick="showRulePage(2,this)">Page 2 — Cholestatic / ALP &amp; GGT</div>
+  </div>
+  <div class="rule-filter">
+    <input class="srch" id="rule-srch" placeholder="Search rules..." oninput="renderRules()"/>
+    <button class="rfbtn on" onclick="setFilterBtn(this,'all')">All</button>
+    <button class="rfbtn" onclick="setFilterBtn(this,'urgent')">Urgent (R)</button>
+    <button class="rfbtn" onclick="setFilterBtn(this,'gp')">GP action (B)</button>
+    <button class="rfbtn" onclick="setFilterBtn(this,'refer')">Refer (Pi)</button>
+    <button class="rfbtn" onclick="setFilterBtn(this,'noaction')">No action (G)</button>
+  </div>
+  <div id="rules-container"></div>
+</div>
+
+<!-- CONTEXT MAP TAB -->
+<div class="tab-panel" id="tab-ctx">
+  <div class="sec-title">Context map — variables that require additional context</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">Variables the source document explicitly states cannot be interpreted without knowing another variable or condition first. All entries are derived from the PDF — none are added from clinical knowledge.</p>
+  <table class="ctx-map-table">
+    <thead><tr><th>Variable</th><th>Depends on</th><th>Type</th><th>PDF source step</th></tr></thead>
+    <tbody>
+      <tr><td><strong>ALP</strong></td><td>GGT</td><td>Paired variable</td><td>Page 2 — explicitly stated: raised ALP requires GGT to determine liver vs bone aetiology</td></tr>
+      <tr><td><strong>Bilirubin (split)</strong></td><td>Fasting status of sample</td><td>Collection condition</td><td>Page 1 — "Repeat LFTs with split bilirubin and FBC" — fasting required for Gilbert's confirmation</td></tr>
+      <tr><td><strong>ALT (raised)</strong></td><td>First vs repeat occurrence</td><td>Occurrence</td><td>Page 1 — "ALT and/or AST remain abnormal" branch implies first vs repeat distinction</td></tr>
+      <tr><td><strong>Transferrin saturation</strong></td><td>Ferritin (must be elevated)</td><td>Paired variable</td><td>Pages 1 &amp; 2 — "Transferrin saturation (for elevated ferritin only)"</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ctx-detail">
+    <div class="ctx-detail-head">ALP — requires GGT (Paired variable) · Source: Page 2 · EXPLICIT</div>
+    <div class="ctx-detail-body">
+      <div class="src-item explicit" style="margin-bottom:10px"><div class="src-label">Explicitly stated in PDF</div><div class="src-quote">"Isolated cholestatic liver enzymes and not bone related: ALP and GGT. Isolated ALP: Consider drug or bone causes including Vit D deficiency."</div></div>
+      <div class="ll IF"><span class="kw kw-IF">IF</span>ALP is raised</div>
+      <div class="ll CTX"><span class="kw kw-CTX">CONTEXT REQUIRED</span>GGT must be checked before ALP can be interpreted in this pathway</div>
+      <div style="margin-left:16px">
+        <div class="ll IF"><span class="kw kw-IF">IF</span>GGT also raised → liver aetiology → proceed to liver aetiology screen</div>
+        <div class="ll IF"><span class="kw kw-IF">IF</span>GGT NOT raised → bone/drug aetiology → consider bone causes including Vitamin D deficiency</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctx-detail">
+    <div class="ctx-detail-head">Bilirubin (split) — requires fasting sample (Collection condition) · Source: Page 1 · EXPLICIT</div>
+    <div class="ctx-detail-body">
+      <div class="src-item explicit" style="margin-bottom:10px"><div class="src-label">Explicitly stated in PDF</div><div class="src-quote">"Repeat LFTs with split bilirubin and FBC"</div></div>
+      <div class="ll IF"><span class="kw kw-IF">IF</span>bilirubin raised in isolation</div>
+      <div class="ll CTX"><span class="kw kw-CTX">CONTEXT REQUIRED</span>Was the repeat sample fasting?</div>
+      <div style="margin-left:16px">
+        <div class="ll IF"><span class="kw kw-IF">IF</span>fasting sample → result interpretable for Gilbert's confirmation</div>
+        <div class="ll IF"><span class="kw kw-IF">IF</span>NOT fasting → result not interpretable — repeat as fasting sample</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctx-detail">
+    <div class="ctx-detail-head">ALT (raised) — first vs repeat occurrence · Source: Page 1 · INFERRED from flow</div>
+    <div class="ctx-detail-body">
+      <div class="src-item inferred" style="margin-bottom:10px"><div class="src-label">Inferred from flow diagram</div><div class="src-quote">"ALT and/or AST remain abnormal → Refer to hepatology" — the word "remain" implies a repeat result, distinguishing first from subsequent.</div></div>
+      <div class="ll IF"><span class="kw kw-IF">IF</span>ALT/AST raised</div>
+      <div class="ll CTX"><span class="kw kw-CTX">CONTEXT REQUIRED</span>Is this the first abnormal result or a confirmed repeat?</div>
+      <div style="margin-left:16px">
+        <div class="ll IF"><span class="kw kw-IF">IF</span>first occurrence → proceed to aetiology screen</div>
+        <div class="ll IF"><span class="kw kw-IF">IF</span>screen normal AND enzymes remain abnormal on repeat → refer to hepatology</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ctx-detail">
+    <div class="ctx-detail-head">Transferrin saturation — only if ferritin elevated (Paired variable) · Source: Pages 1 &amp; 2 · EXPLICIT</div>
+    <div class="ctx-detail-body">
+      <div class="src-item explicit" style="margin-bottom:10px"><div class="src-label">Explicitly stated in PDF</div><div class="src-quote">"Transferrin saturation (for elevated ferritin only)"</div></div>
+      <div class="ll IF"><span class="kw kw-IF">IF</span>ferritin is elevated</div>
+      <div class="ll CTX"><span class="kw kw-CTX">CONTEXT REQUIRED</span>Only then is transferrin saturation ordered and interpretable</div>
+      <div style="margin-left:16px">
+        <div class="ll IF"><span class="kw kw-IF">IF</span>ferritin elevated → request transferrin saturation</div>
+        <div class="ll IF"><span class="kw kw-IF">IF</span>ferritin normal → do NOT request transferrin saturation</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GAPS TAB -->
+<div class="tab-panel" id="tab-gaps">
+  <div class="sec-title">Gaps &amp; resolution — flagged items from source document</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">
+    Items the system could not extract from the PDF are listed here. Switch to <strong>Working mode</strong> to add your local information, mark items as resolved or partially resolved, and record when and how each gap was filled. All entries are timestamped and appear in the Change Log.
+  </p>
+  <div class="gap-summary">
+    <div class="gap-stat gap-open"><div class="gap-stat-n" id="gs-open">—</div><div class="gap-stat-l">Open gaps</div></div>
+    <div class="gap-stat gap-partial"><div class="gap-stat-n" id="gs-partial">—</div><div class="gap-stat-l">Partially resolved</div></div>
+    <div class="gap-stat gap-resolved"><div class="gap-stat-n" id="gs-resolved">—</div><div class="gap-stat-l">Fully resolved</div></div>
+    <div class="gap-stat gap-total"><div class="gap-stat-n" id="gs-total">—</div><div class="gap-stat-l">Total gaps</div></div>
+  </div>
+  <div class="gap-filter-row">
+    <button class="rfbtn on" onclick="setGapFilter('all',this)">All gaps</button>
+    <button class="rfbtn" onclick="setGapFilter('open',this)">Open only</button>
+    <button class="rfbtn" onclick="setGapFilter('partial',this)">Partial</button>
+    <button class="rfbtn" onclick="setGapFilter('resolved',this)">Resolved</button>
+  </div>
+  <div id="gaps-container"></div>
+</div>
+
+<!-- COPY SHEET TAB -->
+<div class="tab-panel" id="tab-copy">
+  <div class="sec-title">Copy sheet</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">Every rule and variable as a plain-text copy box. Click Copy on any box to copy to clipboard — ready to paste into clinical systems, referral letters, or documentation.</p>
+  <div id="copy-container"></div>
+</div>
+
+<!-- CHANGE LOG TAB -->
+<div class="tab-panel" id="tab-changes">
+  <div class="sec-title">Change log — working copy vs master</div>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">All modifications made in Working mode are recorded here. Master values are preserved. Switch to Working mode to begin editing.</p>
+  <div id="changes-container"><div class="empty">No changes yet. Switch to Working mode to edit variable ranges, local instructions, or gaps.</div></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const PROVENANCE = {
+  icb:'NW London (NWL)', area:'North West London',
+  title:'NW London Outpatient Pathways — Abnormal LFT (1/2 and 2/2)',
+  population:'Not stated in source — flag for clinical review',
+  setting:'Primary care [INFERRED]',
+  version:'V1.6 Oct 2019 (Page 1) / V1.4 Aug 2019 (Page 2)',
+  reviewDate:'Not stated in source document',
+  authors:'Not stated in source document',
+  approvingBody:'Not stated in source document',
+  contact:'Local liver team (no number) · Jaundice hotline (no number)',
+  sourceURL:'⚠ NOT PROVIDED — add before distributing',
+};
+
+// ── VARIABLES PAGE 1 ──────────────────────────
+const VARS_P1 = [
+  { code:'ALT', full:'Alanine Aminotransferase', also:'SGPT, alanine transaminase, hepatic enzyme', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Raised — hepatitic pattern',c:'p-hi'}],
+    note:'Raised ALT (with or without AST) initiates the hepatic pathway. "The degree of abnormality is not an indication of the severity of disease."',
+    ctx:'CONTEXT REQUIRED: first vs repeat occurrence (see Context Map)' },
+
+  { code:'AST', full:'Aspartate Aminotransferase', also:'SGOT, serum glutamic-oxaloacetic transaminase', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Raised — hepatitic pattern',c:'p-hi'}],
+    note:'Raised AST alongside ALT triggers the hepatic pathway. Also in the repeat aetiology screen panel.',
+    ctx:null },
+
+  { code:'GGT', full:'Gamma-Glutamyl Transferase', also:'Gamma-GT, γ-GT, GGT', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Raised — see context',c:'p-th'}],
+    note:'Part of the repeat aetiology screen. On Page 2, used as the key discriminator for raised ALP (liver vs bone).',
+    ctx:'CONTEXT REQUIRED: paired with ALP on Page 2 (see Context Map)' },
+
+  { code:'Bilirubin (total)', full:'Total Serum Bilirubin', also:'TBil, serum bilirubin, total bili', type:'pigment', unit:'µmol/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Isolated raised (others normal)',c:'p-th'},{l:'Jaundice → synthetic failure check',c:'p-hi'}],
+    note:'Jaundice is a synthetic failure criterion. Isolated raised bilirubin with normal other LFTs triggers the Gilbert\'s/haemolysis sub-pathway.',
+    ctx:null },
+
+  { code:'Bilirubin (split)', full:'Fractionated / Split Bilirubin', also:'Conjugated bilirubin, unconjugated bilirubin, direct/indirect bilirubin', type:'pigment', unit:'µmol/L + %',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Conjugated <20% total → supports Gilbert\'s',c:'p-n'},{l:'Conjugated ≥20% total → not Gilbert\'s',c:'p-hi'}],
+    note:'Required for Gilbert\'s confirmation. The 20% conjugated fraction threshold and total bilirubin <85 µmol/L are the diagnostic criteria stated in the PDF.',
+    ctx:'CONTEXT REQUIRED: sample must be fasting (see Context Map)' },
+
+  { code:'INR', full:'International Normalised Ratio', also:'Prothrombin time ratio, PT/INR, clotting', type:'coagulation', unit:'ratio',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Prolonged → synthetic failure criterion',c:'p-hi'}],
+    note:'Prolonged INR is one of three synthetic failure criteria (with jaundice and low albumin). Threshold not specified in source.',
+    ctx:null },
+
+  { code:'Albumin', full:'Serum Albumin', also:'Alb, serum protein', type:'protein', unit:'g/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Low → synthetic failure criterion',c:'p-hi'}],
+    note:'Low albumin is a synthetic failure criterion. Threshold not specified in source.',
+    ctx:null },
+
+  { code:'FBC', full:'Full Blood Count', also:'CBC, complete blood count, blood count', type:'haematology', unit:'multiple',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal FBC → supports Gilbert\'s',c:'p-n'},{l:'Abnormal → haemolysis / other',c:'p-th'}],
+    note:'In the liver aetiology screen and repeat panel. Normal FBC / no haemolysis is a diagnostic criterion for Gilbert\'s syndrome.',
+    ctx:null },
+
+  { code:'Ferritin', full:'Serum Ferritin', also:'Iron stores, serum ferritin', type:'metabolic', unit:'µg/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Elevated → add transferrin saturation',c:'p-hi'}],
+    note:'Included in the aetiology screen. If elevated, transferrin saturation must also be tested. "Transferrin saturation (for elevated ferritin only)."',
+    ctx:'CONTEXT REQUIRED: if elevated, pair with transferrin saturation' },
+
+  { code:'Transferrin sat', full:'Transferrin Saturation', also:'TfSat, iron saturation, % saturation', type:'metabolic', unit:'%',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Only ordered/interpretable if ferritin elevated',c:'p-ctx'}],
+    note:'"Transferrin saturation (for elevated ferritin only)" — conditional test.',
+    ctx:'CONTEXT REQUIRED: only valid if ferritin is also elevated (see Context Map)' },
+
+  { code:'Hep B sAg', full:'Hepatitis B Surface Antigen', also:'HBsAg, Hepatitis B antigen, Hep B screen', type:'serology', unit:'Pos/Neg',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Negative — normal',c:'p-n'},{l:'Positive → positive aetiology screen',c:'p-hi'}],
+    note:'Part of the liver aetiology screen on both pages.',
+    ctx:null },
+
+  { code:'Hep C Ab', full:'Hepatitis C Antibody', also:'HCV antibody, anti-HCV, Hep C screen', type:'serology', unit:'Pos/Neg',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Negative — normal',c:'p-n'},{l:'Positive → positive aetiology screen',c:'p-hi'}],
+    note:'Part of the liver aetiology screen on both pages.',
+    ctx:null },
+
+  { code:'Autoantibodies', full:'Autoimmune screen: ANA, AMA, ASMA, LKM', also:'Anti-nuclear antibody, anti-mitochondrial antibody, anti-smooth muscle Ab, LKM1', type:'serology', unit:'Pos/Neg',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Negative',c:'p-n'},{l:'Positive → positive aetiology screen',c:'p-th'}],
+    note:'Four autoantibodies listed as a single screen panel item in both aetiology screens.',
+    ctx:null },
+
+  { code:'Immunoglobulins', full:'Immunoglobulins: IgA, IgG, IgM', also:'Igs, serum immunoglobulins, globulins', type:'protein', unit:'g/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Abnormal → positive aetiology screen',c:'p-th'}],
+    note:'IgA, IgG, IgM listed as a single screen panel item. Unit not specified in source.',
+    ctx:null },
+
+  { code:'HbA1C', full:'Glycated Haemoglobin', also:'HbA1c, glycosylated Hb, diabetic marker', type:'metabolic', unit:'mmol/mol',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Only if no recent result',c:'p-ctx'}],
+    note:'"HbA1C (if no recent results)" — conditional test in both aetiology screens.',
+    ctx:null },
+
+  { code:'Lipids', full:'Fasting Lipid Profile', also:'Cholesterol, lipid panel, dyslipidaemia', type:'metabolic', unit:'mmol/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Only if no recent result',c:'p-ctx'}],
+    note:'"Lipids (if no recent results)" — conditional test in Page 1 aetiology screen only.',
+    ctx:null },
+
+  { code:'USS', full:'Ultrasound Scan (liver/abdomen)', also:'Ultrasound, abdominal USS, liver USS', type:'imaging', unit:'categorical',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Fatty liver changes — NAFLD pattern',c:'p-th'},{l:'Abnormal (not NAFLD)',c:'p-hi'}],
+    note:'USS is part of both aetiology screens. Outcome (normal / fatty / abnormal) directly determines the management branch.',
+    ctx:null },
+
+  { code:'BMI', full:'Body Mass Index', also:'Body mass, weight category, obesity', type:'anthropometric', unit:'kg/m²',
+    normalHigh:25, low:null,
+    thresholds:[{l:'BMI ≤25',c:'p-n'},{l:'BMI >25 → NAFLD risk factor',c:'p-th'}],
+    note:'BMI >25 is one of four NAFLD risk factors listed on Page 1.',
+    ctx:null },
+
+  { code:'Alcohol (u/wk)', full:'Alcohol consumption (units per week)', also:'Units per week, alcohol history, AUDIT', type:'history', unit:'units/wk',
+    normalHigh:14, low:null,
+    thresholds:[{l:'≤14 units/week',c:'p-n'},{l:'>14 units/week → alcohol cause',c:'p-hi'}],
+    note:'"Alcohol history (>14 units/week)" is the first item in the initial history checklist. Threshold is explicitly stated.',
+    ctx:null },
+
+  { code:'Reticulocytes', full:'Reticulocyte Count', also:'Retics, reticulocyte count', type:'haematology', unit:'×10⁹/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Raised → consider haemolysis',c:'p-th'}],
+    note:'"Consider reticulocyte count, LDH, haptoglobin" — listed as optional tests to consider when haemolysis is suspected.',
+    ctx:null },
+
+  { code:'LDH', full:'Lactate Dehydrogenase', also:'Lactate dehydrogenase, LD', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Elevated → consider haemolysis',c:'p-th'}],
+    note:'Listed alongside reticulocytes and haptoglobin as haemolysis markers. Optional, consider only if haemolysis suspected.',
+    ctx:null },
+
+  { code:'Haptoglobin', full:'Serum Haptoglobin', also:'Hp, serum haptoglobin', type:'protein', unit:'g/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Low → consider haemolysis',c:'p-th'}],
+    note:'Listed as haemolysis marker. Optional. Unit not specified in source.',
+    ctx:null },
+];
+
+// ── VARIABLES PAGE 2 ──────────────────────────
+const VARS_P2 = [
+  { code:'ALP', full:'Alkaline Phosphatase', also:'Alk phos, alkaline phosphatase', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal',c:'p-n'},{l:'Raised ALP only (isolated)',c:'p-th'},{l:'Raised ALP + GGT → liver',c:'p-hi'}],
+    note:'On Page 2, isolated ALP suggests drug or bone cause. ALP + GGT raised suggests liver aetiology. Cannot be interpreted without GGT.',
+    ctx:'CONTEXT REQUIRED: must check GGT before interpreting ALP (see Context Map)' },
+
+  { code:'GGT (P2)', full:'Gamma-Glutamyl Transferase (Page 2 use)', also:'GGT, Gamma-GT, γ-GT', type:'enzyme', unit:'IU/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Normal + raised ALP → bone/drug cause',c:'p-th'},{l:'Raised + raised ALP → liver aetiology',c:'p-hi'},{l:'Isolated raised GGT → alcohol/metabolic',c:'p-th'}],
+    note:'On Page 2 GGT performs two roles: (1) discriminator for raised ALP (liver vs bone); (2) isolated raised GGT triggers alcohol/metabolic assessment.',
+    ctx:null },
+
+  { code:'Vitamin D', full:'Serum Vitamin D (25-OH)', also:'25-hydroxyvitamin D, 25(OH)D, cholecalciferol', type:'metabolic', unit:'nmol/L',
+    normalHigh:null, low:null,
+    thresholds:[{l:'Deficiency → possible cause of isolated ALP rise',c:'p-th'}],
+    note:'"Consider drug or bone causes including Vit D deficiency" — listed as a potential cause when ALP raised but GGT normal.',
+    ctx:null },
+];
+
+// ── RULES PAGE 1 ──────────────────────────────
+const RULES_P1 = [
+  { step:'[A1] Step 1', cat:'gp', badge:'B', src:'explicit', title:'Initial history and drug review — all patients', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'any patient presents with abnormal LFT results'},
+      {kw:'THEN', t:'→ take full history: alcohol history (>14 units/week), metabolic syndrome and BMI, drug history, risk factors for viral hepatitis'},
+      {kw:'THEN', t:'→ consider stopping any causative drugs'},
+      {kw:'THEN', t:'→ contact local liver team if advice required'},
+    ],
+    meaning:'This is the entry point for the pathway. Before any investigations, a structured history is taken to identify likely causes. Any causative medications should be considered for withdrawal.',
+    management:[
+      {p:4,label:'GP action',text:'Take structured history covering alcohol, BMI/metabolic, drug history and viral hepatitis risk factors.'},
+      {p:4,label:'Drug review',text:'Consider stopping any causative drugs. Contact local liver team if advice required.'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — top entry',quote:'Alcohol history (>14 units/week) / Metabolic syndrome and BMI / Drug history / Risk factors for viral hepatitis / Consider stopping any causative drugs / Contact local liver team if advice required.'}],
+    adminLocked:'Take structured history: alcohol (>14u/wk), metabolic syndrome/BMI, drug history, viral hepatitis risk factors. Consider stopping causative drugs. Contact liver team if advice needed.',
+    note:null },
+
+  { step:'[A2] Step 2', cat:'urgent', badge:'R', src:'explicit', title:'⚡ URGENT — Synthetic failure / Suspected malignancy / Marked cholestasis', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'jaundice present OR low albumin OR prolonged INR → SYNTHETIC FAILURE'},
+      {kw:'OR', t:'weight loss → SUSPECTED MALIGNANCY'},
+      {kw:'OR', t:'marked cholestasis'},
+      {kw:'THEN', t:'→ consider: 2WW referral to hepatology'},
+      {kw:'OR', t:'→ contact jaundice hotline'},
+      {kw:'OR', t:'→ if emergency admission: contact accepting team or AMU/AAU'},
+    ],
+    meaning:'These three presentations are urgent and should not follow the routine outpatient pathway. Any one of the three criteria triggers immediate action. The jaundice hotline and accepting team numbers are not stated in the source document — see Gaps tab.',
+    management:[
+      {p:1,label:'URGENT',text:'Consider: 2WW referral to hepatology / contact jaundice hotline / emergency admission (accepting team or AMU/AAU). [Contact numbers not in source — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — urgent branch',quote:'Synthetic failure: Jaundice, low albumin, prolonged INR. Suspected Malignancy: Weight loss. Marked Cholestasis: Consider: 2WW referral to hepatology / Contact jaundice hotline / If considering emergency admission contact accepting team or AMU/AAU.'}],
+    adminLocked:'Synthetic failure / malignancy / marked cholestasis: 2WW hepatology referral, contact jaundice hotline, or emergency admission via accepting team/AMU/AAU. [ADD LOCAL NUMBERS — see Gaps tab]',
+    note:'⚠ Contact numbers for jaundice hotline and accepting team are not stated in the source. Add local numbers in Working mode (Gaps tab).' },
+
+  { step:'[A3] Step 3', cat:'gp', badge:'B', src:'explicit', title:'Isolated raised bilirubin — Gilbert\'s or haemolysis workup', repeat:true, noaction:false, ctx:'fasting',
+    logic:[
+      {kw:'IF', t:'bilirubin raised in isolation'},
+      {kw:'AND', t:'all other liver blood results are normal'},
+      {kw:'THEN', t:'→ most commonly: Gilbert\'s syndrome (unconjugated hyperbilirubinaemia)'},
+      {kw:'OR', t:'→ less commonly: haemolysis (consider reticulocyte count, LDH, haptoglobin)'},
+      {kw:'THEN', t:'→ repeat LFTs with split bilirubin and FBC'},
+      {kw:'CTX', t:'CONTEXT REQUIRED: sample must be FASTING — non-fasting result cannot be used to confirm Gilbert\'s'},
+    ],
+    meaning:'Isolated bilirubin with all other LFTs normal is a specific pattern pointing to Gilbert\'s syndrome or haemolysis. The fasting split bilirubin test is the key diagnostic step.',
+    management:[
+      {p:4,label:'GP — arrange',text:'Repeat LFTs with split bilirubin and FBC — fasting sample. Consider reticulocyte count and LDH if haemolysis suspected.'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — isolated bilirubin branch',quote:'Isolated raised bilirubin with otherwise normal liver blood results. Most commonly due to Gilbert\'s syndrome (unconjuncted hyperbilirubinaemia). Less commonly due to haemolysis (consider reticulocyte count, LDH, haptoglobin). Repeat LFTs with split bilirubin and FBC.'}],
+    adminLocked:'Isolated raised bilirubin: repeat LFTs with split bilirubin + FBC (fasting sample). Consider reticulocytes, LDH, haptoglobin if haemolysis suspected.',
+    note:null },
+
+  { step:'[A4] Step 4', cat:'noaction', badge:'G', src:'explicit', title:'✓ Gilbert\'s syndrome — confirmation and no further investigation', repeat:false, noaction:true, ctx:'fasting',
+    logic:[
+      {kw:'IF', t:'total bilirubin <85 µmol/L'},
+      {kw:'AND', t:'conjugated fraction <20% of total bilirubin'},
+      {kw:'AND', t:'FBC normal / no haemolysis'},
+      {kw:'AND', t:'all other LFTs normal'},
+      {kw:'CTX', t:'CONTEXT REQUIRED: all criteria require a fasting split bilirubin sample'},
+      {kw:'THEN', t:'→ diagnose Gilbert\'s syndrome'},
+      {kw:'THEN', t:'→ confirm diagnosis to patient'},
+      {kw:'THEN', t:'→ provide information [specific leaflet not stated in source — see Gaps tab]'},
+      {kw:'THEN', t:'→ ✓ NO FURTHER INVESTIGATION required'},
+    ],
+    meaning:'Gilbert\'s syndrome is a benign inherited condition. If all four criteria are met on a fasting sample, no further investigation is needed and the patient should be reassured and informed.',
+    management:[
+      {p:0,label:'✓ No action',text:'Diagnose Gilbert\'s syndrome. Confirm diagnosis to patient. Provide information. No further investigation required. [Patient information leaflet not specified — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — Gilbert\'s confirmation box',quote:'Gilbert\'s Syndrome: Diagnose Gilbert\'s if: Total bilirubin <85 / Conjugated fraction <20% total / Normal FBC / no haemolysis / Other LFTs normal. Confirm diagnosis to patient. Provide information.'}],
+    adminLocked:'All four Gilbert\'s criteria met (fasting sample): confirm diagnosis to patient, provide patient information, no further investigation required.',
+    note:'The specific patient information leaflet to provide is not stated in the source document. See Gaps tab.' },
+
+  { step:'[A5] Step 5', cat:'gp', badge:'B', src:'explicit', title:'Hepatic enzymes raised (ALT/AST) — initiate full liver aetiology screen', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'ALT raised'},
+      {kw:'OR', t:'AST raised'},
+      {kw:'AND', t:'synthetic failure criteria NOT met (Step 2)'},
+      {kw:'THEN', t:'→ request liver aetiology screen: AST, GGT, FBC, INR'},
+      {kw:'THEN', t:'→ arrange USS'},
+      {kw:'THEN', t:'→ Hep B surface antigen + Hep C antibody'},
+      {kw:'THEN', t:'→ autoantibodies: ANA, AMA, ASMA, LKM'},
+      {kw:'THEN', t:'→ immunoglobulins: IgA, IgG, IgM'},
+      {kw:'THEN', t:'→ ferritin (+ transferrin saturation if ferritin elevated)'},
+      {kw:'THEN', t:'→ HbA1C (if no recent results) + lipids (if no recent results)'},
+    ],
+    meaning:'Raised hepatic enzymes trigger a comprehensive liver aetiology screen covering viral hepatitis, autoimmune liver disease, haemochromatosis, and metabolic syndrome. USS provides structural context.',
+    management:[
+      {p:4,label:'GP — request',text:'Full aetiology screen as listed + USS. Priority not specified in source.'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — liver aetiology screen box',quote:'Liver aetiology screen: AST, GGT, FBC, INR / Ultrasound / Hep B surface antigen / Hep C antibody / Autoantibodies (ANA, AMA, ASMA, LKM) / Immunoglobulins (IgA, IgG, IgM) / Ferritin / Transferrin saturation (for elevated ferritin only) / HbA1C (if no recent results) / Lipids (if no recent results)'}],
+    adminLocked:'ALT/AST raised: request full liver aetiology screen (AST, GGT, FBC, INR, USS, Hep B sAg, Hep C Ab, ANA/AMA/ASMA/LKM, IgA/G/M, ferritin ± transferrin sat, HbA1C, lipids — last two only if no recent results).',
+    note:null },
+
+  { step:'[A6] Step 6', cat:'gp', badge:'B', src:'explicit', title:'USS normal/fatty + NAFLD risk factors → follow NAFLD pathway', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'USS is normal OR shows fatty liver changes'},
+      {kw:'AND', t:'NAFLD risk factors present: T2DM, OR BMI >25, OR dyslipidaemia, OR hypertension'},
+      {kw:'THEN', t:'→ follow NAFLD pathway [EXTERNAL REFERENCE — content not in this PDF]'},
+    ],
+    meaning:'When USS shows no abnormality beyond fatty changes and NAFLD risk factors are present, the patient is directed to the NAFLD pathway. Note: patients with NAFLD may still be prescribed statins.',
+    management:[
+      {p:4,label:'GP — follow',text:'NAFLD pathway [EXTERNAL REFERENCE — URL not in source, see Gaps tab]. Statins may still be prescribed in NAFLD.'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — NAFLD branch',quote:'USS is either normal or has fatty liver changes. With risk factors: T2DM / BMI>25 / Dyslipidaemia / Hypertension. Follow NAFLD pathway. Note: Patients with NAFLD may still be prescribed statins.'}],
+    adminLocked:'USS normal/fatty + NAFLD risk factors (T2DM, BMI>25, dyslipidaemia, hypertension): follow NAFLD pathway. Statins may be prescribed. [ADD LOCAL NAFLD PATHWAY LINK — see Gaps tab]',
+    note:null },
+
+  { step:'[A7] Step 7', cat:'refer', badge:'Pi', src:'explicit', title:'Abnormal USS (not NAFLD) ±  positive aetiology screen → refer hepatology', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'USS is abnormal (not NAFLD)'},
+      {kw:'OR', t:'liver aetiology screen is positive'},
+      {kw:'THEN', t:'→ refer to hepatology'},
+    ],
+    meaning:'An abnormal USS that is not simply fatty changes, or any positive result on the aetiology screen, triggers hepatology referral. Urgency of referral not stated in source.',
+    management:[
+      {p:3,label:'GP — refer',text:'Refer to hepatology. Urgency not specified in source. [ADD LOCAL REFERRAL ROUTE — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — abnormal USS branch',quote:'Abnormal USS (not NAFLD) +/- positive liver aetiology screen'},
+             {type:'inferred',step:'Flow diagram arrow from abnormal USS branch',quote:'Arrow leads to referral to hepatology — destination inferred from flow diagram.'}],
+    adminLocked:'Abnormal USS (not NAFLD) and/or positive liver aetiology screen: refer to hepatology.',
+    note:null },
+
+  { step:'[A8] Step 8', cat:'refer', badge:'Pi', src:'explicit', title:'Normal USS + normal aetiology screen + no NAFLD risks + ALT/AST remain abnormal → refer hepatology', repeat:false, noaction:false, ctx:'occurrence',
+    logic:[
+      {kw:'IF', t:'USS is normal'},
+      {kw:'AND', t:'liver aetiology screen is negative'},
+      {kw:'AND', t:'no NAFLD risk factors'},
+      {kw:'AND', t:'ALT and/or AST REMAIN abnormal (repeat result)'},
+      {kw:'CTX', t:'CONTEXT REQUIRED: "remain" implies a repeat result — see Context Map for occurrence dependency'},
+      {kw:'THEN', t:'→ refer to hepatology'},
+    ],
+    meaning:'When the full investigation is unremarkable but enzymes persist on a repeat, unexplained persistent hepatic enzyme elevation warrants hepatology referral. Urgency not stated in source.',
+    management:[
+      {p:3,label:'GP — refer',text:'Refer to hepatology — unexplained persistent ALT/AST elevation. [ADD LOCAL REFERRAL ROUTE — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — persistent abnormal branch',quote:'Normal USS / Normal liver aetiology screen / No NALFD risk factors / ALT and/or AST remain abnormal → Refer to hepatology'}],
+    adminLocked:'Normal USS, normal aetiology screen, no NAFLD risk factors, but ALT/AST remain abnormal on repeat: refer to hepatology.',
+    note:null },
+
+  { step:'[A9] Step 9', cat:'gp', badge:'O', src:'explicit', title:'Suspected alcohol cause → follow alcohol guidelines', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'alcohol >14 units/week OR alcohol suspected as the cause'},
+      {kw:'THEN', t:'→ follow alcohol guidelines [EXTERNAL REFERENCE — content not in this PDF]'},
+    ],
+    meaning:'Alcohol is a common cause of abnormal LFTs. The pathway directs to external alcohol guidelines — the specific guidelines and URL are not stated in the source document.',
+    management:[
+      {p:4,label:'GP — follow',text:'Alcohol guidelines [EXTERNAL REFERENCE — see Gaps tab for local link]'},
+    ],
+    sources:[{type:'explicit',step:'Page 1 — alcohol branch',quote:'Suspected alcohol cause: Follow alcohol guidelines'}],
+    adminLocked:'Suspected alcohol cause (>14 units/week): follow alcohol guidelines. [ADD LOCAL ALCOHOL PATHWAY LINK — see Gaps tab]',
+    note:null },
+];
+
+// ── RULES PAGE 2 ──────────────────────────────
+const RULES_P2 = [
+  { step:'[B1] P2 Entry', cat:'gp', badge:'B', src:'explicit', title:'Page 2 entry — alcohol, drug, or metabolic syndrome consideration', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'patient presents with cholestatic enzyme pattern (ALP and/or GGT raised)'},
+      {kw:'THEN', t:'→ consider alcohol, drug history, or metabolic syndrome as cause'},
+      {kw:'IF', t:'alcohol → follow alcohol guidelines [EXTERNAL REFERENCE]'},
+      {kw:'IF', t:'metabolic syndrome → follow NAFLD guidelines [EXTERNAL REFERENCE]'},
+    ],
+    meaning:'Before investigating the cholestatic pattern, common causes (alcohol, drugs, metabolic syndrome) should be considered and directed to their respective guidelines.',
+    management:[
+      {p:4,label:'GP action',text:'Consider alcohol, drugs, metabolic syndrome. Follow relevant external guidelines.'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — entry annotation',quote:'Consider alcohol, drug history or metabolic syndrome. Alcohol: Follow alcohol guidelines. Metabolic Syndrome: Follow NAFLD guidelines.'}],
+    adminLocked:'Cholestatic pattern: consider alcohol, drug history, metabolic syndrome. Alcohol → follow alcohol guidelines. Metabolic syndrome → follow NAFLD guidelines.',
+    note:null },
+
+  { step:'[B2] P2 Screen', cat:'gp', badge:'B', src:'explicit', title:'ALP + GGT raised — initiate Page 2 liver aetiology screen', repeat:false, noaction:false, ctx:'alp-ggt',
+    logic:[
+      {kw:'IF', t:'ALP raised'},
+      {kw:'AND', t:'GGT raised'},
+      {kw:'CTX', t:'CONTEXT REQUIRED: GGT must be known before ALP can be interpreted (see Context Map)'},
+      {kw:'THEN', t:'→ request liver aetiology screen: AST, GGT, FBC'},
+      {kw:'THEN', t:'→ arrange USS'},
+      {kw:'THEN', t:'→ Hep B surface antigen + Hep C antibody'},
+      {kw:'THEN', t:'→ autoantibodies: ANA, AMA, ASMA, LKM'},
+      {kw:'THEN', t:'→ immunoglobulins: IgA, IgG, IgM'},
+      {kw:'THEN', t:'→ ferritin (+ transferrin saturation if elevated)'},
+      {kw:'THEN', t:'→ HbA1C'},
+    ],
+    meaning:'When both ALP and GGT are raised, a liver aetiology is confirmed and the full screen is requested. Note the Page 2 screen does not include lipids (unlike Page 1).',
+    management:[
+      {p:4,label:'GP — request',text:'Page 2 aetiology screen as listed + USS. Priority not specified in source.'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — liver aetiology screen box',quote:'Liver aetiology screen: AST, GGT, FBC / Ultrasound / Hep B surface antigen / Hep C antibody / Autoantibodies (ANA, AMA, ASMA, LKM) / Immunoglobulins (IgA, IgG, IgM) / Ferritin / Transferrin saturation (for ferritin only) / HbA1C'}],
+    adminLocked:'ALP + GGT raised: request Page 2 aetiology screen (AST, GGT, FBC, USS, Hep B sAg, Hep C Ab, ANA/AMA/ASMA/LKM, IgA/G/M, ferritin ± transferrin sat, HbA1C).',
+    note:'Note: Page 2 screen does not include lipids — this differs from the Page 1 screen.' },
+
+  { step:'[B3] P2 Refer', cat:'refer', badge:'Pi', src:'explicit', title:'Abnormal USS / positive screen → refer hepatology', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'USS abnormal (not NAFLD)'},
+      {kw:'OR', t:'liver aetiology screen positive'},
+      {kw:'THEN', t:'→ refer to hepatology'},
+    ],
+    meaning:'Any positive finding from the Page 2 screen triggers hepatology referral.',
+    management:[
+      {p:3,label:'GP — refer',text:'Refer to hepatology. [ADD LOCAL REFERRAL ROUTE — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — abnormal findings branch',quote:'Abnormal US appearances (not NAFLD) +/- positive liver aetiology screen → Refer to hepatology'}],
+    adminLocked:'Abnormal USS (not NAFLD) and/or positive liver aetiology screen (Page 2): refer to hepatology.',
+    note:null },
+
+  { step:'[B4] P2 Persist', cat:'refer', badge:'Pi', src:'explicit', title:'Normal USS + negative screen + ALP/GGT remain abnormal → refer hepatology', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'USS is normal'},
+      {kw:'AND', t:'aetiology screen is negative'},
+      {kw:'AND', t:'ALP and GGT remain abnormal'},
+      {kw:'THEN', t:'→ refer to hepatology'},
+    ],
+    meaning:'When the full cholestatic investigation is unremarkable but ALP and GGT persist, unexplained persistent cholestatic enzymes warrant hepatology referral.',
+    management:[
+      {p:3,label:'GP — refer',text:'Refer to hepatology — persistent ALP/GGT, unexplained. [ADD LOCAL REFERRAL ROUTE — see Gaps tab]'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — persistent cholestatic branch',quote:'Normal USS and negative liver aetiology screen / ALP & GGT remain abnormal → Refer to hepatology'}],
+    adminLocked:'Normal USS, negative aetiology screen, but ALP/GGT persist: refer to hepatology.',
+    note:null },
+
+  { step:'[B5] P2 ALP+GGT', cat:'gp', badge:'B', src:'explicit', title:'⚠ CONTEXT: ALP raised — check GGT to determine liver vs bone aetiology', repeat:false, noaction:false, ctx:'alp-ggt',
+    logic:[
+      {kw:'IF', t:'ALP is raised'},
+      {kw:'CTX', t:'CONTEXT REQUIRED: check GGT result before interpreting ALP'},
+      {kw:'IF', t:'GGT also raised → liver aetiology → proceed to Page 2 screen (Step B2)'},
+      {kw:'IF', t:'GGT NOT raised (isolated ALP) → bone/drug aetiology → consider drug or bone causes including Vitamin D deficiency'},
+    ],
+    meaning:'GGT is the key discriminator between liver and bone ALP. This rule cannot be resolved without knowing the GGT result. A raised ALP with normal GGT should prompt bone — not liver — investigation.',
+    management:[
+      {p:4,label:'GP — check GGT',text:'GGT raised → proceed to Page 2 liver aetiology screen (Step B2). GGT normal → isolated ALP: consider drug or bone causes including Vitamin D deficiency.'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — isolated ALP section',quote:'Isolated cholestatic liver enzymes and not bone related: ALP and GGT. Isolated ALP: Consider drug or bone causes including Vit D deficiency.'}],
+    adminLocked:'Raised ALP: check GGT first. If GGT raised → liver aetiology screen (Step B2). If GGT normal → isolated ALP → consider bone/drug causes including Vitamin D deficiency.',
+    note:null },
+
+  { step:'[B6] P2 IsoGGT', cat:'gp', badge:'O', src:'explicit', title:'Isolated GGT elevation only — consider alcohol, drugs, metabolic syndrome', repeat:false, noaction:false, ctx:null,
+    logic:[
+      {kw:'IF', t:'GGT raised in isolation'},
+      {kw:'AND NOT', t:'ALP raised'},
+      {kw:'THEN', t:'→ consider alcohol, drug history, or metabolic syndrome'},
+      {kw:'IF', t:'alcohol → follow alcohol guidelines'},
+      {kw:'IF', t:'metabolic syndrome → follow NAFLD guidelines'},
+    ],
+    meaning:'An isolated raised GGT (without ALP) is not a liver-disease-specific pattern. Common causes are alcohol, hepatotoxic drugs, and metabolic syndrome.',
+    management:[
+      {p:4,label:'GP action',text:'Consider alcohol, drugs, metabolic syndrome. Follow relevant external guidelines.'},
+    ],
+    sources:[{type:'explicit',step:'Page 2 — isolated GGT section',quote:'Isolated elevation GGT. Consider alcohol, drug history or metabolic syndrome. Alcohol: Follow alcohol guidelines. Metabolic Syndrome: Follow NAFLD guidelines.'}],
+    adminLocked:'Isolated raised GGT: consider alcohol, drug history, metabolic syndrome. Follow relevant guidelines.',
+    note:null },
+];
+
+// ── GAPS DATA ─────────────────────────────────
+// Each gap: id, type, title, sourceText (why the gap was flagged), status, resolution, resolvedBy, resolvedAt
+const GAPS_MASTER = [
+  { id:'g1', type:'url', title:'Source URL not provided', sourceText:'The source URL is required to be provided by the person uploading the PDF (Master Prompt rule). No URL was included with the upload.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g2', type:'contact', title:'Jaundice hotline — telephone number not stated in source', sourceText:'"Contact jaundice hotline" is referenced in the urgent action box (Step 2) but no telephone number is given in the PDF.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g3', type:'contact', title:'Local liver team — telephone / contact not stated in source', sourceText:'"Contact local liver team if advice required" (Step 1) but no contact details are given in the PDF.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g4', type:'contact', title:'Accepting team / AMU / AAU — contact route not stated', sourceText:'"Contact accepting team or AMU/AAU" (Step 2, urgent branch) but no routing instruction or number given.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g5', type:'url', title:'Alcohol guidelines — URL / reference not stated in source', sourceText:'"Follow alcohol guidelines" appears on both pages but the specific guideline and URL are not referenced in the PDF.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g6', type:'url', title:'NAFLD pathway — URL / reference not stated in source', sourceText:'"Follow NAFLD pathway" is referenced but the specific pathway and URL are not given.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g7', type:'metadata', title:'Patient information leaflet for Gilbert\'s syndrome — not specified', sourceText:'"Confirm diagnosis to patient. Provide information." — the specific leaflet or URL to provide to patients is not stated in the PDF.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g8', type:'population', title:'Population scope not stated — Adults / Paediatric / Both?', sourceText:'The Master Prompt requires Population to be stated. It is not stated anywhere in this PDF. This is flagged as requiring clinical team review before deployment.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g9', type:'metadata', title:'Review date not stated in source', sourceText:'No review or expiry date is given for either page of the pathway.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g10', type:'metadata', title:'Authors not stated in source', sourceText:'No author names are listed on either page of the pathway document.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g11', type:'metadata', title:'Approving body not stated in source', sourceText:'No approving committee or body is named in the document.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+  { id:'g12', type:'exclusion', title:'Exclusion criteria — not stated in source', sourceText:'The pathway does not define who it does not apply to. The clinical team should define exclusions (e.g. paediatric, pregnancy, known acute liver failure) before deployment.', status:'open', resolution:'', resolvedBy:'', resolvedAt:'' },
+];
+
+// ── STATE ─────────────────────────────────────
+let mode = 'master';
+let varPage = 1;
+let rulePage = 1;
+let ruleFilter = 'all';
+let gapFilter = 'all';
+let wv = {};
+let adminOutputs = {};
+let gapsState = JSON.parse(JSON.stringify(GAPS_MASTER)); // working copy
+let changes = [];
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+function init() {
+  renderVars();
+  renderRules();
+  renderGaps();
+  updateGapCount();
+}
+
+// ═══════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════
+function showTab(id, navEl) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
+  if (navEl) navEl.classList.add('on');
+  if (id==='copy') renderCopySheet();
+  if (id==='changes') renderChanges();
+  if (id==='gaps') renderGaps();
+}
+
+// ═══════════════════════════════════════════════
+// MODE
+// ═══════════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-m').classList.toggle('on', m==='master');
+  document.getElementById('btn-w').classList.toggle('on', m==='working');
+  document.getElementById('edit-notice').classList.toggle('show', m==='working');
+  renderVars();
+  renderRules();
+  renderGaps();
+}
+
+// ═══════════════════════════════════════════════
+// VARIABLES
+// ═══════════════════════════════════════════════
+function showVarPage(p, tab) {
+  varPage = p;
+  document.querySelectorAll('#tab-vars .pg-tab').forEach(t => t.classList.remove('on'));
+  tab.classList.add('on');
+  document.getElementById('vars-title').textContent = p===1
+    ? 'Variables — Page 1: Hepatic / Hepatitic algorithm'
+    : 'Variables — Page 2: Cholestatic / ALP & GGT';
+  renderVars();
+}
+
+function renderVars() {
+  const vars = varPage===1 ? VARS_P1 : VARS_P2;
+  const grid = document.getElementById('var-grid');
+  grid.innerHTML = '';
+  vars.forEach((v) => {
+    const key = (varPage===2?'p2_':'')+v.code;
+    const wvv = wv[key]||{};
+    const curHigh = wvv.normalHigh!==undefined ? wvv.normalHigh : v.normalHigh;
+    const curLow  = wvv.low!==undefined ? wvv.low : v.low;
+    const changed = wvv.normalHigh!==undefined||wvv.low!==undefined;
+    const pills = v.thresholds.map(t=>`<span class="pill ${t.c}">${t.l}</span>`).join('');
+    const ctxBadge = v.ctx ? `<div style="margin-top:5px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--pu-bg);color:var(--pu);border:0.5px solid var(--pu-bd);display:inline-block">⚠ ${v.ctx}</div>` : '';
+    const editFields = `
+      ${v.normalHigh!==null&&v.normalHigh!==undefined?`<div class="ef"><label>Normal high (${v.unit})</label><input type="text" value="${curHigh}" onchange="updateVar('${key}','normalHigh',this.value,'${v.code}',${v.normalHigh})" /></div>`:''}
+      ${v.low!==null&&v.low!==undefined?`<div class="ef"><label>Normal low (${v.unit})</label><input type="text" value="${curLow}" onchange="updateVar('${key}','low',this.value,'${v.code}',${v.low})" /></div>`:''}
+      ${changed?`<span class="mod-badge">Modified</span>`:''}
+      ${changed?`<button onclick="resetVar('${key}','${v.code}')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--text2);">Reset to master</button>`:''}
+    `;
+    const c = document.createElement('div');
+    c.className='vc';
+    c.innerHTML=`
+      <div class="vc-head">
+        <div><div class="vc-code">${v.code}</div><div class="vc-full">${v.full}</div>${v.also?`<div class="vc-also">Also: ${v.also}</div>`:''}</div>
+        <div style="text-align:right;font-size:11px;color:var(--text3);">${v.unit}<br><span style="font-size:10px;">${v.type}</span></div>
+      </div>
+      <div class="vc-pills">${pills}</div>
+      ${v.note?`<div class="vc-note">${v.note}</div>`:''}
+      ${ctxBadge?`<div style="padding:6px 14px;">${ctxBadge}</div>`:''}
+      <div class="vc-edit ${mode==='working'?'show':''}">${editFields}</div>
+    `;
+    grid.appendChild(c);
+  });
+}
+
+function updateVar(key, field, val, code, masterVal) {
+  if (!wv[key]) wv[key]={};
+  wv[key][field] = val;
+  logChange(`Variable ${code} — ${field}: ${masterVal} → ${val}`);
+  renderVars();
+}
+
+function resetVar(key, code) {
+  delete wv[key];
+  logChange(`Variable ${code}: reset to master value`);
+  renderVars();
+}
+
+// ═══════════════════════════════════════════════
+// RULES
+// ═══════════════════════════════════════════════
+function showRulePage(p, tab) {
+  rulePage = p;
+  document.querySelectorAll('#tab-rules .pg-tab').forEach(t=>t.classList.remove('on'));
+  tab.classList.add('on');
+  renderRules();
+}
+
+function setFilter(cat) {
+  ruleFilter = cat;
+  showTab('rules', document.getElementById('n-rules'));
+  renderRules();
+}
+
+function setFilterBtn(btn, cat) {
+  ruleFilter = cat;
+  document.querySelectorAll('.rfbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderRules();
+}
+
+function renderRules() {
+  const rules = rulePage===1 ? RULES_P1 : RULES_P2;
+  const srch = (document.getElementById('rule-srch')||{}).value||'';
+  const container = document.getElementById('rules-container');
+  container.innerHTML='';
+  let shown = 0;
+  rules.forEach((r,i) => {
+    if (ruleFilter!=='all' && r.cat!==ruleFilter) return;
+    if (srch && !r.title.toLowerCase().includes(srch.toLowerCase()) &&
+        !r.step.toLowerCase().includes(srch.toLowerCase()) &&
+        !r.meaning.toLowerCase().includes(srch.toLowerCase())) return;
+    shown++;
+    const logicHtml = r.logic.map(l=>`<div class="ll ${l.kw.split(' ')[0]}"><span class="kw kw-${l.kw.split(' ')[0]}">${l.kw}</span>${l.t}</div>`).join('');
+    const mgmtHtml = r.management.map(m=>`<li class="mi p${m.p}"><span class="mi-pri">${['✓ No action','URGENT','URGENT','GP Now','GP Action','Monitor'][m.p]}</span><span><strong>${m.label}:</strong> ${m.text}</span></li>`).join('');
+    const srcHtml = r.sources.map(s=>`<div class="src-item ${s.type}"><div class="src-label">${s.type==='explicit'?'Explicitly stated in PDF':'Inferred from flow diagram'}</div><div style="font-size:10px;color:var(--text3);margin-bottom:3px;">Reference: ${s.step}</div><div class="src-quote">"${s.quote}"</div></div>`).join('');
+    const ctxWarn = r.ctx ? `<div class="ctx-warn"><strong>⚠ Context required before this rule can be applied</strong>This rule requires additional context — see Context Map tab for details. Without this context, the rule cannot be safely followed.</div>` : '';
+    const repeatFlag = r.repeat ? `<div class="repeat-flag">↻ Repeat test required before this rule applies</div>` : '';
+    const noActionBadge = r.noaction ? `<span class="rb-badge badge-G" style="font-size:10px">✓ No further investigation</span>` : '';
+    const srcBadge = r.src==='explicit' ? `<span class="badge-EXP rb-badge">EXPLICIT</span>` : `<span class="badge-INF rb-badge">INFERRED</span>`;
+    // Admin output panel
+    const rid = `${rulePage}_${i}`;
+    const savedOutput = adminOutputs[rid];
+    const previewText = savedOutput || r.adminLocked;
+    const adminPanel = `
+      <div class="rb-sec" style="background:var(--surface2);">
+        <div class="rb-sec-lbl">Admin / user output</div>
+        <div class="ao-panel">
+          <div class="ao-panel-head">📋 Admin &amp; user output panel</div>
+          <div class="ao-cols">
+            <div class="ao-col">
+              <div class="ao-col-lbl">Guideline says 🔒 (locked)</div>
+              <div class="ao-locked">${r.adminLocked}</div>
+            </div>
+            <div class="ao-col">
+              <div class="ao-col-lbl">Local instruction (editable in Working mode)</div>
+              <textarea class="ao-textarea ${mode==='working'?'show':''}" id="ao-ta-${rid}" placeholder="Add local instruction, e.g. contact number, referral route, local pathway link...">${savedOutput||''}</textarea>
+              <div class="ao-placeholder" ${mode==='working'?'style="display:none"':''} >${savedOutput||'<span style="color:var(--text3);font-style:italic">No local instruction set — guideline text will be shown to users</span>'}</div>
+              <button class="ao-save ${mode==='working'?'show':''}" onclick="saveAdminOutput('${rid}','${r.step}')">Save</button>
+            </div>
+          </div>
+          <div class="ao-preview">
+            <div class="ao-preview-lbl">User will see:</div>
+            <div class="ao-preview-text" id="ao-preview-${rid}">${previewText}</div>
+            <a href="#" class="ao-link">📋 View original guideline ↗ [source URL not yet provided]</a>
+          </div>
+        </div>
+      </div>`;
+    const copyTxt = buildCopyText(r);
+    const rid2 = `r${rulePage}_${i}`;
+    const block = document.createElement('div');
+    block.className='rb';
+    block.innerHTML=`
+      <div class="rb-head" onclick="toggleRb('${rid2}')">
+        <span class="rb-step">${r.step}</span>
+        <span class="rb-title">${r.title}</span>
+        ${noActionBadge}
+        <span class="rb-badge badge-${r.badge}">${r.badge==='R'?'Urgent':r.badge==='B'?'GP action':r.badge==='Pi'?'Refer':r.badge==='O'?'Alcohol/Metabolic':'No action'}</span>
+        ${srcBadge}
+        <span class="chev" id="chev-${rid2}">▶</span>
+      </div>
+      <div class="rb-body" id="body-${rid2}">
+        <div class="rb-sec">
+          <div class="rb-sec-lbl">Conditions — IF / AND / OR / THEN logic</div>
+          ${repeatFlag}
+          <div>${logicHtml}</div>
+          ${ctxWarn}
+        </div>
+        <div class="rb-sec">
+          <div class="rb-sec-lbl">Meaning — what this rule tells you</div>
+          <p style="font-size:13px;color:var(--text2);line-height:1.65;">${r.meaning}</p>
+        </div>
+        <div class="rb-sec">
+          <div class="rb-sec-lbl">Management — priority order</div>
+          <ul class="mgmt-list">${mgmtHtml}</ul>
+          ${r.note?`<div class="note">${r.note}</div>`:''}
+        </div>
+        <div class="rb-sec">
+          <div class="rb-sec-lbl">Source trail — provenance of this rule</div>
+          <div class="src-trail">${srcHtml}</div>
+        </div>
+        ${adminPanel}
+        <div class="rb-sec" style="background:var(--surface2);">
+          <div class="rb-sec-lbl">Copy this rule</div>
+          <div class="cbox">
+            <div class="cbox-content" id="copy-rule-${rid2}">${copyTxt}</div>
+            <button class="cbox-btn" onclick="doCopy(event,'copy-rule-${rid2}')">Copy</button>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(block);
+  });
+  if (shown===0) container.innerHTML=`<div class="empty">No rules match the current filter / search.</div>`;
+}
+
+function toggleRb(id) {
+  document.getElementById('body-'+id).classList.toggle('open');
+  document.getElementById('chev-'+id).classList.toggle('open');
+}
+
+function saveAdminOutput(rid, step) {
+  const ta = document.getElementById('ao-ta-'+rid);
+  if (!ta) return;
+  const val = ta.value.trim();
+  adminOutputs[rid] = val || null;
+  const preview = document.getElementById('ao-preview-'+rid);
+  if (preview) {
+    // Find the locked text from the current rule data
+    const rules = rulePage===1 ? RULES_P1 : RULES_P2;
+    const idx = parseInt(rid.split('_')[1]);
+    const r = rules[idx];
+    preview.textContent = val || (r ? r.adminLocked : '');
+  }
+  logChange(`Rule ${step}: local instruction ${val ? 'updated' : 'cleared'}`);
+}
+
+function buildCopyText(r) {
+  const pLabels=['✓ NO ACTION','URGENT','URGENT','GP NOW','GP ACTION','MONITOR'];
+  return `PATHWAY: NWL — Abnormal LFT | V1.6 Oct 2019 (P1) / V1.4 Aug 2019 (P2)\nSTEP: ${r.step} | ${r.title}\nSOURCE: ${r.src.toUpperCase()}\n\nCONDITIONS:\n${r.logic.map(l=>`  ${l.kw} ${l.t}`).join('\n')}\n\nMEANING: ${r.meaning}\n\nMANAGEMENT:\n${r.management.map(m=>`  [${pLabels[m.p]}] ${m.label}: ${m.text}`).join('\n')}\n\nSOURCE:\n${r.sources.map(s=>`  [${s.type.toUpperCase()}] ${s.step}: "${s.quote}"`).join('\n')}${r.note?'\n\nNOTE: '+r.note:''}`;
+}
+
+// ═══════════════════════════════════════════════
+// GAPS
+// ═══════════════════════════════════════════════
+function setGapFilter(f, btn) {
+  gapFilter = f;
+  document.querySelectorAll('.gap-filter-row .rfbtn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  renderGaps();
+}
+
+function renderGaps() {
+  const container = document.getElementById('gaps-container');
+  container.innerHTML = '';
+  const filtered = gapsState.filter(g => gapFilter==='all' || g.status===gapFilter);
+
+  filtered.forEach(g => {
+    const statusClass = {open:'status-open',resolved:'status-resolved',partial:'status-partial'}[g.status]||'status-open';
+    const statusLabel = {open:'Open',resolved:'Resolved',partial:'Partial'}[g.status]||'Open';
+    const logLine = g.resolvedAt ? `<div class="gap-log">Last updated: <span>${g.resolvedAt}</span>${g.resolvedBy ? ' by ' + g.resolvedBy : ''}</div>` : '';
+
+    const div = document.createElement('div');
+    div.className = 'gap-item';
+    div.innerHTML = `
+      <div class="gap-head" onclick="toggleGap('gb-${g.id}')">
+        <span class="gap-type gt-${g.type}">${g.type}</span>
+        <span class="gap-title">${g.title}</span>
+        <span class="gap-status ${statusClass}">${statusLabel}</span>
+        <span class="chev" id="gc-${g.id}">▶</span>
+      </div>
+      <div class="gap-body" id="gb-${g.id}">
+        <div class="gap-row">
+          <div class="gap-col">
+            <div class="gap-col-lbl">Why this gap was flagged</div>
+            <div class="gap-source-text">${g.sourceText}</div>
+          </div>
+          <div class="gap-col">
+            <div class="gap-col-lbl">Local resolution ${mode==='working'?'(editable)':'(switch to Working mode to edit)'}</div>
+            <textarea class="gap-textarea ${mode==='working'?'show':''}" id="gt-${g.id}" placeholder="Enter local information to resolve this gap — e.g. telephone number, URL, decision, relevant contact...">${g.resolution||''}</textarea>
+            <div class="gap-instruction-area">
+              ${mode!=='working' ? `<span class="gap-placeholder">${g.resolution || 'No resolution entered yet — switch to Working mode to add.'}</span>` : ''}
+            </div>
+            <div class="gap-actions ${mode==='working'?'show':''}">
+              <button class="gap-btn gap-btn-save" onclick="saveGap('${g.id}')">Save</button>
+              <button class="gap-btn gap-btn-resolve" onclick="resolveGap('${g.id}','resolved')">Mark resolved</button>
+              <button class="gap-btn gap-btn-partial" onclick="resolveGap('${g.id}','partial')">Mark partial</button>
+            </div>
+          </div>
+        </div>
+        ${logLine}
+      </div>`;
+    container.appendChild(div);
+  });
+
+  if (filtered.length===0) {
+    container.innerHTML = `<div class="empty">No gaps match the current filter.</div>`;
+  }
+  updateGapCount();
+  updateGapStats();
+}
+
+function toggleGap(id) {
+  document.getElementById(id).classList.toggle('open');
+  const chev = document.getElementById('gc-'+id.replace('gb-',''));
+  if (chev) chev.classList.toggle('open');
+}
+
+function saveGap(id) {
+  const ta = document.getElementById('gt-'+id);
+  if (!ta) return;
+  const gap = gapsState.find(g=>g.id===id);
+  if (!gap) return;
+  const oldRes = gap.resolution;
+  gap.resolution = ta.value;
+  gap.resolvedAt = new Date().toLocaleString();
+  logChange(`Gap "${gap.title}" — resolution updated: "${ta.value.substring(0,60)}${ta.value.length>60?'...':''}"`);
+  renderGaps();
+  // Re-open the gap we just saved
+  setTimeout(()=>{ const el=document.getElementById('gb-'+id); if(el){el.classList.add('open');} }, 50);
+}
+
+function resolveGap(id, status) {
+  const ta = document.getElementById('gt-'+id);
+  const gap = gapsState.find(g=>g.id===id);
+  if (!gap) return;
+  if (ta) gap.resolution = ta.value;
+  gap.status = status;
+  gap.resolvedAt = new Date().toLocaleString();
+  logChange(`Gap "${gap.title}" — marked as ${status}`);
+  renderGaps();
+}
+
+function updateGapCount() {
+  const open = gapsState.filter(g=>g.status==='open').length;
+  const el = document.getElementById('gaps-count');
+  if (el) { el.textContent = open > 0 ? open : ''; }
+}
+
+function updateGapStats() {
+  const open = gapsState.filter(g=>g.status==='open').length;
+  const partial = gapsState.filter(g=>g.status==='partial').length;
+  const resolved = gapsState.filter(g=>g.status==='resolved').length;
+  document.getElementById('gs-open').textContent = open;
+  document.getElementById('gs-partial').textContent = partial;
+  document.getElementById('gs-resolved').textContent = resolved;
+  document.getElementById('gs-total').textContent = gapsState.length;
+}
+
+// ═══════════════════════════════════════════════
+// COPY SHEET
+// ═══════════════════════════════════════════════
+function renderCopySheet() {
+  const c = document.getElementById('copy-container');
+  c.innerHTML='';
+  const provTxt = `PATHWAY PROVENANCE\nICB/Area: ${PROVENANCE.icb} (${PROVENANCE.area})\nTitle: ${PROVENANCE.title}\nPopulation: ${PROVENANCE.population} | ${PROVENANCE.setting}\nVersion: ${PROVENANCE.version}\nReview: ${PROVENANCE.reviewDate}\nAuthors: ${PROVENANCE.authors}\nApproving body: ${PROVENANCE.approvingBody}\nContact: ${PROVENANCE.contact}\nSource URL: ${PROVENANCE.sourceURL}`;
+  addCS(c,'Pathway provenance — identity block',provTxt);
+  const vp1 = VARS_P1.map(v=>`${v.code} | ${v.full} | Also: ${v.also} | Unit: ${v.unit}${v.normalHigh!==null&&v.normalHigh!==undefined?' | Normal high: '+(wv[v.code]?.normalHigh??v.normalHigh):''}${v.low!==null&&v.low!==undefined?' | Normal low: '+(wv[v.code]?.low??v.low):''}`).join('\n');
+  addCS(c,'All variables — Page 1 (current cut-offs)',vp1);
+  const vp2 = VARS_P2.map(v=>`${v.code} | ${v.full} | Also: ${v.also} | Unit: ${v.unit}`).join('\n');
+  addCS(c,'All variables — Page 2 (current cut-offs)',vp2);
+  [...RULES_P1,...RULES_P2].forEach(r => addCS(c,`Rule ${r.step}: ${r.title}`,buildCopyText(r)));
+  const allTxt = [...RULES_P1,...RULES_P2].map(r=>buildCopyText(r)).join('\n\n'+'═'.repeat(60)+'\n\n');
+  addCS(c,'ALL RULES — combined (Pages 1 + 2)',allTxt);
+}
+
+function addCS(container, label, text) {
+  const d = document.createElement('div');
+  d.className='cs-sec';
+  const eid = 'cs-'+Math.random().toString(36).slice(2,8);
+  d.innerHTML=`<div class="cs-lbl">${label}</div><div class="cbox"><div class="cbox-content" id="${eid}">${text}</div><button class="cbox-btn" onclick="doCopy(event,'${eid}')">Copy</button></div>`;
+  container.appendChild(d);
+}
+
+// ═══════════════════════════════════════════════
+// CHANGE LOG
+// ═══════════════════════════════════════════════
+function logChange(description) {
+  const ts = new Date().toLocaleString();
+  changes.push({time:ts, description});
+}
+
+function renderChanges() {
+  const c = document.getElementById('changes-container');
+  if (!changes.length) {
+    c.innerHTML='<div class="empty">No changes yet. Switch to Working mode to edit variable ranges, local instructions, or gaps.</div>';
+    return;
+  }
+  c.innerHTML = changes.slice().reverse().map(ch=>`
+    <div class="ch-item">
+      <div class="ch-meta"><span class="ch-time">${ch.time}</span><span class="ch-tag">modified</span></div>
+      <div class="ch-diff">${ch.description}</div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════════
+// COPY UTIL
+// ═══════════════════════════════════════════════
+function doCopy(e, elId) {
+  const btn = e.target;
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const text = el.innerText || el.textContent;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='Copied!'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('ok'); }, 1800);
+  }).catch(()=>{
+    const r = document.createRange(); r.selectNode(el);
+    window.getSelection().removeAllRanges(); window.getSelection().addRange(r);
+    document.execCommand('copy'); window.getSelection().removeAllRanges();
+    btn.textContent='Copied!'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='Copy'; btn.classList.remove('ok'); }, 1800);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
