@@ -12,7 +12,21 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 | `fbc.html` | Abnormal FBC pathway (NCL, Final Jan 2023) — covers 11 sub-pathways |
 | `nwl_anaemia.html` | NWL Anaemia pathway (V1, 9 July 2020) — focused IDA workup **with flow diagram** |
 | `pathways.json` | Pathway registry |
+| `analytes.js` | **Single source of truth** for the analyte layer — labels, units, aliases and plausible ranges. Shared by manual entry, the search bar, the camera parser and the tests. Edit ranges/units here (clinical sign-off required) |
+| `bloodResultParser.js` | OCR-independent parser: turns text into structured result rows. No camera/DOM/OCR dependency; unit tested directly |
+| `ocrService.js` | OCR abstraction layer (Tesseract.js, on-device). The only module that touches the OCR engine |
+| `tests/bloodResultParser.test.js` | Parser + safety-gate unit tests. Run with `node tests/bloodResultParser.test.js` (no framework, no install) |
 | `PATHWAY_RULE_ENGINE_MASTER_PROMPT_v3.md` | The master prompt for adding more pathways |
+
+## Camera scan (live mode)
+
+`index.html` has a **Scan blood results** button that opens a live camera preview and reads results on-device, as a draft only:
+
+1. OCR runs on sampled video frames at a controlled interval (every 1.5s), entirely in the browser. No image is uploaded or stored.
+2. A reading is written into a result field **and** the interpretation log only when it maps to a known analyte, is unambiguous, clears the confidence threshold, and has been seen on two consecutive frames. Everything else is shown for review but never auto-filled.
+3. Analysis never runs automatically. The clinician still presses **Find pathways**, so scanned values flow through exactly the same payload → router → pathway tools as manual entry. There is no separate OCR analysis path.
+
+Manual entry and the search bar remain fully available alongside it.
 
 ## How the routing works
 

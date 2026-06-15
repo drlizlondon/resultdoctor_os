@@ -54,6 +54,40 @@ header { background: var(--navy); color: white; padding: 0 32px; height: 56px; d
 .search-help { font-size: 11px; color: var(--text3); margin-bottom: 18px; padding-left: 2px; }
 .search-help code { font-family: var(--mono); background: var(--grey-lt); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; color: var(--text2); font-size: 11px; }
 
+/* SCAN ENTRY + CAMERA */
+.scan-entry { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px; }
+.scan-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: white; color: var(--navy); border: 1.5px solid var(--border2); border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+.scan-btn:hover { border-color: var(--blue); color: var(--blue); }
+.scan-btn:focus-visible { outline: 3px solid rgba(24,89,204,.4); outline-offset: 2px; }
+.scan-entry-text { font-size: 12px; color: var(--text3); flex: 1; min-width: 200px; }
+
+.cam { border: 1px solid var(--border); border-radius: var(--radius); background: white; padding: 14px; margin-bottom: 18px; }
+.cam-stage { position: relative; border-radius: 10px; overflow: hidden; background: #0B1220; aspect-ratio: 4 / 3; display: flex; align-items: center; justify-content: center; }
+.cam-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam-reticle { position: absolute; inset: 12% 8%; border: 2px dashed rgba(255,255,255,.55); border-radius: 8px; pointer-events: none; }
+.cam-status { position: absolute; left: 10px; bottom: 10px; background: rgba(11,18,32,.82); color: white; font-size: 12px; font-weight: 500; padding: 6px 11px; border-radius: 8px; max-width: calc(100% - 20px); }
+.cam-status.error { background: rgba(185,28,28,.92); }
+.cam-help { font-size: 12px; color: var(--text3); margin-top: 10px; }
+.cam-privacy { font-size: 11px; color: var(--text3); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+.cam-privacy::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.cam-detected { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.cam-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--grey-lt); }
+.cam-row.applied { border-color: #BBF7D0; background: var(--green-lt); }
+.cam-row.review { border-color: #FCD34D; background: var(--amber-lt); }
+.cam-row .cam-row-name { font-weight: 600; color: var(--text); }
+.cam-row .cam-row-val { color: var(--text2); }
+.cam-row .cam-row-tag { margin-left: auto; font-family: var(--sans); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 10px; }
+.cam-row.applied .cam-row-tag { background: var(--green); color: white; }
+.cam-row.review .cam-row-tag { background: var(--amber); color: white; }
+.cam-actions { margin-top: 12px; }
+.cam-stop { width: 100%; padding: 12px; background: var(--navy); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+.cam-stop:hover { background: var(--navy2); }
+.cam-stop:focus-visible { outline: 3px solid rgba(24,89,204,.5); outline-offset: 2px; }
+@media (prefers-contrast: more) {
+  .scan-btn, .cam-row { border-width: 2px; }
+  .cam-status { background: #000; }
+}
+
 /* PANELS (collapsible) */
 .panel { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; background: white; }
 .panel-head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; cursor: pointer; user-select: none; }
@@ -201,6 +235,30 @@ footer strong { color: rgba(255,255,255,.7); }
       Enter <code>test value</code> pairs separated by commas. Units are inferred where unambiguous; you'll be asked to confirm only when a number could be in two unit systems. Press <strong>Enter</strong> to apply.
     </div>
 
+    <!-- SCAN ENTRY POINT -->
+    <div class="scan-entry">
+      <button type="button" class="scan-btn" id="scan-btn" onclick="startScan()" aria-label="Scan blood results with your camera">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9V7a2 2 0 0 1 2-2h2M16 5h2a2 2 0 0 1 2 2v2M20 15v2a2 2 0 0 1-2 2h-2M8 19H6a2 2 0 0 1-2-2v-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" stroke-width="1.8"/></svg>
+        Scan blood results
+      </button>
+      <span class="scan-entry-text">Use your camera to pull results in, then check them before analysis.</span>
+    </div>
+
+    <!-- LIVE CAMERA PANEL -->
+    <div class="cam" id="cam-panel" hidden role="region" aria-label="Live camera scanning">
+      <div class="cam-stage">
+        <video id="cam-video" class="cam-video" playsinline muted aria-label="Live camera preview"></video>
+        <div class="cam-reticle" aria-hidden="true"></div>
+        <div class="cam-status" id="cam-status" role="status" aria-live="polite">Starting camera…</div>
+      </div>
+      <p class="cam-help" id="cam-help">Position the result clearly. Make sure test names, values and units are visible.</p>
+      <div class="cam-detected" id="cam-detected" aria-live="polite"></div>
+      <p class="cam-privacy">Image processing happens on this device. The photo is not stored after extraction.</p>
+      <div class="cam-actions">
+        <button type="button" class="cam-stop" id="cam-stop" onclick="stopScan()" aria-label="Stop scanning">Stop scanning</button>
+      </div>
+    </div>
+
     <!-- AMBIGUITY PROMPTS render here -->
     <div id="ambig-zone"></div>
 
@@ -257,73 +315,14 @@ footer strong { color: rgba(255,255,255,.7); }
   Registry-driven router · Config-driven analytes &amp; unit ranges (clinician sign-off required) · Adding a pathway or test = one config entry.
 </footer>
 
+<!-- Shared config + OCR layer (zero-build, plain script tags) -->
+<script src="analytes.js"></script>
+<script src="bloodResultParser.js"></script>
+<script src="ocrService.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════════════════════
-//  ANALYTE CONFIG  —  EDITABLE · REQUIRES CLINICAL SIGN-OFF
-// ───────────────────────────────────────────────────────────────────────
-//  Each analyte declares:
-//    key        canonical short id (also the URL param carried to tools)
-//    label      display name
-//    unit       canonical unit (what pathway tools expect)
-//    aliases    accepted search terms (lowercase) for the search bar
-//    plausible  [lo, hi] plausible value range IN THE CANONICAL UNIT.
-//               Used ONLY to (a) disambiguate units and (b) gently warn —
-//               it does NOT make any clinical decision.
-//    step       input step for the number field
-//    alts       other unit systems a bare number might be in:
-//                 unit      label of the alternate unit
-//                 factor    multiply by this to convert -> canonical unit
-//                 plausible [lo, hi] plausible range IN THE ALTERNATE UNIT
-//
-//  Disambiguation rule (transparent, no hidden logic):
-//    Given a bare number x, collect every unit system whose plausible range
-//    contains x. If exactly one  -> use it silently. If more than one ->
-//    ASK the clinician. If none   -> accept as canonical but flag a warning.
-//
-//  ⚠ The ranges below are SENSIBLE DEFAULTS from common UK adult reference
-//    intervals, provided as a starting point. Review and sign off before
-//    clinical use.
-// ═══════════════════════════════════════════════════════════════════════
-const ANALYTES = {
-  // ---- LFTs ----
-  bili:  { label:'Bilirubin', unit:'µmol/L', step:'1',   aliases:['bili','bilirubin','tbil','t.bil'],
-           plausible:[1, 600],  alts:[{ unit:'mg/dL', factor:17.1, plausible:[0.1, 30] }] },
-  alt:   { label:'ALT',       unit:'IU/L',   step:'1',   aliases:['alt','sgpt'],
-           plausible:[1, 5000], alts:[] },
-  ast:   { label:'AST',       unit:'IU/L',   step:'1',   aliases:['ast','sgot'],
-           plausible:[1, 5000], alts:[] },
-  alp:   { label:'ALP',       unit:'IU/L',   step:'1',   aliases:['alp','alk phos','alkaline phosphatase','alkphos'],
-           plausible:[10, 2000], alts:[] },
-  ggt:   { label:'GGT',       unit:'IU/L',   step:'1',   aliases:['ggt','gammagt','gamma gt','gamma-gt'],
-           plausible:[5, 3000], alts:[] },
-  alb:   { label:'Albumin',   unit:'g/L',    step:'1',   aliases:['alb','albumin'],
-           plausible:[10, 60],  alts:[{ unit:'g/dL', factor:10, plausible:[1, 6] }] },
-  inr:   { label:'INR',       unit:'ratio',  step:'0.1', aliases:['inr'],
-           plausible:[0.8, 12], alts:[] },
-  // ---- FBC ----
-  hb:    { label:'Haemoglobin', unit:'g/L',  step:'1',   aliases:['hb','haemoglobin','hgb','hb.'],
-           plausible:[20, 250], alts:[{ unit:'g/dL', factor:10, plausible:[2, 25] }] },
-  mcv:   { label:'MCV',       unit:'fL',     step:'1',   aliases:['mcv'],
-           plausible:[50, 150], alts:[] },
-  wcc:   { label:'WCC',       unit:'×10⁹/L', step:'0.1', aliases:['wcc','wbc','white cell','white cells','white cell count'],
-           plausible:[0.1, 500], alts:[{ unit:'/µL', factor:0.001, plausible:[100, 500000] }] },
-  neut:  { label:'Neutrophils', unit:'×10⁹/L', step:'0.1', aliases:['neut','neutrophils','neutrophil','anc'],
-           plausible:[0.05, 100], alts:[{ unit:'/µL', factor:0.001, plausible:[50, 100000] }] },
-  lymph: { label:'Lymphocytes', unit:'×10⁹/L', step:'0.1', aliases:['lymph','lymphocytes','lymphocyte','lymphs'],
-           plausible:[0.05, 100], alts:[{ unit:'/µL', factor:0.001, plausible:[50, 100000] }] },
-  plt:   { label:'Platelets', unit:'×10⁹/L', step:'1',   aliases:['plt','platelets','platelet','plat'],
-           plausible:[5, 2000], alts:[{ unit:'/µL', factor:0.001, plausible:[5000, 2000000] }] }
-};
-
-// ───────────────────────────────────────────────────────────────────────
-//  PANEL CONFIG  —  grouping of analytes into collapsible test panels.
-//  Adding a new test group = one entry. Adding an analyte = one ANALYTES
-//  entry + its key listed in a panel.
-// ───────────────────────────────────────────────────────────────────────
-const PANELS = [
-  { id:'fbc', label:'FBC — full blood count', analytes:['hb','mcv','wcc','neut','lymph','plt'] },
-  { id:'lft', label:'LFTs — liver function',  analytes:['bili','alt','ast','alp','ggt','alb','inr'] }
-];
+// ANALYTES and PANELS are the single source of truth for the analyte layer.
+// They are defined in analytes.js (loaded above) and shared by manual entry,
+// the camera OCR parser and the parser unit tests. Edit ranges/units there.
 
 // ───────────────────────────────────────────────────────────────────────
 //  PATHWAY REGISTRY  (mirrors pathways.json — trigger_results use analyte keys)
@@ -676,6 +675,166 @@ function resetAll() {
   LOG = []; clearAmbig(); renderLog();
   document.getElementById('routed').classList.remove('show');
   onInput();
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  LIVE CAMERA SCAN  —  draft extraction only, never auto-analyses
+// ───────────────────────────────────────────────────────────────────────
+//  - getUserMedia live preview (rear camera preferred on mobile)
+//  - OCR runs on sampled frames at a controlled interval, fully on-device
+//  - A reading is committed to a field + the interpretation log ONLY when it
+//    maps to a known analyte, is unambiguous, clears the confidence threshold,
+//    AND has been seen on two consecutive frames (debounce against flicker)
+//  - Low-confidence / ambiguous / unmapped readings are shown for review but
+//    are NEVER written into the analysis fields
+//  - Analysis still only happens when the clinician presses "Find pathways"
+// ═══════════════════════════════════════════════════════════════════════
+const SCAN_INTERVAL_MS = 1500;
+const SCAN_COMMIT_CONFIDENCE = 70;   // parser confidence required to auto-fill
+const SCAN_STABLE_READS = 2;         // identical reads required before commit
+const cam = {
+  stream: null, video: null, canvas: null, timer: null,
+  scanning: false, busy: false, emptyTicks: 0,
+  committed: {},   // key -> committed value
+  stable: {}       // key -> { value, count }
+};
+
+function camStatus(msg, isError) {
+  const el = document.getElementById('cam-status');
+  el.textContent = msg;
+  el.classList.toggle('error', !!isError);
+}
+
+async function startScan() {
+  const panel = document.getElementById('cam-panel');
+  panel.hidden = false;
+  document.querySelector('.scan-entry').style.display = 'none';
+  camStatus('Starting camera…', false);
+  cam.video = document.getElementById('cam-video');
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camStatus('Camera is not available on this device. You can still enter results manually.', true);
+    return;
+  }
+  try {
+    cam.stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: 'environment' } }, audio: false
+    });
+  } catch (err) {
+    camStatus('Camera access was blocked. You can still enter results manually.', true);
+    document.getElementById('cam-help').textContent = 'Re-enable camera access in your browser settings, or close this and type results into the search box.';
+    return;
+  }
+  cam.video.srcObject = cam.stream;
+  try { await cam.video.play(); } catch (e) {}
+  cam.canvas = document.createElement('canvas');
+  cam.scanning = true; cam.emptyTicks = 0; cam.committed = {}; cam.stable = {};
+  camStatus('Point at the results. Reading automatically…', false);
+  OcrService.init().catch(function () {
+    camStatus('Could not start the on-device reader. You can still enter results manually.', true);
+  });
+  scheduleTick();
+}
+
+function scheduleTick() {
+  if (!cam.scanning) return;
+  cam.timer = setTimeout(scanTick, SCAN_INTERVAL_MS);
+}
+
+async function scanTick() {
+  if (!cam.scanning) return;
+  if (cam.busy || !cam.video || !cam.video.videoWidth) { scheduleTick(); return; }
+  cam.busy = true;
+  try {
+    // Downscale the live frame to keep OCR responsive; the frame is transient.
+    const vw = cam.video.videoWidth, vh = cam.video.videoHeight;
+    const scale = Math.min(1, 1100 / vw);
+    cam.canvas.width = Math.round(vw * scale);
+    cam.canvas.height = Math.round(vh * scale);
+    const ctx = cam.canvas.getContext('2d');
+    ctx.drawImage(cam.video, 0, 0, cam.canvas.width, cam.canvas.height);
+    camStatus('Reading results…', false);
+
+    const { text } = await OcrService.extractTextFromImage(cam.canvas);
+    const rows = OcrService.parseBloodResultsFromText(text, { threshold: SCAN_COMMIT_CONFIDENCE });
+
+    // Release the frame immediately after extraction.
+    ctx.clearRect(0, 0, cam.canvas.width, cam.canvas.height);
+
+    processScanRows(rows);
+  } catch (e) {
+    camStatus('Reading paused — adjusting. Hold the result steady.', false);
+  } finally {
+    cam.busy = false;
+    if (cam.scanning) {
+      camStatus('Point at the results. Reading automatically…', false);
+      scheduleTick();
+    }
+  }
+}
+
+function processScanRows(rows) {
+  const detected = document.getElementById('cam-detected');
+  if (!rows.length) {
+    cam.emptyTicks++;
+    if (cam.emptyTicks >= 3) camStatus('We could not read this clearly. Try again or enter results manually.', true);
+    return;
+  }
+  cam.emptyTicks = 0;
+  const display = [];
+
+  rows.forEach(function (row) {
+    const eligible = BloodResultParser.isAnalysisEligible(row, SCAN_COMMIT_CONFIDENCE);
+    if (eligible) {
+      // Debounce: require the same value on consecutive frames before committing.
+      const prev = cam.stable[row.key];
+      if (prev && prev.value === row.value) prev.count++;
+      else cam.stable[row.key] = { value: row.value, count: 1 };
+      const stable = cam.stable[row.key].count >= SCAN_STABLE_READS;
+      if (stable && cam.committed[row.key] !== row.value) {
+        commitScanRow(row);
+      }
+      display.push({ row: row, applied: cam.committed[row.key] === row.value });
+    } else {
+      display.push({ row: row, applied: false });
+    }
+  });
+
+  detected.innerHTML = display.map(function (d) {
+    const r = d.row;
+    const cls = d.applied ? 'applied' : 'review';
+    const tag = d.applied ? 'Added' : 'Check';
+    const unit = r.unit ? ' ' + r.unit : '';
+    return '<div class="cam-row ' + cls + '">' +
+      '<span class="cam-row-name">' + escapeHtml(r.testName) + '</span>' +
+      '<span class="cam-row-val">' + escapeHtml(r.value) + unit + '</span>' +
+      '<span class="cam-row-tag">' + tag + '</span></div>';
+  }).join('');
+  onInput();
+}
+
+function commitScanRow(row) {
+  const a = ANALYTES[row.key];
+  const cand = { unit: a.unit, value: Number(row.value), note: 'read from camera' };
+  applyResolved(row.key, row.value + ' (camera)', cand);
+  cam.committed[row.key] = row.value;
+  const entry = LOG.find(function (e) { return e.key === row.key; });
+  if (entry) entry.note += ' · via camera scan';
+  renderLog();
+}
+
+function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+
+function stopScan() {
+  cam.scanning = false;
+  if (cam.timer) { clearTimeout(cam.timer); cam.timer = null; }
+  if (cam.stream) { cam.stream.getTracks().forEach(function (t) { t.stop(); }); cam.stream = null; }
+  if (cam.video) cam.video.srcObject = null;
+  cam.canvas = null; cam.busy = false; cam.stable = {};
+  if (window.OcrService) OcrService.terminate();   // release worker + model
+  document.getElementById('cam-panel').hidden = true;
+  document.getElementById('cam-detected').innerHTML = '';
+  document.querySelector('.scan-entry').style.display = '';
+  document.getElementById('scan-btn').focus();
 }
 
 // ── init ──
