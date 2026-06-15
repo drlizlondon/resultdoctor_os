@@ -22,9 +22,10 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 
 `index.html` has a **Scan blood results** button that opens a live camera preview and reads results on-device, as a draft only:
 
-1. OCR runs on sampled video frames at a controlled interval (every 1.5s), entirely in the browser. No image is uploaded or stored.
-2. A reading is written into a result field **and** the interpretation log only when it maps to a known analyte, is unambiguous, clears the confidence threshold, and has been seen on two consecutive frames. Everything else is shown for review but never auto-filled.
-3. Analysis never runs automatically. The clinician still presses **Find pathways**, so scanned values flow through exactly the same payload → router → pathway tools as manual entry. There is no separate OCR analysis path.
+1. OCR runs on sampled video frames at a controlled interval (every 1.5s), entirely in the browser. No image is uploaded or stored; frames are released immediately after extraction.
+2. Detected results populate a **review table** (Test / Value / Unit / Ref range / Flag), not the analysis fields. A reading appears only after it has been seen on two consecutive frames (debounce). Rows that map to a known analyte and clear the confidence threshold are marked ready (✓); low-confidence, ambiguous or unmapped rows are highlighted for review (⚠).
+3. In the table the clinician can **edit**, **delete**, or **add a row manually**. Edited and manual rows are re-validated through the same parser, so they are only analysable once they map to a known analyte with a unit.
+4. Nothing touches the result fields until **Confirm and analyse** is pressed. On confirm, only eligible (non-review) rows are written into the existing fields + interpretation log, then the existing **Find pathways** routing runs. needsReview and unmapped rows are never analysed. There is no separate OCR analysis path.
 
 Manual entry and the search bar remain fully available alongside it.
 

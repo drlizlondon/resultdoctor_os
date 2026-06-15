@@ -70,21 +70,42 @@ header { background: var(--navy); color: white; padding: 0 32px; height: 56px; d
 .cam-help { font-size: 12px; color: var(--text3); margin-top: 10px; }
 .cam-privacy { font-size: 11px; color: var(--text3); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
 .cam-privacy::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
-.cam-detected { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-.cam-row { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--grey-lt); }
-.cam-row.applied { border-color: #BBF7D0; background: var(--green-lt); }
-.cam-row.review { border-color: #FCD34D; background: var(--amber-lt); }
-.cam-row .cam-row-name { font-weight: 600; color: var(--text); }
-.cam-row .cam-row-val { color: var(--text2); }
-.cam-row .cam-row-tag { margin-left: auto; font-family: var(--sans); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 2px 8px; border-radius: 10px; }
-.cam-row.applied .cam-row-tag { background: var(--green); color: white; }
-.cam-row.review .cam-row-tag { background: var(--amber); color: white; }
-.cam-actions { margin-top: 12px; }
-.cam-stop { width: 100%; padding: 12px; background: var(--navy); color: white; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
-.cam-stop:hover { background: var(--navy2); }
-.cam-stop:focus-visible { outline: 3px solid rgba(24,89,204,.5); outline-offset: 2px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+.cam-review { margin-top: 12px; }
+.cam-warning { background: var(--amber-lt); border: 1px solid #FCD34D; color: var(--amber); font-size: 12px; font-weight: 600; padding: 9px 12px; border-radius: 8px; margin-bottom: 10px; }
+.cam-table-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.cam-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.cam-table th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); padding: 8px 10px; background: var(--grey-lt); border-bottom: 1px solid var(--border); }
+.cam-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text2); vertical-align: middle; }
+.cam-table tr:last-child td { border-bottom: none; }
+.cam-table .td-test { font-weight: 600; color: var(--text); }
+.cam-table .td-value { font-family: var(--mono); color: var(--text); }
+.cam-table tr.needs-review { background: var(--amber-lt); }
+.cam-table tr.needs-review .td-test::before { content: '⚠ '; color: var(--amber); }
+.cam-table tr.row-ready .td-test::before { content: '✓ '; color: var(--green); }
+.cam-cell-input { width: 100%; min-width: 56px; padding: 5px 7px; border: 1.5px solid var(--border2); border-radius: 6px; font-family: var(--sans); font-size: 12px; }
+.cam-cell-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,89,204,.15); }
+.cam-act { display: flex; gap: 6px; justify-content: flex-end; }
+.cam-act button { font-family: var(--sans); font-size: 11px; font-weight: 600; padding: 4px 9px; border-radius: 6px; border: 1.5px solid var(--border2); background: white; cursor: pointer; color: var(--text2); }
+.cam-act button:hover { border-color: var(--blue); color: var(--blue); }
+.cam-act button.danger:hover { border-color: var(--red); color: var(--red); }
+.cam-act button.primary { background: var(--blue); color: white; border-color: var(--blue); }
+.cam-act button:focus-visible { outline: 2px solid rgba(24,89,204,.5); outline-offset: 1px; }
+.cam-empty { font-size: 12px; color: var(--text3); padding: 14px; text-align: center; }
+.cam-add { margin-top: 10px; background: none; border: 1px dashed var(--border2); border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; color: var(--blue); cursor: pointer; font-family: var(--sans); width: 100%; }
+.cam-add:hover { background: var(--blue-lt); }
+.cam-add:focus-visible { outline: 2px solid rgba(24,89,204,.5); outline-offset: 2px; }
+
+.cam-actions { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.cam-confirm { width: 100%; padding: 13px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+.cam-confirm:hover { background: #1348B0; }
+.cam-confirm:disabled { background: var(--grey); cursor: not-allowed; }
+.cam-stop { width: 100%; padding: 11px; background: white; color: var(--text2); border: 1.5px solid var(--border2); border-radius: var(--radius); font-size: 13px; font-weight: 600; font-family: var(--sans); cursor: pointer; }
+.cam-stop:hover { border-color: var(--navy); color: var(--navy); }
+.cam-confirm:focus-visible, .cam-stop:focus-visible { outline: 3px solid rgba(24,89,204,.5); outline-offset: 2px; }
 @media (prefers-contrast: more) {
-  .scan-btn, .cam-row { border-width: 2px; }
+  .scan-btn, .cam-table-wrap, .cam-stop { border-width: 2px; }
   .cam-status { background: #000; }
 }
 
@@ -252,9 +273,26 @@ footer strong { color: rgba(255,255,255,.7); }
         <div class="cam-status" id="cam-status" role="status" aria-live="polite">Starting camera…</div>
       </div>
       <p class="cam-help" id="cam-help">Position the result clearly. Make sure test names, values and units are visible.</p>
-      <div class="cam-detected" id="cam-detected" aria-live="polite"></div>
+
+      <div class="cam-review">
+        <div class="cam-warning" role="alert">Please check these results carefully. Camera reading can make mistakes.</div>
+        <div class="cam-table-wrap">
+          <table class="cam-table" id="cam-table" aria-label="Detected results to review before analysis">
+            <thead><tr>
+              <th scope="col">Test</th><th scope="col">Value</th><th scope="col">Unit</th>
+              <th scope="col">Ref range</th><th scope="col">Flag</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr></thead>
+            <tbody id="cam-tbody" aria-live="polite"></tbody>
+          </table>
+          <p class="cam-empty" id="cam-empty">No results detected yet. Point the camera at the result, or add a row manually.</p>
+        </div>
+        <button type="button" class="cam-add" id="cam-add" onclick="addManualRow()" aria-label="Add a result manually">+ Add a result manually</button>
+      </div>
+
       <p class="cam-privacy">Image processing happens on this device. The photo is not stored after extraction.</p>
       <div class="cam-actions">
+        <button type="button" class="cam-confirm" id="cam-confirm" onclick="confirmAndAnalyse()" aria-label="Confirm results and analyse" disabled>Confirm and analyse</button>
         <button type="button" class="cam-stop" id="cam-stop" onclick="stopScan()" aria-label="Stop scanning">Stop scanning</button>
       </div>
     </div>
@@ -694,9 +732,10 @@ const SCAN_COMMIT_CONFIDENCE = 70;   // parser confidence required to auto-fill
 const SCAN_STABLE_READS = 2;         // identical reads required before commit
 const cam = {
   stream: null, video: null, canvas: null, timer: null,
-  scanning: false, busy: false, emptyTicks: 0,
-  committed: {},   // key -> committed value
-  stable: {}       // key -> { value, count }
+  scanning: false, busy: false, emptyTicks: 0, rowSeq: 0, editing: null,
+  rows: {},        // rowKey -> row object (the review table)
+  dismissed: {},   // rowKey -> true (deleted by the user; not re-added)
+  stable: {}       // rowKey -> { value, count } debounce
 };
 
 function camStatus(msg, isError) {
@@ -727,7 +766,8 @@ async function startScan() {
   cam.video.srcObject = cam.stream;
   try { await cam.video.play(); } catch (e) {}
   cam.canvas = document.createElement('canvas');
-  cam.scanning = true; cam.emptyTicks = 0; cam.committed = {}; cam.stable = {};
+  cam.scanning = true; cam.emptyTicks = 0; cam.rows = {}; cam.dismissed = {}; cam.stable = {}; cam.editing = null;
+  renderReviewTable();
   camStatus('Point at the results. Reading automatically…', false);
   OcrService.init().catch(function () {
     camStatus('Could not start the on-device reader. You can still enter results manually.', true);
@@ -772,67 +812,174 @@ async function scanTick() {
   }
 }
 
+function rowKeyFor(row) {
+  return row.key || ('x:' + String(row.testName || '').toLowerCase().replace(/\s+/g, ' ').trim());
+}
+
+// Live frames feed the REVIEW TABLE only. Nothing is written to the analysis
+// fields here — that happens only on explicit "Confirm and analyse".
 function processScanRows(rows) {
-  const detected = document.getElementById('cam-detected');
   if (!rows.length) {
     cam.emptyTicks++;
-    if (cam.emptyTicks >= 3) camStatus('We could not read this clearly. Try again or enter results manually.', true);
+    if (cam.emptyTicks >= 3 && !Object.keys(cam.rows).length) {
+      camStatus('We could not read this clearly. Try again or enter results manually.', true);
+    }
     return;
   }
   cam.emptyTicks = 0;
-  const display = [];
+  let changed = false;
 
   rows.forEach(function (row) {
-    const eligible = BloodResultParser.isAnalysisEligible(row, SCAN_COMMIT_CONFIDENCE);
-    if (eligible) {
-      // Debounce: require the same value on consecutive frames before committing.
-      const prev = cam.stable[row.key];
-      if (prev && prev.value === row.value) prev.count++;
-      else cam.stable[row.key] = { value: row.value, count: 1 };
-      const stable = cam.stable[row.key].count >= SCAN_STABLE_READS;
-      if (stable && cam.committed[row.key] !== row.value) {
-        commitScanRow(row);
-      }
-      display.push({ row: row, applied: cam.committed[row.key] === row.value });
-    } else {
-      display.push({ row: row, applied: false });
-    }
+    const k = rowKeyFor(row);
+    if (cam.dismissed[k]) return;                 // user deleted it — do not re-add
+    if (cam.editing === k) return;                // being edited — don't clobber
+    if (cam.rows[k] && cam.rows[k].locked) return; // user-edited/manual — don't overwrite
+
+    // Debounce: require the same value on consecutive frames before it appears.
+    const prev = cam.stable[k];
+    if (prev && prev.value === row.value) prev.count++;
+    else cam.stable[k] = { value: row.value, count: 1 };
+    if (cam.stable[k].count < SCAN_STABLE_READS) return;
+
+    const existing = cam.rows[k];
+    if (existing && existing.value === row.value && existing.unit === row.unit) return;
+    cam.rows[k] = Object.assign({}, row, {
+      id: existing ? existing.id : ('row-' + (++cam.rowSeq)),
+      locked: false, source: 'scan'
+    });
+    changed = true;
   });
 
-  detected.innerHTML = display.map(function (d) {
-    const r = d.row;
-    const cls = d.applied ? 'applied' : 'review';
-    const tag = d.applied ? 'Added' : 'Check';
-    const unit = r.unit ? ' ' + r.unit : '';
-    return '<div class="cam-row ' + cls + '">' +
-      '<span class="cam-row-name">' + escapeHtml(r.testName) + '</span>' +
-      '<span class="cam-row-val">' + escapeHtml(r.value) + unit + '</span>' +
-      '<span class="cam-row-tag">' + tag + '</span></div>';
+  if (changed) renderReviewTable();
+}
+
+// Build a structured row from edited / manually-typed parts by running it back
+// through the SAME parser (single source of truth). Human-typed text is trusted
+// at full confidence, but structural checks (mapped analyte, unit present) still
+// decide needsReview.
+function makeRowFromParts(testName, value, unit, source) {
+  const line = (testName + ' ' + value + ' ' + (unit || '')).trim();
+  const parsed = BloodResultParser.parseBloodResultsFromText(line, {
+    analytes: ANALYTES, threshold: SCAN_COMMIT_CONFIDENCE, lineConfidence: function () { return 100; }
+  });
+  if (parsed.length) return Object.assign(parsed[0], { source: source, locked: true });
+  return {
+    id: 'row-' + (++cam.rowSeq), testName: testName || '(unnamed)', key: null,
+    value: value || '', unit: unit || '', referenceRange: '', flag: '',
+    ocrConfidence: 0, needsReview: true, source: source, locked: true
+  };
+}
+
+function eligibleRows() {
+  return Object.keys(cam.rows).map(function (k) { return cam.rows[k]; })
+    .filter(function (r) { return BloodResultParser.isAnalysisEligible(r, SCAN_COMMIT_CONFIDENCE); });
+}
+
+function renderReviewTable() {
+  const tbody = document.getElementById('cam-tbody');
+  const empty = document.getElementById('cam-empty');
+  const keys = Object.keys(cam.rows);
+  empty.style.display = keys.length ? 'none' : '';
+  tbody.innerHTML = keys.map(function (k) {
+    const r = cam.rows[k];
+    if (cam.editing === k) return editRowHtml(k, r);
+    const ready = BloodResultParser.isAnalysisEligible(r, SCAN_COMMIT_CONFIDENCE);
+    return '<tr class="' + (ready ? 'row-ready' : 'needs-review') + '">' +
+      '<td class="td-test">' + escapeHtml(r.testName || '') + '</td>' +
+      '<td class="td-value">' + escapeHtml(r.value || '') + '</td>' +
+      '<td>' + escapeHtml(r.unit || '') + '</td>' +
+      '<td>' + escapeHtml(r.referenceRange || '') + '</td>' +
+      '<td>' + escapeHtml(r.flag || '') + '</td>' +
+      '<td><div class="cam-act">' +
+        '<button type="button" onclick="editRow(\'' + k + '\')" aria-label="Edit ' + escapeAttr(r.testName) + '">Edit</button>' +
+        '<button type="button" class="danger" onclick="deleteRow(\'' + k + '\')" aria-label="Delete ' + escapeAttr(r.testName) + '">Delete</button>' +
+      '</div></td></tr>';
   }).join('');
-  onInput();
+
+  const confirmBtn = document.getElementById('cam-confirm');
+  const n = eligibleRows().length;
+  confirmBtn.disabled = n === 0;
+  confirmBtn.textContent = n ? ('Confirm and analyse (' + n + ')') : 'Confirm and analyse';
 }
 
-function commitScanRow(row) {
-  const a = ANALYTES[row.key];
-  const cand = { unit: a.unit, value: Number(row.value), note: 'read from camera' };
-  applyResolved(row.key, row.value + ' (camera)', cand);
-  cam.committed[row.key] = row.value;
-  const entry = LOG.find(function (e) { return e.key === row.key; });
-  if (entry) entry.note += ' · via camera scan';
+function editRowHtml(k, r) {
+  return '<tr class="editing">' +
+    '<td><input class="cam-cell-input" id="edit-test-' + k + '" value="' + escapeAttr(r.testName) + '" aria-label="Test name"></td>' +
+    '<td><input class="cam-cell-input" id="edit-value-' + k + '" value="' + escapeAttr(r.value) + '" inputmode="decimal" aria-label="Value"></td>' +
+    '<td><input class="cam-cell-input" id="edit-unit-' + k + '" value="' + escapeAttr(r.unit) + '" aria-label="Unit"></td>' +
+    '<td>' + escapeHtml(r.referenceRange || '') + '</td>' +
+    '<td>' + escapeHtml(r.flag || '') + '</td>' +
+    '<td><div class="cam-act">' +
+      '<button type="button" class="primary" onclick="saveRow(\'' + k + '\')">Save</button>' +
+      '<button type="button" onclick="cancelEdit()">Cancel</button>' +
+    '</div></td></tr>';
+}
+
+function editRow(k) { cam.editing = k; renderReviewTable(); const el = document.getElementById('edit-value-' + k); if (el) el.focus(); }
+function cancelEdit() {
+  // a half-added manual row with no content is discarded on cancel
+  if (cam.editing && cam.rows[cam.editing] && cam.rows[cam.editing].source === 'manual' && !cam.rows[cam.editing].testName) delete cam.rows[cam.editing];
+  cam.editing = null; renderReviewTable();
+}
+function saveRow(k) {
+  const test = (document.getElementById('edit-test-' + k).value || '').trim();
+  const value = (document.getElementById('edit-value-' + k).value || '').trim();
+  const unit = (document.getElementById('edit-unit-' + k).value || '').trim();
+  const old = cam.rows[k];
+  const nr = makeRowFromParts(test, value, unit, old ? old.source : 'manual');
+  delete cam.rows[k];
+  const nk = rowKeyFor(nr);
+  nr.id = (old && old.id) || nr.id;
+  cam.rows[nk] = nr;
+  cam.editing = null;
+  renderReviewTable();
+}
+function deleteRow(k) {
+  delete cam.rows[k];
+  cam.dismissed[k] = true;             // tombstone so live scan won't re-add it
+  if (cam.editing === k) cam.editing = null;
+  renderReviewTable();
+}
+function addManualRow() {
+  const k = 'manual-' + (++cam.rowSeq);
+  cam.rows[k] = { id: k, testName: '', key: null, value: '', unit: '', referenceRange: '', flag: '', ocrConfidence: 100, needsReview: true, source: 'manual', locked: true };
+  cam.editing = k;
+  renderReviewTable();
+  const el = document.getElementById('edit-test-' + k); if (el) el.focus();
+}
+
+// Explicit confirm: write ONLY eligible rows into the existing fields + log,
+// then run the existing interpretation workflow. needsReview / unmapped rows
+// are never analysed.
+function confirmAndAnalyse() {
+  const eligible = eligibleRows();
+  if (!eligible.length) { camStatus('Add or correct at least one result before analysing.', true); return; }
+  eligible.forEach(function (r) {
+    const a = ANALYTES[r.key];
+    const manual = r.source === 'manual';
+    applyResolved(r.key, r.value + (manual ? ' (manual)' : ' (camera)'),
+      { unit: a.unit, value: Number(r.value), note: manual ? 'entered after camera scan' : 'read from camera' });
+    const entry = LOG.find(function (e) { return e.key === r.key; });
+    if (entry) entry.note += manual ? ' · checked manually' : ' · via camera scan';
+  });
   renderLog();
+  stopScan();
+  findPathways();   // the single existing interpretation path — no separate engine
 }
 
-function escapeHtml(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]; }); }
+function escapeAttr(s) { return escapeHtml(s).replace(/'/g, '&#39;'); }
 
 function stopScan() {
   cam.scanning = false;
   if (cam.timer) { clearTimeout(cam.timer); cam.timer = null; }
   if (cam.stream) { cam.stream.getTracks().forEach(function (t) { t.stop(); }); cam.stream = null; }
   if (cam.video) cam.video.srcObject = null;
-  cam.canvas = null; cam.busy = false; cam.stable = {};
+  cam.canvas = null; cam.busy = false;
+  cam.rows = {}; cam.dismissed = {}; cam.stable = {}; cam.editing = null;
   if (window.OcrService) OcrService.terminate();   // release worker + model
   document.getElementById('cam-panel').hidden = true;
-  document.getElementById('cam-detected').innerHTML = '';
+  document.getElementById('cam-tbody').innerHTML = '';
   document.querySelector('.scan-entry').style.display = '';
   document.getElementById('scan-btn').focus();
 }
