@@ -6,7 +6,7 @@
 <title>ResultDoctor — Enter results, find pathways</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
   --navy: #0B1C3D; --navy2: #162545;
@@ -19,6 +19,7 @@
   --text: #111827; --text2: #374151; --text3: #6B7280;
   --serif: 'DM Serif Display', Georgia, serif;
   --sans: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
   --radius: 12px; --radius-lg: 16px;
   --shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
 }
@@ -39,14 +40,36 @@ header { background: var(--navy); color: white; padding: 0 32px; height: 56px; d
 
 .page { max-width: 880px; margin: -28px auto 0; padding: 0 32px 32px; }
 
-/* RESULT ENTRY */
+/* ENTRY PANEL */
 .entry-panel { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: 24px; border: 1px solid var(--border); margin-bottom: 24px; }
 .entry-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 .entry-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text3); }
 .entry-hint { font-size: 12px; color: var(--text3); }
 
-.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin: 16px 0 10px; display: flex; align-items: center; gap: 8px; }
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+/* SEARCH BAR */
+.search-wrap { position: relative; margin-bottom: 8px; }
+.search-input { width: 100%; padding: 14px 16px 14px 44px; border: 1.5px solid var(--border2); border-radius: var(--radius); font-size: 15px; font-family: var(--sans); font-weight: 500; color: var(--text); background: white; }
+.search-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,89,204,.1); }
+.search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 16px; pointer-events: none; }
+.search-help { font-size: 11px; color: var(--text3); margin-bottom: 18px; padding-left: 2px; }
+.search-help code { font-family: var(--mono); background: var(--grey-lt); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; color: var(--text2); font-size: 11px; }
+
+/* PANELS (collapsible) */
+.panel { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; background: white; }
+.panel-head { display: flex; align-items: center; gap: 10px; padding: 13px 16px; cursor: pointer; user-select: none; }
+.panel-head:hover { background: var(--grey-lt); }
+.panel.open .panel-head { border-bottom: 1px solid var(--border); background: var(--blue-lt); }
+.panel-check { width: 18px; height: 18px; border: 1.5px solid var(--border2); border-radius: 5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; transition: all .12s; }
+.panel.open .panel-check { background: var(--blue); border-color: var(--blue); }
+.panel-check svg { opacity: 0; transition: opacity .12s; }
+.panel.open .panel-check svg { opacity: 1; }
+.panel-label { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+.panel-count { font-size: 11px; font-weight: 600; color: var(--blue); background: var(--blue-lt); border: 1px solid #BFDBFE; padding: 1px 8px; border-radius: 10px; }
+.panel.open .panel-count { background: white; }
+.panel-chevron { color: var(--text3); transition: transform .15s; font-size: 13px; }
+.panel.open .panel-chevron { transform: rotate(180deg); }
+.panel-body { display: none; padding: 16px; }
+.panel.open .panel-body { display: block; }
 
 .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
 .result-field { display: flex; flex-direction: column; gap: 4px; }
@@ -54,12 +77,40 @@ header { background: var(--navy); color: white; padding: 0 32px; height: 56px; d
 .result-unit { font-size: 10px; color: var(--text3); }
 .result-input { padding: 9px 11px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 14px; font-family: var(--sans); font-weight: 500; color: var(--text); background: white; width: 100%; }
 .result-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(24,89,204,.1); }
-.result-input:not(:placeholder-shown) { border-color: var(--blue); background: var(--blue-lt); }
+.result-input.filled { border-color: var(--blue); background: var(--blue-lt); }
+.result-input.warn { border-color: var(--amber); background: var(--amber-lt); }
 
+/* CONTEXT */
 .context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .ctx-q { display: flex; flex-direction: column; gap: 4px; }
 .ctx-q label { font-size: 12px; font-weight: 500; color: var(--text2); }
 .ctx-select { padding: 8px 10px; border: 1.5px solid var(--border2); border-radius: 8px; font-size: 13px; font-family: var(--sans); color: var(--text); background: white; }
+
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text3); margin: 22px 0 10px; display: flex; align-items: center; gap: 8px; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* INTERPRETATION LOG */
+.log-panel { border: 1px solid var(--border); border-radius: var(--radius); margin-top: 16px; background: var(--grey-lt); overflow: hidden; }
+.log-head { display: flex; align-items: center; gap: 8px; padding: 10px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text3); border-bottom: 1px solid var(--border); }
+.log-head .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.log-body { padding: 6px 14px 12px; }
+.log-empty { font-size: 12px; color: var(--text3); padding: 6px 0; }
+.log-entry { font-family: var(--mono); font-size: 12px; line-height: 1.5; padding: 5px 0; border-bottom: 1px dashed var(--border); display: flex; gap: 8px; align-items: baseline; }
+.log-entry:last-child { border-bottom: none; }
+.log-entry .raw { color: var(--text3); }
+.log-entry .arrow { color: var(--blue); }
+.log-entry .out { color: var(--text); font-weight: 500; }
+.log-entry.ok .tag { color: var(--green); }
+.log-entry.conv .tag { color: var(--blue); }
+.log-entry.warn .tag { color: var(--amber); }
+.log-entry .tag { font-weight: 500; white-space: nowrap; }
+
+/* AMBIGUITY PROMPT */
+.ambig { background: var(--amber-lt); border: 1px solid #FCD34D; border-radius: 8px; padding: 11px 13px; margin: 8px 0; }
+.ambig-q { font-size: 12px; font-weight: 600; color: var(--amber); margin-bottom: 8px; }
+.ambig-opts { display: flex; gap: 8px; flex-wrap: wrap; }
+.ambig-btn { font-family: var(--mono); font-size: 12px; padding: 6px 12px; border: 1.5px solid var(--border2); background: white; border-radius: 7px; cursor: pointer; color: var(--text); }
+.ambig-btn:hover { border-color: var(--blue); background: var(--blue-lt); color: var(--blue); }
 
 .analyse-btn { width: 100%; padding: 16px 24px; background: var(--blue); color: white; border: none; border-radius: var(--radius); font-size: 16px; font-weight: 600; font-family: var(--sans); cursor: pointer; margin-top: 24px; letter-spacing: -.01em; }
 .analyse-btn:hover { background: #1348B0; }
@@ -69,29 +120,23 @@ header { background: var(--navy); color: white; padding: 0 32px; height: 56px; d
 /* PATHWAY RESULTS */
 .routed-section { display: none; }
 .routed-section.show { display: block; }
-
 .routed-title { font-family: var(--serif); font-size: 24px; font-weight: 400; margin-bottom: 6px; letter-spacing: -.01em; }
 .routed-sub { font-size: 13px; color: var(--text3); margin-bottom: 18px; }
 
 .pathway-card { background: white; border: 1.5px solid var(--border); border-radius: var(--radius-lg); padding: 22px 24px; margin-bottom: 14px; box-shadow: var(--shadow); transition: all .15s; cursor: pointer; display: block; text-decoration: none; color: inherit; }
 .pathway-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,.08); }
 .pathway-card.triggered { border-color: var(--blue); background: linear-gradient(180deg, var(--blue-lt) 0%, white 30%); }
-.pathway-card.demo { border-color: #FECACA; }
 
 .pc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
 .pc-title { font-family: var(--serif); font-size: 22px; font-weight: 400; line-height: 1.25; color: var(--text); }
 .pc-badges { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
 .pc-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 12px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; }
 .pc-badge.live { background: var(--green-lt); color: var(--green); }
-.pc-badge.demo { background: #FEE2E2; color: var(--red); }
 .pc-badge.icb { background: var(--blue-lt); color: var(--blue); }
 .pc-badge.version { background: var(--grey-lt); color: var(--grey); }
-
 .pc-desc { font-size: 13px; color: var(--text2); line-height: 1.55; margin-bottom: 12px; }
-
 .pc-match { background: var(--blue-lt); border: 1px solid #BFDBFE; border-radius: 8px; padding: 9px 12px; font-size: 12px; color: var(--blue); display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .pc-match strong { font-weight: 600; }
-
 .pc-cta { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border); }
 .pc-cta-text { font-size: 12px; color: var(--text3); }
 .pc-cta-btn { font-size: 13px; font-weight: 600; color: var(--blue); display: flex; align-items: center; gap: 4px; }
@@ -131,7 +176,7 @@ footer strong { color: rgba(255,255,255,.7); }
     <span class="hero-tag">Result-first navigation</span>
     <h1 class="hero-title">Enter the results.<br>We'll find the pathway.</h1>
     <p class="hero-sub">
-      Type any blood results you have in front of you. ResultDoctor will surface every clinical pathway that applies, with the verbatim guideline text and flow diagram for each. <strong>Built from published NHS pathways</strong>, never from clinical inference.
+      Type results into the search box, or tick a test panel to open its fields. ResultDoctor surfaces every clinical pathway that applies. <strong>Built from published NHS pathways</strong>, never from clinical inference. Every value it reads is shown back to you.
     </p>
   </div>
 </div>
@@ -144,47 +189,51 @@ footer strong { color: rgba(255,255,255,.7); }
       <span class="entry-hint">Leave anything blank you don't have</span>
     </div>
 
-    <div class="section-label">LFTs (liver function)</div>
-    <div class="results-grid">
-      <div class="result-field"><div class="result-label">Bilirubin <span class="result-unit">µmol/L</span></div><input class="result-input" type="number" id="r-bili" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">ALT <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-alt" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">AST <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-ast" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">ALP <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-alp" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">GGT <span class="result-unit">IU/L</span></div><input class="result-input" type="number" id="r-ggt" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">Albumin <span class="result-unit">g/L</span></div><input class="result-input" type="number" id="r-alb" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">INR <span class="result-unit">ratio</span></div><input class="result-input" type="number" id="r-inr" placeholder="—" min="0" step="0.1" oninput="match()"></div>
+    <!-- SEARCH BAR -->
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search" type="text"
+             placeholder='Type a result, e.g. "alp 54"  or  "hb 14.3, plt 250"'
+             autocomplete="off"
+             onkeydown="if(event.key==='Enter'){event.preventDefault();runSearch();}">
+    </div>
+    <div class="search-help">
+      Enter <code>test value</code> pairs separated by commas. Units are inferred where unambiguous; you'll be asked to confirm only when a number could be in two unit systems. Press <strong>Enter</strong> to apply.
     </div>
 
-    <div class="section-label">FBC (full blood count)</div>
-    <div class="results-grid">
-      <div class="result-field"><div class="result-label">Haemoglobin <span class="result-unit">g/L</span></div><input class="result-input" type="number" id="r-hb" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">MCV <span class="result-unit">fL</span></div><input class="result-input" type="number" id="r-mcv" placeholder="—" min="0" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">WCC <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-wcc" placeholder="—" min="0" step="0.1" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">Neutrophils <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-neut" placeholder="—" min="0" step="0.1" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">Lymphocytes <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-lymph" placeholder="—" min="0" step="0.1" oninput="match()"></div>
-      <div class="result-field"><div class="result-label">Platelets <span class="result-unit">×10⁹/L</span></div><input class="result-input" type="number" id="r-plt" placeholder="—" min="0" oninput="match()"></div>
-    </div>
+    <!-- AMBIGUITY PROMPTS render here -->
+    <div id="ambig-zone"></div>
 
+    <!-- COLLAPSIBLE TEST PANELS -->
+    <div id="panels"></div>
+
+    <!-- CLINICAL CONTEXT -->
     <div class="section-label">Clinical context</div>
     <div class="context-grid">
       <div class="ctx-q"><label>Jaundice?</label>
-        <select class="ctx-select" id="c-jaundice" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes — clinically jaundiced</option><option value="no">No</option></select>
+        <select class="ctx-select" id="c-jaundice" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes — clinically jaundiced</option><option value="no">No</option></select>
       </div>
       <div class="ctx-q"><label>Weight loss?</label>
-        <select class="ctx-select" id="c-wtloss" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes — unexplained</option><option value="no">No</option></select>
+        <select class="ctx-select" id="c-wtloss" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes — unexplained</option><option value="no">No</option></select>
       </div>
       <div class="ctx-q"><label>Bleeding / petechiae?</label>
-        <select class="ctx-select" id="c-bleed" onchange="match()"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select>
+        <select class="ctx-select" id="c-bleed" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select>
       </div>
       <div class="ctx-q"><label>Alcohol</label>
-        <select class="ctx-select" id="c-alcohol" onchange="match()"><option value="">Not assessed</option><option value="high">&gt;14 units/week</option><option value="low">≤14 units/week</option></select>
+        <select class="ctx-select" id="c-alcohol" onchange="onInput()"><option value="">Not assessed</option><option value="high">&gt;14 units/week</option><option value="low">≤14 units/week</option></select>
       </div>
       <div class="ctx-q"><label>Patient identifier (optional)</label>
         <input class="ctx-select" type="text" id="c-patient" placeholder="e.g. NHS number">
       </div>
     </div>
 
-    <button class="analyse-btn" id="analyse-btn" onclick="findPathways()" disabled>Find pathways →</button>
+    <!-- INTERPRETATION LOG -->
+    <div class="log-panel">
+      <div class="log-head"><span class="dot"></span> Interpretation log — what the tool read</div>
+      <div class="log-body" id="log-body"><div class="log-empty">Nothing entered yet. Every value you enter (and any unit conversion) will be recorded here.</div></div>
+    </div>
+
+    <button class="analyse-btn" id="analyse-btn" onclick="findPathways()" disabled>Enter at least one result to continue</button>
     <span class="reset-link" onclick="resetAll()">Reset all</span>
   </div>
 
@@ -195,7 +244,7 @@ footer strong { color: rgba(255,255,255,.7); }
     <div id="pathway-list"></div>
   </div>
 
-  <!-- AVAILABLE PATHWAYS (always shown at bottom for browsing) -->
+  <!-- AVAILABLE PATHWAYS -->
   <div class="available-section">
     <div class="available-title">All available pathways</div>
     <div id="all-pathways"></div>
@@ -205,123 +254,375 @@ footer strong { color: rgba(255,255,255,.7); }
 
 <footer>
   <strong>ResultDoctor</strong> — Result-first navigation across published NHS clinical pathways. Each pathway reproduces its source guideline verbatim. This is not an NHS service. Supports clinical navigation and does not replace clinical judgement.<br>
-  Master prompt v3 · Pathway registry-driven router · Adding a new pathway = appending one JSON entry.
+  Registry-driven router · Config-driven analytes &amp; unit ranges (clinician sign-off required) · Adding a pathway or test = one config entry.
 </footer>
 
 <script>
-// ═══════════════════════════════════════════════════
-// PATHWAY REGISTRY
-// In production, this lives in pathways.json and is loaded.
-// Adding a new pathway = one entry. The router does NOT contain pathway logic.
-// ═══════════════════════════════════════════════════
-const PATHWAYS = [
-  {
-    id: 'nwl_lft',
-    title: 'Abnormal LFT',
-    icb: 'NW London',
-    version: 'V1.6 Oct 2019 / V1.4 Aug 2019',
-    status: 'live',
-    tool_path: 'lft.html',
-    description: 'Hepatic and cholestatic patterns, Gilbert\'s syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.',
-    trigger_results: ['r-bili', 'r-alt', 'r-ast', 'r-alp', 'r-ggt', 'r-alb', 'r-inr'],
-    trigger_context: ['c-jaundice', 'c-wtloss', 'c-alcohol'],
-    primary_pattern: 'Any abnormal LFT value or related clinical feature'
-  },
-  {
-    id: 'ncl_fbc',
-    title: 'Abnormal FBC',
-    icb: 'North Central London ICB',
-    version: 'Final Jan 2023 · Review Jan 2026',
-    status: 'live',
-    tool_path: 'fbc.html',
-    description: 'Anaemia (with MCV stratification, ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.',
-    trigger_results: ['r-hb', 'r-mcv', 'r-wcc', 'r-neut', 'r-lymph', 'r-plt'],
-    trigger_context: ['c-bleed'],
-    primary_pattern: 'Any abnormal FBC value'
-  },
-  {
-    id: 'nwl_anaemia',
-    title: 'NWL Anaemia',
-    icb: 'NW London ICB',
-    version: 'V1 · 9 July 2020',
-    status: 'live',
-    tool_path: 'nwl_anaemia.html',
-    description: 'Focused adult anaemia pathway — Hb <130 (M) / <114 (F), strict iron deficiency criteria (Hb low + MCV <83.5 + ferritin <10 F / <20 M), sex/menopausal-status GI investigation routing. Flow diagram highlights route taken.',
-    trigger_results: ['r-hb', 'r-mcv'],
-    trigger_context: [],
-    primary_pattern: 'Hb (anaemia trigger)'
-  },
-  {
-    id: 'ncl_iron_deficiency',
-    title: 'Adult Iron Deficiency',
-    icb: 'North Central London ICB',
-    version: 'Final Aug 2022',
-    status: 'live',
-    tool_path: 'iron_deficiency.html',
-    description: 'Adult iron deficiency primary care pathway — CV stability check, 2WW gastroenterology criteria, routine gastro referral routes, non-GI bleeding referral, iron replacement and follow-up. Flow diagram highlights route taken per rule.',
-    trigger_results: ['r-hb', 'r-mcv'],
-    trigger_context: [],
-    primary_pattern: 'Suspected iron deficiency'
-  }
+// ═══════════════════════════════════════════════════════════════════════
+//  ANALYTE CONFIG  —  EDITABLE · REQUIRES CLINICAL SIGN-OFF
+// ───────────────────────────────────────────────────────────────────────
+//  Each analyte declares:
+//    key        canonical short id (also the URL param carried to tools)
+//    label      display name
+//    unit       canonical unit (what pathway tools expect)
+//    aliases    accepted search terms (lowercase) for the search bar
+//    plausible  [lo, hi] plausible value range IN THE CANONICAL UNIT.
+//               Used ONLY to (a) disambiguate units and (b) gently warn —
+//               it does NOT make any clinical decision.
+//    step       input step for the number field
+//    alts       other unit systems a bare number might be in:
+//                 unit      label of the alternate unit
+//                 factor    multiply by this to convert -> canonical unit
+//                 plausible [lo, hi] plausible range IN THE ALTERNATE UNIT
+//
+//  Disambiguation rule (transparent, no hidden logic):
+//    Given a bare number x, collect every unit system whose plausible range
+//    contains x. If exactly one  -> use it silently. If more than one ->
+//    ASK the clinician. If none   -> accept as canonical but flag a warning.
+//
+//  ⚠ The ranges below are SENSIBLE DEFAULTS from common UK adult reference
+//    intervals, provided as a starting point. Review and sign off before
+//    clinical use.
+// ═══════════════════════════════════════════════════════════════════════
+const ANALYTES = {
+  // ---- LFTs ----
+  bili:  { label:'Bilirubin', unit:'µmol/L', step:'1',   aliases:['bili','bilirubin','tbil','t.bil'],
+           plausible:[1, 600],  alts:[{ unit:'mg/dL', factor:17.1, plausible:[0.1, 30] }] },
+  alt:   { label:'ALT',       unit:'IU/L',   step:'1',   aliases:['alt','sgpt'],
+           plausible:[1, 5000], alts:[] },
+  ast:   { label:'AST',       unit:'IU/L',   step:'1',   aliases:['ast','sgot'],
+           plausible:[1, 5000], alts:[] },
+  alp:   { label:'ALP',       unit:'IU/L',   step:'1',   aliases:['alp','alk phos','alkaline phosphatase','alkphos'],
+           plausible:[10, 2000], alts:[] },
+  ggt:   { label:'GGT',       unit:'IU/L',   step:'1',   aliases:['ggt','gammagt','gamma gt','gamma-gt'],
+           plausible:[5, 3000], alts:[] },
+  alb:   { label:'Albumin',   unit:'g/L',    step:'1',   aliases:['alb','albumin'],
+           plausible:[10, 60],  alts:[{ unit:'g/dL', factor:10, plausible:[1, 6] }] },
+  inr:   { label:'INR',       unit:'ratio',  step:'0.1', aliases:['inr'],
+           plausible:[0.8, 12], alts:[] },
+  // ---- FBC ----
+  hb:    { label:'Haemoglobin', unit:'g/L',  step:'1',   aliases:['hb','haemoglobin','hgb','hb.'],
+           plausible:[20, 250], alts:[{ unit:'g/dL', factor:10, plausible:[2, 25] }] },
+  mcv:   { label:'MCV',       unit:'fL',     step:'1',   aliases:['mcv'],
+           plausible:[50, 150], alts:[] },
+  wcc:   { label:'WCC',       unit:'×10⁹/L', step:'0.1', aliases:['wcc','wbc','white cell','white cells','white cell count'],
+           plausible:[0.1, 500], alts:[{ unit:'/µL', factor:0.001, plausible:[100, 500000] }] },
+  neut:  { label:'Neutrophils', unit:'×10⁹/L', step:'0.1', aliases:['neut','neutrophils','neutrophil','anc'],
+           plausible:[0.05, 100], alts:[{ unit:'/µL', factor:0.001, plausible:[50, 100000] }] },
+  lymph: { label:'Lymphocytes', unit:'×10⁹/L', step:'0.1', aliases:['lymph','lymphocytes','lymphocyte','lymphs'],
+           plausible:[0.05, 100], alts:[{ unit:'/µL', factor:0.001, plausible:[50, 100000] }] },
+  plt:   { label:'Platelets', unit:'×10⁹/L', step:'1',   aliases:['plt','platelets','platelet','plat'],
+           plausible:[5, 2000], alts:[{ unit:'/µL', factor:0.001, plausible:[5000, 2000000] }] }
+};
+
+// ───────────────────────────────────────────────────────────────────────
+//  PANEL CONFIG  —  grouping of analytes into collapsible test panels.
+//  Adding a new test group = one entry. Adding an analyte = one ANALYTES
+//  entry + its key listed in a panel.
+// ───────────────────────────────────────────────────────────────────────
+const PANELS = [
+  { id:'fbc', label:'FBC — full blood count', analytes:['hb','mcv','wcc','neut','lymph','plt'] },
+  { id:'lft', label:'LFTs — liver function',  analytes:['bili','alt','ast','alp','ggt','alb','inr'] }
 ];
 
-// Map of router input IDs to the corresponding tool's URL param keys
-const RESULT_TO_PARAM = {
-  'r-bili':'bili', 'r-alt':'alt', 'r-ast':'ast', 'r-alp':'alp', 'r-ggt':'ggt', 'r-alb':'alb', 'r-inr':'inr',
-  'r-hb':'hb', 'r-mcv':'mcv', 'r-wcc':'wcc', 'r-neut':'neut', 'r-lymph':'lymph', 'r-plt':'plt'
-};
-const CONTEXT_TO_PARAM = {
-  'c-jaundice':'jaundice', 'c-wtloss':'wtloss', 'c-bleed':'bleed', 'c-alcohol':'alcohol', 'c-patient':'patient'
-};
+// ───────────────────────────────────────────────────────────────────────
+//  PATHWAY REGISTRY  (mirrors pathways.json — trigger_results use analyte keys)
+//  Router matches variable NAMES only; it makes no clinical decisions.
+// ───────────────────────────────────────────────────────────────────────
+const PATHWAYS = [
+  { id:'nwl_lft', title:'Abnormal LFT', icb:'NW London', version:'V1.6 Oct 2019 / V1.4 Aug 2019',
+    status:'live', tool_path:'lft.html',
+    description:"Hepatic and cholestatic patterns, Gilbert's syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.",
+    trigger_results:['bili','alt','ast','alp','ggt','alb','inr'], trigger_context:['c-jaundice','c-wtloss','c-alcohol'] },
+  { id:'ncl_fbc', title:'Abnormal FBC', icb:'North Central London ICB', version:'Final Jan 2023 · Review Jan 2026',
+    status:'live', tool_path:'fbc.html',
+    description:'Anaemia (with MCV stratification, ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.',
+    trigger_results:['hb','mcv','wcc','neut','lymph','plt'], trigger_context:['c-bleed'] },
+  { id:'nwl_anaemia', title:'NWL Anaemia', icb:'NW London ICB', version:'V1 · 9 July 2020',
+    status:'live', tool_path:'nwl_anaemia.html',
+    description:'Focused adult anaemia pathway — Hb <130 (M) / <114 (F), strict iron deficiency criteria (Hb low + MCV <83.5 + ferritin <10 F / <20 M), sex/menopausal-status GI investigation routing. Flow diagram highlights route taken.',
+    trigger_results:['hb','mcv'], trigger_context:[] },
+  { id:'ncl_iron_deficiency', title:'Adult Iron Deficiency', icb:'North Central London ICB', version:'Final Aug 2022',
+    status:'live', tool_path:'iron_deficiency.html',
+    description:'Adult iron deficiency primary care pathway — CV stability check, 2WW gastroenterology criteria, routine gastro referral routes, non-GI bleeding referral, iron replacement and follow-up. Flow diagram highlights route taken per rule.',
+    trigger_results:['hb','mcv'], trigger_context:[] }
+];
 
-// ═══════════════════════════════════════════════════
-// MATCH — which pathways are triggered by current input?
-// ═══════════════════════════════════════════════════
-function val(id) { const v = (document.getElementById(id) || {}).value; return v == null || v === '' ? null : v; }
+const CONTEXT_TO_PARAM = { 'c-jaundice':'jaundice','c-wtloss':'wtloss','c-bleed':'bleed','c-alcohol':'alcohol','c-patient':'patient' };
 
+// ═══════════════════════════════════════════════════════════════════════
+//  STATE  —  interpretation log is the single source of truth of "what was read"
+// ═══════════════════════════════════════════════════════════════════════
+let LOG = [];   // [{ key, raw, value, unit, kind:'ok'|'conv'|'warn', note }]
+
+// ═══════════════════════════════════════════════════════════════════════
+//  UNIT RESOLVER  —  pure function, fully transparent
+//  Returns { candidates:[{unit,value,note}], status:'single'|'ambiguous'|'none' }
+//  value is always in the CANONICAL unit.
+// ═══════════════════════════════════════════════════════════════════════
+function inRange(x, [lo, hi]) { return x >= lo && x <= hi; }
+
+function resolveUnits(key, x) {
+  const a = ANALYTES[key];
+  const candidates = [];
+  if (inRange(x, a.plausible)) {
+    candidates.push({ unit:a.unit, value:x, note:`plausible as ${a.unit}` });
+  }
+  for (const alt of (a.alts || [])) {
+    if (inRange(x, alt.plausible)) {
+      candidates.push({ unit:alt.unit, value:+(x * alt.factor).toFixed(3),
+        note:`${x} ${alt.unit} → ${+(x*alt.factor).toFixed(3)} ${a.unit} (×${alt.factor})` });
+    }
+  }
+  let status = 'single';
+  if (candidates.length === 0) status = 'none';
+  else if (candidates.length > 1) status = 'ambiguous';
+  return { candidates, status };
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  RENDER PANELS
+// ═══════════════════════════════════════════════════════════════════════
+function fieldId(key) { return 'r-' + key; }
+
+function renderPanels() {
+  document.getElementById('panels').innerHTML = PANELS.map(panel => {
+    const fields = panel.analytes.map(key => {
+      const a = ANALYTES[key];
+      return `<div class="result-field">
+        <div class="result-label">${a.label} <span class="result-unit">${a.unit}</span></div>
+        <input class="result-input" type="number" id="${fieldId(key)}" data-key="${key}"
+               placeholder="—" step="${a.step}" oninput="onFieldInput('${key}')" onblur="onFieldBlur('${key}')">
+      </div>`;
+    }).join('');
+    return `<div class="panel" id="panel-${panel.id}">
+      <div class="panel-head" onclick="togglePanel('${panel.id}')">
+        <div class="panel-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2.5 6.2l2.3 2.3L9.6 3.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="panel-label">${panel.label}</span>
+        <span class="panel-count" id="count-${panel.id}" style="display:none">0</span>
+        <span class="panel-chevron">▾</span>
+      </div>
+      <div class="panel-body"><div class="results-grid">${fields}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function togglePanel(id) { document.getElementById('panel-' + id).classList.toggle('open'); }
+function openPanel(id)   { document.getElementById('panel-' + id).classList.add('open'); }
+function panelForKey(key){ return PANELS.find(p => p.analytes.includes(key)); }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  FIELD INPUT  —  direct entry uses the field's CANONICAL unit (shown on label).
+//  We still run a plausibility check and warn (never block) if the number looks
+//  like it was typed in a different unit system.
+// ═══════════════════════════════════════════════════════════════════════
+function onFieldInput(key) {
+  const el = document.getElementById(fieldId(key));
+  const raw = el.value.trim();
+  el.classList.remove('warn');
+  el.classList.toggle('filled', raw !== '');
+  // remove any prior log entry for this key sourced from the field
+  LOG = LOG.filter(e => e.key !== key);
+  if (raw === '') { renderLog(); onInput(); return; }
+  const x = parseFloat(raw);
+  const a = ANALYTES[key];
+  if (isNaN(x)) { renderLog(); onInput(); return; }
+  if (inRange(x, a.plausible)) {
+    LOG.push({ key, raw:`${raw} ${a.unit}`, value:x, unit:a.unit, kind:'ok', note:'entered directly' });
+  } else {
+    // is it plausible in an alternate unit? -> suggest, but keep their value
+    const alt = (a.alts || []).find(al => inRange(x, al.plausible));
+    if (alt) {
+      el.classList.add('warn');
+      const conv = +(x * alt.factor).toFixed(3);
+      LOG.push({ key, raw:`${raw} ${a.unit}`, value:x, unit:a.unit, kind:'warn',
+        note:`unusual for ${a.unit} — looks like ${alt.unit}? (would be ${conv} ${a.unit})` });
+    } else {
+      el.classList.add('warn');
+      LOG.push({ key, raw:`${raw} ${a.unit}`, value:x, unit:a.unit, kind:'warn',
+        note:`outside plausible range ${a.plausible[0]}–${a.plausible[1]} ${a.unit}` });
+    }
+  }
+  renderLog(); onInput();
+}
+function onFieldBlur(key) { /* hook reserved; logging already done on input */ }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  SEARCH BAR  —  parse "alp 54, hb 14.3" -> resolve units -> fill / ask
+// ═══════════════════════════════════════════════════════════════════════
+const ALIAS_INDEX = (() => {
+  const m = {};
+  for (const [key, a] of Object.entries(ANALYTES))
+    for (const al of a.aliases) m[al] = key;
+  return m;
+})();
+
+function lookupAlias(name) {
+  const n = name.toLowerCase().trim().replace(/\s+/g, ' ');
+  if (ALIAS_INDEX[n]) return ALIAS_INDEX[n];
+  // also allow no-space form e.g. "alkphos"
+  const ns = n.replace(/\s+/g, '');
+  for (const [al, key] of Object.entries(ALIAS_INDEX)) if (al.replace(/\s+/g,'') === ns) return key;
+  return null;
+}
+
+// Parse into tokens like {name, value}. Accepts comma / semicolon / newline separated,
+// each token "  alkaline phosphatase 54  " — last number is the value, rest is the name.
+function parseSearch(text) {
+  const tokens = text.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean);
+  const parsed = [];
+  for (const tok of tokens) {
+    const m = tok.match(/^(.*?)[\s:=]+(-?\d+(?:\.\d+)?)\s*$/);
+    if (!m) { parsed.push({ tok, error:'could not read "name value"' }); continue; }
+    const key = lookupAlias(m[1]);
+    if (!key) { parsed.push({ tok, error:`unknown test "${m[1].trim()}"` }); continue; }
+    parsed.push({ tok, key, x: parseFloat(m[2]) });
+  }
+  return parsed;
+}
+
+function runSearch() {
+  const text = document.getElementById('search').value;
+  if (!text.trim()) return;
+  const parsed = parseSearch(text);
+  clearAmbig();
+  const pending = [];
+  for (const p of parsed) {
+    if (p.error) {
+      LOG.push({ key:'_'+Math.random(), raw:p.tok, value:null, unit:'', kind:'warn', note:p.error });
+      continue;
+    }
+    const res = resolveUnits(p.key, p.x);
+    if (res.status === 'single') {
+      applyResolved(p.key, p.x, res.candidates[0]);
+    } else if (res.status === 'ambiguous') {
+      pending.push({ key:p.key, x:p.x, candidates:res.candidates });
+    } else { // none plausible — accept as canonical with warning
+      applyResolved(p.key, p.x, { unit:ANALYTES[p.key].unit, value:p.x,
+        note:`outside plausible range — stored as ${ANALYTES[p.key].unit}` }, 'warn');
+    }
+  }
+  if (pending.length) renderAmbig(pending);
+  document.getElementById('search').value = '';
+  renderLog(); onInput();
+}
+
+// Write a resolved value into its field + record in the log
+function applyResolved(key, raw, cand, forceKind) {
+  const a = ANALYTES[key];
+  const panel = panelForKey(key);
+  if (panel) openPanel(panel.id);
+  const el = document.getElementById(fieldId(key));
+  el.value = cand.value;
+  el.classList.add('filled'); el.classList.remove('warn');
+  LOG = LOG.filter(e => e.key !== key);
+  const converted = cand.unit !== a.unit;
+  const kind = forceKind || (converted ? 'conv' : 'ok');
+  if (kind === 'warn') el.classList.add('warn');
+  LOG.push({ key, raw:`${raw}`, value:cand.value, unit:a.unit, kind,
+    note: converted ? cand.note : (forceKind === 'warn' ? cand.note : `read as ${a.unit}`) });
+  updateCounts();
+}
+
+// ── Ambiguity prompt ─────────────────────────────────────────────────
+function renderAmbig(pending) {
+  document.getElementById('ambig-zone').innerHTML = pending.map((p, i) => {
+    const a = ANALYTES[p.key];
+    const opts = p.candidates.map((c, j) =>
+      `<button class="ambig-btn" onclick="chooseAmbig(${i},${j})">${p.x} ${c.unit}${c.unit!==a.unit?` → ${c.value} ${a.unit}`:''}</button>`
+    ).join('');
+    return `<div class="ambig" id="ambig-${i}">
+      <div class="ambig-q">⚠ "${a.label} ${p.x}" — which units? This value is plausible in more than one system.</div>
+      <div class="ambig-opts">${opts}</div></div>`;
+  }).join('');
+  window._pendingAmbig = pending;
+}
+function chooseAmbig(i, j) {
+  const p = window._pendingAmbig[i];
+  applyResolved(p.key, p.x, p.candidates[j]);
+  document.getElementById('ambig-' + i).remove();
+  renderLog(); onInput();
+}
+function clearAmbig() { document.getElementById('ambig-zone').innerHTML = ''; window._pendingAmbig = []; }
+
+// ═══════════════════════════════════════════════════════════════════════
+//  INTERPRETATION LOG render
+// ═══════════════════════════════════════════════════════════════════════
+function renderLog() {
+  const body = document.getElementById('log-body');
+  const entries = LOG.filter(e => e.raw);
+  if (!entries.length) {
+    body.innerHTML = '<div class="log-empty">Nothing entered yet. Every value you enter (and any unit conversion) will be recorded here.</div>';
+    return;
+  }
+  body.innerHTML = entries.map(e => {
+    const a = ANALYTES[e.key];
+    const name = a ? a.label : '—';
+    const tag = e.kind === 'ok' ? '✓' : e.kind === 'conv' ? '⇄' : '⚠';
+    const out = e.value != null ? `<span class="out">${name} = ${e.value} ${e.unit}</span>` : `<span class="out">${name}</span>`;
+    return `<div class="log-entry ${e.kind}">
+      <span class="tag">${tag}</span>
+      <span class="raw">${e.raw}</span>
+      <span class="arrow">→</span>
+      ${out}
+      <span class="raw">· ${e.note}</span>
+    </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  COUNTS + ENABLE STATE
+// ═══════════════════════════════════════════════════════════════════════
+function val(id) { const el = document.getElementById(id); const v = el ? el.value : ''; return v == null || v === '' ? null : v; }
+
+function updateCounts() {
+  PANELS.forEach(panel => {
+    const n = panel.analytes.filter(k => val(fieldId(k)) !== null).length;
+    const badge = document.getElementById('count-' + panel.id);
+    badge.textContent = n; badge.style.display = n ? 'inline-block' : 'none';
+  });
+}
+
+function anyInput() {
+  const anyResult = Object.keys(ANALYTES).some(k => val(fieldId(k)) !== null);
+  const anyCtx = Object.keys(CONTEXT_TO_PARAM).some(id => val(id) !== null);
+  return anyResult || anyCtx;
+}
+
+function onInput() {
+  updateCounts();
+  const ok = anyInput();
+  const btn = document.getElementById('analyse-btn');
+  btn.disabled = !ok;
+  btn.textContent = ok ? 'Find pathways →' : 'Enter at least one result to continue';
+  if (!ok) document.getElementById('routed').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  ROUTING  (unchanged logic — match by variable name only)
+// ═══════════════════════════════════════════════════════════════════════
 function pathwayTriggered(p) {
-  // Triggered if any of its trigger_results have a value, OR any of its trigger_context is non-empty
-  for (const r of p.trigger_results) if (val(r) !== null) return true;
+  for (const k of p.trigger_results) if (val(fieldId(k)) !== null) return true;
   for (const c of p.trigger_context) if (val(c) !== null) return true;
   return false;
 }
-
 function matchedFields(p) {
-  const results = p.trigger_results.filter(r => val(r) !== null);
-  const ctx = p.trigger_context.filter(c => val(c) !== null);
-  return { results, ctx };
+  return { results: p.trigger_results.filter(k => val(fieldId(k)) !== null),
+           ctx: p.trigger_context.filter(c => val(c) !== null) };
 }
 
-function match() {
-  const anyInput = Object.keys(RESULT_TO_PARAM).some(id => val(id) !== null)
-                || Object.keys(CONTEXT_TO_PARAM).some(id => val(id) !== null);
-  document.getElementById('analyse-btn').disabled = !anyInput;
-  document.getElementById('analyse-btn').textContent = anyInput ? 'Find pathways →' : 'Enter at least one result to continue';
-  if (!anyInput) {
-    document.getElementById('routed').classList.remove('show');
-  }
+function buildPayload() {
+  const payload = {};
+  Object.keys(ANALYTES).forEach(k => { const v = val(fieldId(k)); if (v !== null) payload[k] = v; });
+  Object.entries(CONTEXT_TO_PARAM).forEach(([id, key]) => { const v = val(id); if (v !== null) payload[key] = v; });
+  return payload;
 }
+function buildQueryString() { return new URLSearchParams(buildPayload()).toString(); }
 
-function resetAll() {
-  ['r-bili','r-alt','r-ast','r-alp','r-ggt','r-alb','r-inr','r-hb','r-mcv','r-wcc','r-neut','r-lymph','r-plt'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
-  ['c-jaundice','c-wtloss','c-bleed','c-alcohol'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.selectedIndex = 0;
-  });
-  const pi = document.getElementById('c-patient'); if (pi) pi.value = '';
-  document.getElementById('routed').classList.remove('show');
-  match();
-}
-
-// ═══════════════════════════════════════════════════
-// FIND PATHWAYS — runs when user clicks Analyse
-// ═══════════════════════════════════════════════════
 function findPathways() {
   const triggered = PATHWAYS.filter(pathwayTriggered);
   const routed = document.getElementById('routed');
   const list = document.getElementById('pathway-list');
-
   if (triggered.length === 0) {
     list.innerHTML = `<div class="no-match">
       <div class="no-match-title">No pathway matched these results</div>
@@ -330,60 +631,27 @@ function findPathways() {
     document.getElementById('routed-title').textContent = 'No pathway triggered';
     document.getElementById('routed-sub').textContent = 'Try entering different results or check the available pathways below.';
   } else {
-    document.getElementById('routed-title').textContent = triggered.length === 1
-      ? '1 pathway triggered'
-      : `${triggered.length} pathways triggered`;
+    document.getElementById('routed-title').textContent = triggered.length === 1 ? '1 pathway triggered' : `${triggered.length} pathways triggered`;
     document.getElementById('routed-sub').textContent = 'Click any pathway to see the full analysis with your results carried through.';
     list.innerHTML = triggered.map(p => renderCard(p, true)).join('');
   }
   routed.classList.add('show');
-
-  // Save current results to sessionStorage so the pathway tools can read them
-  saveResultsToSession();
-
-  routed.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  sessionStorage.setItem('resultdoctor_results', JSON.stringify(buildPayload()));
+  routed.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-function saveResultsToSession() {
-  const payload = {};
-  Object.entries(RESULT_TO_PARAM).forEach(([id, key]) => {
-    const v = val(id); if (v !== null) payload[key] = v;
-  });
-  Object.entries(CONTEXT_TO_PARAM).forEach(([id, key]) => {
-    const v = val(id); if (v !== null) payload[key] = v;
-  });
-  sessionStorage.setItem('resultdoctor_results', JSON.stringify(payload));
-}
-
-function buildQueryString() {
-  const params = new URLSearchParams();
-  Object.entries(RESULT_TO_PARAM).forEach(([id, key]) => {
-    const v = val(id); if (v !== null) params.set(key, v);
-  });
-  Object.entries(CONTEXT_TO_PARAM).forEach(([id, key]) => {
-    const v = val(id); if (v !== null) params.set(key, v);
-  });
-  return params.toString();
-}
-
-// ═══════════════════════════════════════════════════
-// RENDER PATHWAY CARDS
-// ═══════════════════════════════════════════════════
 function renderCard(p, isTriggered) {
   const matched = matchedFields(p);
   const matchSummary = isTriggered ?
-    `<div class="pc-match">📍 <strong>Matched</strong> by ${matched.results.length} result${matched.results.length === 1 ? '' : 's'}${matched.ctx.length ? ` + ${matched.ctx.length} context flag${matched.ctx.length === 1 ? '' : 's'}` : ''}</div>` : '';
-
+    `<div class="pc-match">📍 <strong>Matched</strong> by ${matched.results.length} result${matched.results.length===1?'':'s'}${matched.ctx.length?` + ${matched.ctx.length} context flag${matched.ctx.length===1?'':'s'}`:''}</div>` : '';
   const qs = isTriggered ? '?' + buildQueryString() : '';
   const url = p.tool_path + qs;
-  const cardClass = `pathway-card ${isTriggered ? 'triggered' : ''} ${p.status === 'demo' ? 'demo' : ''}`;
-
-  return `
-    <a href="${url}" class="${cardClass}">
+  const cardClass = `pathway-card ${isTriggered ? 'triggered' : ''}`;
+  return `<a href="${url}" class="${cardClass}">
       <div class="pc-head">
         <div class="pc-title">${p.title}</div>
         <div class="pc-badges">
-          ${p.status === 'live' ? '<span class="pc-badge live">Live</span>' : '<span class="pc-badge demo">⚠ Demo</span>'}
+          <span class="pc-badge live">Live</span>
           <span class="pc-badge icb">${p.icb}</span>
           <span class="pc-badge version">${p.version}</span>
         </div>
@@ -397,14 +665,24 @@ function renderCard(p, isTriggered) {
     </a>`;
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER ALL PATHWAYS (always-visible browse list)
-// ═══════════════════════════════════════════════════
 function renderAllPathways() {
   document.getElementById('all-pathways').innerHTML = PATHWAYS.map(p => renderCard(p, false)).join('');
 }
+
+function resetAll() {
+  Object.keys(ANALYTES).forEach(k => { const el = document.getElementById(fieldId(k)); if (el){ el.value=''; el.classList.remove('filled','warn'); } });
+  ['c-jaundice','c-wtloss','c-bleed','c-alcohol'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
+  const pi = document.getElementById('c-patient'); if (pi) pi.value = '';
+  LOG = []; clearAmbig(); renderLog();
+  document.getElementById('routed').classList.remove('show');
+  onInput();
+}
+
+// ── init ──
+renderPanels();
 renderAllPathways();
-match();
+renderLog();
+onInput();
 </script>
 </body>
 </html>
