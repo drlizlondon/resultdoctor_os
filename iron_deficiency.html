@@ -126,6 +126,29 @@ select.ctx-select{width:100%;padding:8px 12px;border:1.5px solid #e0e4ef;border-
 .flow-toggle{background:#0B1C3D;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif}
 #flow-svg-wrap{display:none;margin-top:16px;overflow-x:auto}
 
+/* Shared pathway-diagram renderer classes (same highlight behaviour as LFT/anaemia).
+   Fill classes keep this pathway's own category colours so its diagram stays recognisable. */
+.fn-box{fill:#fff;stroke:#CBD5E1;stroke-width:1.5;transition:all .35s}
+.fn-box.gp-fill{fill:#EFF6FF;stroke:#3b82f6;stroke-width:2}
+.fn-box.urgent-fill{fill:#FEF2F2;stroke:#ef4444;stroke-width:2}
+.fn-box.tww-fill{fill:#FFF7ED;stroke:#f97316;stroke-width:2}
+.fn-box.refer-fill{fill:#FAF5FF;stroke:#8b5cf6;stroke-width:2}
+.fn-box.monitor-fill{fill:#ECFDF5;stroke:#22c55e;stroke-width:2}
+.fn-box.check-fill{fill:#F8FAFC;stroke:#94a3b8;stroke-width:2}
+.fn-box.active{stroke-width:3.5;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18))}
+.fn-box.dimmed{opacity:.25}
+.fn-text{font-family:'DM Sans',sans-serif;font-size:11px;fill:#111827;pointer-events:none}
+.fn-text.dimmed{opacity:.4}
+.fn-text-bold{font-weight:600}
+.fn-arrow{stroke:#94A3B8;stroke-width:1.5;fill:none}
+.fn-arrow.active{stroke:#1859CC;stroke-width:2.5}
+.fn-arrow.dimmed{opacity:.2}
+.fn-label{font-family:'DM Sans',sans-serif;font-size:9px;fill:#6B7280;pointer-events:none}
+.fn-label.dimmed{opacity:.4}
+.fn-rect-step{font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;fill:#6B7280;pointer-events:none}
+.fn-rect-step.active{fill:#1859CC}
+.flow-diagram-svg svg{display:block;max-width:100%;height:auto}
+
 /* Secondary cards */
 .secondary-card{background:#fff;border-radius:12px;border:0.5px solid #e0e4ef;margin-bottom:10px;overflow:hidden}
 .secondary-header{display:flex;align-items:center;gap:8px;padding:12px 16px;cursor:pointer;background:#fafbfc}
@@ -403,7 +426,7 @@ select.ctx-select{width:100%;padding:8px 12px;border:1.5px solid #e0e4ef;border-
     <!-- Flow diagram -->
     <div id="flow-panel">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;font-weight:600;color:#0B1C3D">📍 Your path through the pathway</span>
+        <span style="font-size:14px;font-weight:700;letter-spacing:.08em;color:#6B7280">YOUR PATH THROUGH THE PATHWAY</span>
         <button class="flow-toggle" onclick="toggleFlow()">Show diagram</button>
       </div>
       <div id="flow-svg-wrap"></div>
@@ -429,6 +452,8 @@ select.ctx-select{width:100%;padding:8px 12px;border:1.5px solid #e0e4ef;border-
   </div>
 </div>
 
+<!-- Shared pathway-diagram renderer (zero-build) -->
+<script src="pathwayDiagram.js"></script>
 <script>
 let currentMode = 'clinician';
 let currentResult = null;
@@ -925,73 +950,16 @@ function buildFlowDiagram(activeNodes, activeEdges) {
     {from:'response', to:'no_improve', label:'no'}
   ];
 
-  const aN = new Set(activeNodes || []);
-  const aE = new Set(activeEdges || []);
-  const anyActive = (activeNodes && activeNodes.length > 0);
-
-  const catColour = {
-    gp:'#3b82f6', urgent:'#ef4444', tww:'#f97316', refer:'#8b5cf6',
-    monitor:'#22c55e', check:'#94a3b8'
-  };
-
-  // Build node lookup for edge endpoint calculation
-  const nodeMap = {};
-  nodes.forEach(nd => { nodeMap[nd.id] = nd; });
-
-  // Render edges first (so nodes layer on top)
-  let svgEdges = edges.map(e => {
-    const f = nodeMap[e.from], t = nodeMap[e.to];
-    if (!f || !t) return '';
-    const edgeKey = e.from + '->' + e.to;
-    const active = aE.has(edgeKey);
-    const dimmed = anyActive && !active;
-    const stroke = active ? '#1859CC' : '#94a3b8';
-    const strokeW = active ? 2.5 : 1.5;
-    const opacity = dimmed ? 0.2 : 1;
-    const marker = active ? 'url(#arrow-active)' : 'url(#arrow)';
-    // Decide path: horizontal-vertical-horizontal for non-aligned nodes
-    const x1 = f.x + f.w/2, y1 = f.y + f.h;
-    const x2 = t.x + t.w/2, y2 = t.y;
-    const midY = (y1 + y2) / 2;
-    const path = `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
-    let labelText = '';
-    if (e.label) {
-      const lblX = (x1 + x2) / 2;
-      const lblY = midY - 4;
-      const lblColour = active ? '#1859CC' : '#94a3b8';
-      labelText = `<text x="${lblX}" y="${lblY}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="10" fill="${lblColour}" font-weight="${active?'600':'400'}" opacity="${opacity}">${e.label}</text>`;
-    }
-    return `<path d="${path}" fill="none" stroke="${stroke}" stroke-width="${strokeW}" marker-end="${marker}" opacity="${opacity}"/>${labelText}`;
-  }).join('');
-
-  // Render nodes
-  let svgNodes = nodes.map(nd => {
-    const isActive = aN.has(nd.id);
-    const dimmed = anyActive && !isActive;
-    const col = catColour[nd.cat] || '#94a3b8';
-    const fill = isActive ? col : '#f1f5f9';
-    const stroke = isActive ? col : '#e2e8f0';
-    const strokeW = isActive ? 3.5 : 1;
-    const textCol = isActive ? '#fff' : '#94a3b8';
-    const opacity = dimmed ? 0.25 : 1;
-    const lines = nd.label.split('\n');
-    const textY = nd.y + nd.h/2 - (lines.length-1)*8 + 4;
-    const linesHTML = lines.map((l,i) => `<tspan x="${nd.x+nd.w/2}" dy="${i===0?0:14}">${l}</tspan>`).join('');
-    return `<g opacity="${opacity}">
-      <rect x="${nd.x}" y="${nd.y}" width="${nd.w}" height="${nd.h}" rx="8" fill="${fill}" stroke="${stroke}" stroke-width="${strokeW}" ${isActive ? 'filter="url(#shadow)"' : ''}/>
-      <text x="${nd.x+nd.w/2}" y="${textY}" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="11" font-weight="${isActive?'600':'400'}" fill="${textCol}">${linesHTML}</text>
-    </g>`;
-  }).join('');
-
-  wrap.innerHTML = `<svg viewBox="0 0 800 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:780px">
-    <defs>
-      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker>
-      <marker id="arrow-active" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1859CC"/></marker>
-      <filter id="shadow"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.18"/></filter>
-    </defs>
-    ${svgEdges}
-    ${svgNodes}
-  </svg>`;
+  // Adapt this pathway's own diagram data to the shared renderer's node shape
+  // (label -> text, cat -> <cat>-fill class) and delegate to pathwayDiagram.js,
+  // so iron deficiency highlights its route the same way LFT and anaemia do.
+  const sharedNodes = {};
+  nodes.forEach(function (nd) {
+    sharedNodes[nd.id] = { x: nd.x, y: nd.y, w: nd.w, h: nd.h, text: nd.label, cls: nd.cat + '-fill' };
+  });
+  wrap.innerHTML = '<div class="flow-diagram-svg">' +
+    PathwayDiagram.renderPathwayDiagram(sharedNodes, edges, activeNodes, activeEdges, { viewBox: '0 0 800 640' }) +
+    '</div>';
 }
 
 function toggleFlow() {

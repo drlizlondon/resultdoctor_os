@@ -16,6 +16,9 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 | `bloodResultParser.js` | OCR-independent parser: turns text into structured result rows. No camera/DOM/OCR dependency; unit tested directly |
 | `ocrService.js` | OCR abstraction layer (Tesseract.js, on-device). The only module that touches the OCR engine |
 | `tests/bloodResultParser.test.js` | Parser + safety-gate unit tests. Run with `node tests/bloodResultParser.test.js` (no framework, no install) |
+| `pathwayDiagram.js` | **Shared pathway-diagram renderer + highlight**, extracted verbatim from the NWL LFT pathway. Draws any pathway's diagram with the patient's route highlighted and the rest dimmed. Used by every pathway page |
+| `pathwayLft.js` | NWL LFT diagram data (`LFT_FLOW_NODES`/`LFT_FLOW_EDGES`) + `lftActivePath(d)` — the reference rules, extracted so they are reusable and unit tested |
+| `tests/pathwayDiagram.test.js` | Diagram/highlight tests: LFT regression, reuse by another pathway, rules→steps mapping, route changes with inputs |
 | `PATHWAY_RULE_ENGINE_MASTER_PROMPT_v3.md` | The master prompt for adding more pathways |
 
 ## Camera scan (live mode)
@@ -50,15 +53,17 @@ The router does NOT make clinical decisions. It only matches variable names. All
 
 Both surface when Hb is entered. Clinician picks.
 
-## Flow diagram with path highlighting
+## Flow diagram with path highlighting ("YOUR PATH THROUGH THE PATHWAY")
 
-Both LFT and NWL Anaemia tools have an SVG flow diagram that **highlights the route taken** based on the specific results entered:
+The LFT, NWL Anaemia and Iron Deficiency tools each show their source pathway diagram and **highlight the route taken** based on the specific results entered:
 - Active path: NHS blue, thicker stroke, drop shadow
 - Not taken: dimmed to 25% opacity
 - Decision points + referral destinations colour-coded
-- Clinician can see at a glance *why* the engine arrived at this recommendation
+- Section labelled **YOUR PATH THROUGH THE PATHWAY** on every pathway page
 
-This is the standout feature of the toolkit. The NCL FBC tool doesn't have it yet because that pathway is actually 12 separate sub-flowcharts in the PDF (one per cell line) — would need careful design to consolidate. On the list.
+This behaviour originated in the NWL LFT pathway (the reference). It has been **extracted into one shared renderer** (`pathwayDiagram.js`) so every pathway repeats it identically: each pathway keeps its own diagram data (`FLOW_NODES`/`FLOW_EDGES`) and its own clinical logic (which produces the active node/edge sets), and hands both to the shared renderer. There is no separate diagram engine per pathway. Adding a future pathway = define its nodes/edges, produce its active path, call `PathwayDiagram.renderPathwayDiagram(...)`.
+
+The NCL FBC tool doesn't have a diagram yet because that pathway is actually 12 separate sub-flowcharts in the PDF (one per cell line) — would need careful design to consolidate. On the list.
 
 ## How to add a new pathway
 
