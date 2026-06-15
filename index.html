@@ -240,7 +240,7 @@ footer strong { color: rgba(255,255,255,.7); }
 
   <div class="entry-panel">
     <div class="entry-head">
-      <span class="entry-title">Enter results &amp; context</span>
+      <span class="entry-title">Enter results</span>
       <span class="entry-hint">Leave anything blank you don't have</span>
     </div>
 
@@ -303,25 +303,9 @@ footer strong { color: rgba(255,255,255,.7); }
     <!-- COLLAPSIBLE TEST PANELS -->
     <div id="panels"></div>
 
-    <!-- CLINICAL CONTEXT -->
-    <div class="section-label">Clinical context</div>
-    <div class="context-grid">
-      <div class="ctx-q"><label>Jaundice?</label>
-        <select class="ctx-select" id="c-jaundice" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes — clinically jaundiced</option><option value="no">No</option></select>
-      </div>
-      <div class="ctx-q"><label>Weight loss?</label>
-        <select class="ctx-select" id="c-wtloss" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes — unexplained</option><option value="no">No</option></select>
-      </div>
-      <div class="ctx-q"><label>Bleeding / petechiae?</label>
-        <select class="ctx-select" id="c-bleed" onchange="onInput()"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select>
-      </div>
-      <div class="ctx-q"><label>Alcohol</label>
-        <select class="ctx-select" id="c-alcohol" onchange="onInput()"><option value="">Not assessed</option><option value="high">&gt;14 units/week</option><option value="low">≤14 units/week</option></select>
-      </div>
-      <div class="ctx-q"><label>Patient identifier (optional)</label>
-        <input class="ctx-select" type="text" id="c-patient" placeholder="e.g. NHS number">
-      </div>
-    </div>
+    <!-- Pathway-specific clinical context (jaundice, weight loss, bleeding,
+         alcohol, etc.) is NOT collected here. The homepage is result-first:
+         it routes on results, then each pathway tool asks its own context. -->
 
     <!-- INTERPRETATION LOG -->
     <div class="log-panel">
@@ -370,11 +354,11 @@ const PATHWAYS = [
   { id:'nwl_lft', title:'Abnormal LFT', icb:'NW London', version:'V1.6 Oct 2019 / V1.4 Aug 2019',
     status:'live', tool_path:'lft.html',
     description:"Hepatic and cholestatic patterns, Gilbert's syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.",
-    trigger_results:['bili','alt','ast','alp','ggt','alb','inr'], trigger_context:['c-jaundice','c-wtloss','c-alcohol'] },
+    trigger_results:['bili','alt','ast','alp','ggt','alb','inr'], trigger_context:[] },
   { id:'ncl_fbc', title:'Abnormal FBC', icb:'North Central London ICB', version:'Final Jan 2023 · Review Jan 2026',
     status:'live', tool_path:'fbc.html',
     description:'Anaemia (with MCV stratification, ferritin/B12/folate branching), polycythaemia, macrocytosis, neutropenia, neutrophilia, lymphopenia, lymphocytosis, eosinophilia, monocytosis, thrombocytosis, thrombocytopenia.',
-    trigger_results:['hb','mcv','wcc','neut','lymph','plt'], trigger_context:['c-bleed'] },
+    trigger_results:['hb','mcv','wcc','neut','lymph','plt'], trigger_context:[] },
   { id:'nwl_anaemia', title:'NWL Anaemia', icb:'NW London ICB', version:'V1 · 9 July 2020',
     status:'live', tool_path:'nwl_anaemia.html',
     description:'Focused adult anaemia pathway — Hb <130 (M) / <114 (F), strict iron deficiency criteria (Hb low + MCV <83.5 + ferritin <10 F / <20 M), sex/menopausal-status GI investigation routing. Flow diagram highlights route taken.',
@@ -385,7 +369,9 @@ const PATHWAYS = [
     trigger_results:['hb','mcv'], trigger_context:[] }
 ];
 
-const CONTEXT_TO_PARAM = { 'c-jaundice':'jaundice','c-wtloss':'wtloss','c-bleed':'bleed','c-alcohol':'alcohol','c-patient':'patient' };
+// Homepage is result-first and collects no clinical context — each pathway tool
+// asks its own context. Kept as an empty map so the routing/payload code is unchanged.
+const CONTEXT_TO_PARAM = {};
 
 // ═══════════════════════════════════════════════════════════════════════
 //  STATE  —  interpretation log is the single source of truth of "what was read"
@@ -708,8 +694,6 @@ function renderAllPathways() {
 
 function resetAll() {
   Object.keys(ANALYTES).forEach(k => { const el = document.getElementById(fieldId(k)); if (el){ el.value=''; el.classList.remove('filled','warn'); } });
-  ['c-jaundice','c-wtloss','c-bleed','c-alcohol'].forEach(id => { const el = document.getElementById(id); if (el) el.selectedIndex = 0; });
-  const pi = document.getElementById('c-patient'); if (pi) pi.value = '';
   LOG = []; clearAmbig(); renderLog();
   document.getElementById('routed').classList.remove('show');
   onInput();
