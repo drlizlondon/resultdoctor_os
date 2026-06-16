@@ -19,6 +19,30 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 | `pathwayDiagram.js` | **Shared pathway-diagram renderer + highlight**, extracted verbatim from the NWL LFT pathway. Draws any pathway's diagram with the patient's route highlighted and the rest dimmed. Used by every pathway page |
 | `pathwayLft.js` | NWL LFT diagram data (`LFT_FLOW_NODES`/`LFT_FLOW_EDGES`) + `lftActivePath(d)` — the reference rules, extracted so they are reusable and unit tested |
 | `tests/pathwayDiagram.test.js` | Diagram/highlight tests: LFT regression, reuse by another pathway, rules→steps mapping, route changes with inputs |
+| `pathwayAdmin.js` | **Master admin engine** — the shared, passcode-gated editing engine reused by every pathway admin page (editable normal ranges + threshold bands, working copy, Change Log, reset-to-master). Master data is never mutated |
+| `tests/pathwayAdmin.test.js` | Admin engine tests: working-copy isolation, change log, band add/remove, reset, passcode gate |
+
+## Master admin engine (every pathway)
+
+The admin editing capability — set/edit normal ranges and threshold bands, with a working copy, Change Log, reset-to-master and a passcode gate — is a single shared engine in `pathwayAdmin.js` (`PathwayAdmin`). It is **not** copied per pathway. `lft_admin.html` is the reference consumer.
+
+Adding it to any pathway admin page is one step:
+
+```html
+<script src="pathwayAdmin.js"></script>
+<script>
+  PathwayAdmin.config({
+    pin: '2468',                                  // client-side gate only (not real security)
+    pages: [{ prefix:'', vars: VARS }],           // this pathway's variable definitions
+    dom: { grid:'var-grid', changes:'changes-container',
+           btnMaster:'btn-m', btnWorking:'btn-w', notice:'edit-notice' },
+    onModeChange: m => { /* re-render this page's rules/gaps for master/working */ }
+  });
+  PathwayAdmin.renderVars();
+</script>
+```
+
+A variable is `{ code, full, type, unit, normalHigh, low, thresholds:[{l,c}], note?, ctx? }`. The engine owns all editing; the page only supplies data. Every new pathway inherits the same controls by configuring the engine.
 | `PATHWAY_RULE_ENGINE_MASTER_PROMPT_v3.md` | The master prompt for adding more pathways |
 
 ## Camera scan (live mode)

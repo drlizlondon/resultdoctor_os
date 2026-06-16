@@ -514,6 +514,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 </div><!-- /main -->
 </div><!-- /shell -->
 
+<!-- Shared ResultDoctor master admin engine (editable thresholds/bands,
+     working copy, Change Log, passcode gate). Reused by every pathway admin. -->
+<script src="pathwayAdmin.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 // DATA
@@ -958,38 +961,31 @@ const GAPS_MASTER = [
 ];
 
 // ── STATE ─────────────────────────────────────
+// The variable/threshold editing engine — working copy, Change Log, passcode
+// gate and band editing — is the shared ResultDoctor master admin engine in
+// pathwayAdmin.js (PathwayAdmin). This page only supplies its data, rules and
+// gaps. `mode` here mirrors PathwayAdmin.mode (kept in sync via onModeChange)
+// so the rules/gaps editors can read it.
 let mode = 'master';
 let varPage = 1;
 let rulePage = 1;
 let ruleFilter = 'all';
 let gapFilter = 'all';
-let wv = {};
 let adminOutputs = {};
-let gapsState = JSON.parse(JSON.stringify(GAPS_MASTER)); // working copy
-let changes = [];
-
-// ── Admin edit gate ───────────────────────────────────────────────────
-// Passcode required before Working mode unlocks. This is a CLIENT-SIDE gate
-// only — it deters casual edits on a shared screen, it is NOT real security.
-// Change the passcode here.
-const ADMIN_PIN = '2468';
-let adminUnlocked = false;
-
-// Threshold band colours offered when editing bands.
-const BAND_COLOURS = [
-  { c:'p-n',   label:'Normal (green)' },
-  { c:'p-hi',  label:'Abnormal (red)' },
-  { c:'p-th',  label:'Caution (amber)' },
-  { c:'p-ctx', label:'Context (purple)' }
-];
-
-function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+let gapsState = JSON.parse(JSON.stringify(GAPS_MASTER)); // working copy (rules/gaps)
 
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 function init() {
-  renderVars();
+  // Mount the shared master admin engine with this pathway's variables.
+  PathwayAdmin.config({
+    pin: '2468',                                   // client-side gate only (not real security)
+    pages: [ { prefix:'', vars: VARS_P1 }, { prefix:'p2_', vars: VARS_P2 } ],
+    dom: { grid:'var-grid', changes:'changes-container', btnMaster:'btn-m', btnWorking:'btn-w', notice:'edit-notice' },
+    onModeChange: function(m){ mode = m; renderRules(); renderGaps(); }
+  });
+  PathwayAdmin.renderVars();
   renderRules();
   renderGaps();
   updateGapCount();
@@ -1004,29 +1000,17 @@ function showTab(id, navEl) {
   document.querySelectorAll('.nav').forEach(n => n.classList.remove('on'));
   if (navEl) navEl.classList.add('on');
   if (id==='copy') renderCopySheet();
-  if (id==='changes') renderChanges();
+  if (id==='changes') PathwayAdmin.renderChanges();
   if (id==='gaps') renderGaps();
 }
 
 // ═══════════════════════════════════════════════
 // MODE
 // ═══════════════════════════════════════════════
-function setMode(m) {
-  // Gate entry to Working (edit) mode behind the admin passcode.
-  if (m==='working' && !adminUnlocked) {
-    const entry = window.prompt('Enter admin passcode to edit thresholds, bands and local instructions:');
-    if (entry === null) return;                  // cancelled — stay in current mode
-    if (entry !== ADMIN_PIN) { alert('Incorrect passcode. Edit mode stays locked.'); return; }
-    adminUnlocked = true;
-  }
-  mode = m;
-  document.getElementById('btn-m').classList.toggle('on', m==='master');
-  document.getElementById('btn-w').classList.toggle('on', m==='working');
-  document.getElementById('edit-notice').classList.toggle('show', m==='working');
-  renderVars();
-  renderRules();
-  renderGaps();
-}
+// Master/Working buttons delegate to the shared engine. The engine handles the
+// passcode gate, button/notice toggles and the variables grid, then calls our
+// onModeChange (set in init) to sync `mode` and re-render the rules/gaps editors.
+function setMode(m) { PathwayAdmin.setMode(m); }
 
 // ═══════════════════════════════════════════════
 // VARIABLES
@@ -1038,121 +1022,13 @@ function showVarPage(p, tab) {
   document.getElementById('vars-title').textContent = p===1
     ? 'Variables — Page 1: Hepatic / Hepatitic algorithm'
     : 'Variables — Page 2: Cholestatic / ALP & GGT';
-  renderVars();
+  PathwayAdmin.setVarPage(p-1);   // engine renders the grid for this page
 }
 
-function renderVars() {
-  const vars = varPage===1 ? VARS_P1 : VARS_P2;
-  const grid = document.getElementById('var-grid');
-  grid.innerHTML = '';
-  vars.forEach((v) => {
-    const key = (varPage===2?'p2_':'')+v.code;
-    const wvv = wv[key]||{};
-    const curHigh = wvv.normalHigh!==undefined ? wvv.normalHigh : v.normalHigh;
-    const curLow  = wvv.low!==undefined ? wvv.low : v.low;
-    const thr = wvv.thresholds || v.thresholds;
-    const changed = wvv.normalHigh!==undefined||wvv.low!==undefined||wvv.thresholds!==undefined;
-    const ctxBadge = v.ctx ? `<div style="margin-top:5px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--pu-bg);color:var(--pu);border:0.5px solid var(--pu-bd);display:inline-block">⚠ ${v.ctx}</div>` : '';
-
-    // Threshold bands: read-only pills in Master, fully editable rows in Working.
-    let bandsHTML;
-    if (mode==='working') {
-      const rows = thr.map((t,i)=>`
-        <div class="bandrow">
-          <span class="band-swatch ${t.c}"></span>
-          <input class="band-input" type="text" value="${escHtml(t.l)}" onchange="updateBand('${key}',${i},'l',this.value,'${v.code}')" aria-label="Band ${i+1} label" />
-          <select class="band-sel" onchange="updateBand('${key}',${i},'c',this.value,'${v.code}')" aria-label="Band ${i+1} colour">
-            ${BAND_COLOURS.map(bc=>`<option value="${bc.c}" ${t.c===bc.c?'selected':''}>${bc.label}</option>`).join('')}
-          </select>
-          <button class="band-del" title="Remove band" onclick="removeBand('${key}',${i},'${v.code}')">×</button>
-        </div>`).join('');
-      bandsHTML = `<div class="band-edit">${rows}<button class="band-add" onclick="addBand('${key}','${v.code}')">+ Add band</button></div>`;
-    } else {
-      bandsHTML = `<div class="vc-pills">${thr.map(t=>`<span class="pill ${t.c}">${escHtml(t.l)}</span>`).join('')}</div>`;
-    }
-
-    // Normal range is editable for EVERY variable in Working mode (blank = not set).
-    const editFields = `
-      <div class="ef"><label>Normal high (${v.unit})</label><input type="text" value="${curHigh==null?'':escHtml(curHigh)}" placeholder="not set" onchange="updateVar('${key}','normalHigh',this.value,'${v.code}',${v.normalHigh})" /></div>
-      <div class="ef"><label>Normal low (${v.unit})</label><input type="text" value="${curLow==null?'':escHtml(curLow)}" placeholder="not set" onchange="updateVar('${key}','low',this.value,'${v.code}',${v.low})" /></div>
-      ${changed?`<span class="mod-badge">Modified</span>`:''}
-      ${changed?`<button onclick="resetVar('${key}','${v.code}')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--text2);">Reset to master</button>`:''}
-    `;
-    const c = document.createElement('div');
-    c.className='vc';
-    c.innerHTML=`
-      <div class="vc-head">
-        <div><div class="vc-code">${v.code}</div><div class="vc-full">${v.full}</div>${v.also?`<div class="vc-also">Also: ${v.also}</div>`:''}</div>
-        <div style="text-align:right;font-size:11px;color:var(--text3);">${v.unit}<br><span style="font-size:10px;">${v.type}</span></div>
-      </div>
-      ${bandsHTML}
-      ${v.note?`<div class="vc-note">${v.note}</div>`:''}
-      ${ctxBadge?`<div style="padding:6px 14px;">${ctxBadge}</div>`:''}
-      <div class="vc-edit ${mode==='working'?'show':''}">${editFields}</div>
-    `;
-    grid.appendChild(c);
-  });
-}
-
-function masterVarByKey(key) {
-  const arr = key.indexOf('p2_')===0 ? VARS_P2 : VARS_P1;
-  const code = key.replace(/^p2_/, '');
-  return arr.find(x => x.code === code);
-}
-
-// Copy the master bands into the working copy the first time a band is touched,
-// so edits never mutate the master data.
-function ensureWorkingThresholds(key) {
-  if (!wv[key]) wv[key] = {};
-  if (!wv[key].thresholds) {
-    const master = masterVarByKey(key);
-    wv[key].thresholds = JSON.parse(JSON.stringify(master.thresholds));
-  }
-  return wv[key].thresholds;
-}
-
-function cleanupWV(key) { if (wv[key] && Object.keys(wv[key]).length===0) delete wv[key]; }
-
-function updateVar(key, field, val, code, masterVal) {
-  if (!wv[key]) wv[key] = {};
-  const m = (masterVal===null||masterVal===undefined) ? '(not set)' : masterVal;
-  const trimmed = (val==null?'':String(val)).trim();
-  if (trimmed === '') { delete wv[key][field]; logChange(`Variable ${code} — ${field==='normalHigh'?'normal high':'normal low'}: ${m} → (cleared)`); }
-  else { wv[key][field] = trimmed; logChange(`Variable ${code} — ${field==='normalHigh'?'normal high':'normal low'}: ${m} → ${trimmed}`); }
-  cleanupWV(key);
-  renderVars();
-}
-
-function updateBand(key, i, field, val, code) {
-  const thr = ensureWorkingThresholds(key);
-  if (!thr[i]) return;
-  const old = thr[i][field];
-  thr[i][field] = val;
-  const what = field==='l' ? 'label' : 'colour';
-  logChange(`Variable ${code} — band ${i+1} ${what}: "${old}" → "${val}"`);
-  renderVars();
-}
-
-function addBand(key, code) {
-  const thr = ensureWorkingThresholds(key);
-  thr.push({ l:'New band', c:'p-th' });
-  logChange(`Variable ${code} — added a threshold band`);
-  renderVars();
-}
-
-function removeBand(key, i, code) {
-  const thr = ensureWorkingThresholds(key);
-  const removed = thr[i] ? thr[i].l : '';
-  thr.splice(i, 1);
-  logChange(`Variable ${code} — removed band "${removed}"`);
-  renderVars();
-}
-
-function resetVar(key, code) {
-  delete wv[key];
-  logChange(`Variable ${code}: reset to master values`);
-  renderVars();
-}
+// Variable editing (normal ranges + threshold bands), the working copy, the
+// passcode gate and the Change Log all live in the shared engine (pathwayAdmin.js).
+// The inline edit controls call PathwayAdmin.updateVar / updateBand / addBand /
+// removeBand / resetVar directly, so there is nothing pathway-specific here.
 
 // ═══════════════════════════════════════════════
 // RULES
@@ -1289,7 +1165,7 @@ function saveAdminOutput(rid, step) {
     const r = rules[idx];
     preview.textContent = val || (r ? r.adminLocked : '');
   }
-  logChange(`Rule ${step}: local instruction ${val ? 'updated' : 'cleared'}`);
+  PathwayAdmin.logChange(`Rule ${step}: local instruction ${val ? 'updated' : 'cleared'}`);
 }
 
 function buildCopyText(r) {
@@ -1371,7 +1247,7 @@ function saveGap(id) {
   const oldRes = gap.resolution;
   gap.resolution = ta.value;
   gap.resolvedAt = new Date().toLocaleString();
-  logChange(`Gap "${gap.title}" — resolution updated: "${ta.value.substring(0,60)}${ta.value.length>60?'...':''}"`);
+  PathwayAdmin.logChange(`Gap "${gap.title}" — resolution updated: "${ta.value.substring(0,60)}${ta.value.length>60?'...':''}"`);
   renderGaps();
   // Re-open the gap we just saved
   setTimeout(()=>{ const el=document.getElementById('gb-'+id); if(el){el.classList.add('open');} }, 50);
@@ -1384,7 +1260,7 @@ function resolveGap(id, status) {
   if (ta) gap.resolution = ta.value;
   gap.status = status;
   gap.resolvedAt = new Date().toLocaleString();
-  logChange(`Gap "${gap.title}" — marked as ${status}`);
+  PathwayAdmin.logChange(`Gap "${gap.title}" — marked as ${status}`);
   renderGaps();
 }
 
@@ -1412,10 +1288,17 @@ function renderCopySheet() {
   c.innerHTML='';
   const provTxt = `PATHWAY PROVENANCE\nICB/Area: ${PROVENANCE.icb} (${PROVENANCE.area})\nTitle: ${PROVENANCE.title}\nPopulation: ${PROVENANCE.population} | ${PROVENANCE.setting}\nVersion: ${PROVENANCE.version}\nReview: ${PROVENANCE.reviewDate}\nAuthors: ${PROVENANCE.authors}\nApproving body: ${PROVENANCE.approvingBody}\nContact: ${PROVENANCE.contact}\nSource URL: ${PROVENANCE.sourceURL}`;
   addCS(c,'Pathway provenance — identity block',provTxt);
-  const vp1 = VARS_P1.map(v=>`${v.code} | ${v.full} | Also: ${v.also} | Unit: ${v.unit}${v.normalHigh!==null&&v.normalHigh!==undefined?' | Normal high: '+(wv[v.code]?.normalHigh??v.normalHigh):''}${v.low!==null&&v.low!==undefined?' | Normal low: '+(wv[v.code]?.low??v.low):''}`).join('\n');
-  addCS(c,'All variables — Page 1 (current cut-offs)',vp1);
-  const vp2 = VARS_P2.map(v=>`${v.code} | ${v.full} | Also: ${v.also} | Unit: ${v.unit}`).join('\n');
-  addCS(c,'All variables — Page 2 (current cut-offs)',vp2);
+  // Copy sheet reflects the engine's effective values (master + any working edits).
+  const varLine = (v, prefix) => {
+    const e = PathwayAdmin.effective(prefix + v.code);
+    let s = `${v.code} | ${v.full} | Also: ${v.also||'—'} | Unit: ${v.unit}`;
+    if (e.normalHigh != null) s += ' | Normal high: ' + e.normalHigh;
+    if (e.low != null) s += ' | Normal low: ' + e.low;
+    s += ' | Bands: ' + e.thresholds.map(t => t.l).join(' / ');
+    return s;
+  };
+  addCS(c,'All variables — Page 1 (current cut-offs)', VARS_P1.map(v=>varLine(v,'')).join('\n'));
+  addCS(c,'All variables — Page 2 (current cut-offs)', VARS_P2.map(v=>varLine(v,'p2_')).join('\n'));
   [...RULES_P1,...RULES_P2].forEach(r => addCS(c,`Rule ${r.step}: ${r.title}`,buildCopyText(r)));
   const allTxt = [...RULES_P1,...RULES_P2].map(r=>buildCopyText(r)).join('\n\n'+'═'.repeat(60)+'\n\n');
   addCS(c,'ALL RULES — combined (Pages 1 + 2)',allTxt);
@@ -1429,26 +1312,9 @@ function addCS(container, label, text) {
   container.appendChild(d);
 }
 
-// ═══════════════════════════════════════════════
-// CHANGE LOG
-// ═══════════════════════════════════════════════
-function logChange(description) {
-  const ts = new Date().toLocaleString();
-  changes.push({time:ts, description});
-}
-
-function renderChanges() {
-  const c = document.getElementById('changes-container');
-  if (!changes.length) {
-    c.innerHTML='<div class="empty">No changes yet. Switch to Working mode to edit variable ranges, local instructions, or gaps.</div>';
-    return;
-  }
-  c.innerHTML = changes.slice().reverse().map(ch=>`
-    <div class="ch-item">
-      <div class="ch-meta"><span class="ch-time">${ch.time}</span><span class="ch-tag">modified</span></div>
-      <div class="ch-diff">${ch.description}</div>
-    </div>`).join('');
-}
+// Change Log lives in the shared engine: PathwayAdmin.logChange(...) records an
+// entry, PathwayAdmin.renderChanges() draws the Change log tab. Rules/gaps edits
+// above call PathwayAdmin.logChange directly.
 
 // ═══════════════════════════════════════════════
 // COPY UTIL
