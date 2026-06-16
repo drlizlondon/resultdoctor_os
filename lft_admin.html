@@ -100,6 +100,19 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
 .ef input{width:80px;padding:4px 6px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);}
 .ef input:focus{outline:none;border-color:var(--b);}
 .mod-badge{font-size:10px;background:var(--o-bg);color:var(--o);padding:2px 6px;border-radius:10px;border:0.5px solid var(--o-bd);}
+.ef input::placeholder{color:var(--text3);font-style:italic;}
+/* Editable threshold bands (Working mode) */
+.band-edit{display:flex;flex-direction:column;gap:6px;padding:8px 14px;}
+.bandrow{display:flex;align-items:center;gap:6px;}
+.band-swatch{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.band-swatch.p-n{background:var(--g);}.band-swatch.p-hi{background:var(--r);}.band-swatch.p-th{background:var(--o);}.band-swatch.p-ctx{background:var(--pu);}
+.band-input{flex:1;min-width:120px;padding:4px 7px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px;font-family:var(--sans);background:var(--surface);color:var(--text);}
+.band-input:focus{outline:none;border-color:var(--b);}
+.band-sel{padding:4px 6px;border:0.5px solid var(--border2);border-radius:4px;font-size:11px;font-family:var(--sans);background:var(--surface);color:var(--text);}
+.band-del{width:22px;height:22px;border:0.5px solid var(--border2);border-radius:4px;background:var(--surface);color:var(--text3);cursor:pointer;font-size:14px;line-height:1;flex-shrink:0;}
+.band-del:hover{border-color:var(--r);color:var(--r);}
+.band-add{align-self:flex-start;font-size:11px;padding:4px 10px;border:0.5px dashed var(--border2);border-radius:4px;background:transparent;color:var(--b);cursor:pointer;font-family:var(--sans);}
+.band-add:hover{background:var(--bg);}
 /* Rules */
 .rule-filter{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap;align-items:center;}
 .rfbtn{padding:5px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--surface);cursor:pointer;font-size:12px;color:var(--text2);font-family:var(--sans);}
@@ -375,7 +388,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14
     <div class="pg-tab" id="vt2" onclick="showVarPage(2,this)">Page 2 — Cholestatic / ALP &amp; GGT</div>
   </div>
   <div class="sec-title" id="vars-title">Variables — Page 1: Hepatic / Hepatitic algorithm</div>
-  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">All measurable values, serology, and imaging outcomes used in this pathway. In <strong>Working</strong> mode, numeric cut-offs become editable — changes are tracked in the Change Log.</p>
+  <p style="font-size:13px;color:var(--text2);margin-bottom:16px;">All measurable values, serology, and imaging outcomes used in this pathway. In <strong>Working</strong> mode (passcode-gated), the normal range and the threshold bands of every variable become editable — every change is tracked in the Change Log and can be reset to master.</p>
   <div class="var-grid" id="var-grid"></div>
 </div>
 
@@ -955,6 +968,23 @@ let adminOutputs = {};
 let gapsState = JSON.parse(JSON.stringify(GAPS_MASTER)); // working copy
 let changes = [];
 
+// ── Admin edit gate ───────────────────────────────────────────────────
+// Passcode required before Working mode unlocks. This is a CLIENT-SIDE gate
+// only — it deters casual edits on a shared screen, it is NOT real security.
+// Change the passcode here.
+const ADMIN_PIN = '2468';
+let adminUnlocked = false;
+
+// Threshold band colours offered when editing bands.
+const BAND_COLOURS = [
+  { c:'p-n',   label:'Normal (green)' },
+  { c:'p-hi',  label:'Abnormal (red)' },
+  { c:'p-th',  label:'Caution (amber)' },
+  { c:'p-ctx', label:'Context (purple)' }
+];
+
+function escHtml(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
@@ -982,6 +1012,13 @@ function showTab(id, navEl) {
 // MODE
 // ═══════════════════════════════════════════════
 function setMode(m) {
+  // Gate entry to Working (edit) mode behind the admin passcode.
+  if (m==='working' && !adminUnlocked) {
+    const entry = window.prompt('Enter admin passcode to edit thresholds, bands and local instructions:');
+    if (entry === null) return;                  // cancelled — stay in current mode
+    if (entry !== ADMIN_PIN) { alert('Incorrect passcode. Edit mode stays locked.'); return; }
+    adminUnlocked = true;
+  }
   mode = m;
   document.getElementById('btn-m').classList.toggle('on', m==='master');
   document.getElementById('btn-w').classList.toggle('on', m==='working');
@@ -1013,12 +1050,31 @@ function renderVars() {
     const wvv = wv[key]||{};
     const curHigh = wvv.normalHigh!==undefined ? wvv.normalHigh : v.normalHigh;
     const curLow  = wvv.low!==undefined ? wvv.low : v.low;
-    const changed = wvv.normalHigh!==undefined||wvv.low!==undefined;
-    const pills = v.thresholds.map(t=>`<span class="pill ${t.c}">${t.l}</span>`).join('');
+    const thr = wvv.thresholds || v.thresholds;
+    const changed = wvv.normalHigh!==undefined||wvv.low!==undefined||wvv.thresholds!==undefined;
     const ctxBadge = v.ctx ? `<div style="margin-top:5px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:var(--pu-bg);color:var(--pu);border:0.5px solid var(--pu-bd);display:inline-block">⚠ ${v.ctx}</div>` : '';
+
+    // Threshold bands: read-only pills in Master, fully editable rows in Working.
+    let bandsHTML;
+    if (mode==='working') {
+      const rows = thr.map((t,i)=>`
+        <div class="bandrow">
+          <span class="band-swatch ${t.c}"></span>
+          <input class="band-input" type="text" value="${escHtml(t.l)}" onchange="updateBand('${key}',${i},'l',this.value,'${v.code}')" aria-label="Band ${i+1} label" />
+          <select class="band-sel" onchange="updateBand('${key}',${i},'c',this.value,'${v.code}')" aria-label="Band ${i+1} colour">
+            ${BAND_COLOURS.map(bc=>`<option value="${bc.c}" ${t.c===bc.c?'selected':''}>${bc.label}</option>`).join('')}
+          </select>
+          <button class="band-del" title="Remove band" onclick="removeBand('${key}',${i},'${v.code}')">×</button>
+        </div>`).join('');
+      bandsHTML = `<div class="band-edit">${rows}<button class="band-add" onclick="addBand('${key}','${v.code}')">+ Add band</button></div>`;
+    } else {
+      bandsHTML = `<div class="vc-pills">${thr.map(t=>`<span class="pill ${t.c}">${escHtml(t.l)}</span>`).join('')}</div>`;
+    }
+
+    // Normal range is editable for EVERY variable in Working mode (blank = not set).
     const editFields = `
-      ${v.normalHigh!==null&&v.normalHigh!==undefined?`<div class="ef"><label>Normal high (${v.unit})</label><input type="text" value="${curHigh}" onchange="updateVar('${key}','normalHigh',this.value,'${v.code}',${v.normalHigh})" /></div>`:''}
-      ${v.low!==null&&v.low!==undefined?`<div class="ef"><label>Normal low (${v.unit})</label><input type="text" value="${curLow}" onchange="updateVar('${key}','low',this.value,'${v.code}',${v.low})" /></div>`:''}
+      <div class="ef"><label>Normal high (${v.unit})</label><input type="text" value="${curHigh==null?'':escHtml(curHigh)}" placeholder="not set" onchange="updateVar('${key}','normalHigh',this.value,'${v.code}',${v.normalHigh})" /></div>
+      <div class="ef"><label>Normal low (${v.unit})</label><input type="text" value="${curLow==null?'':escHtml(curLow)}" placeholder="not set" onchange="updateVar('${key}','low',this.value,'${v.code}',${v.low})" /></div>
       ${changed?`<span class="mod-badge">Modified</span>`:''}
       ${changed?`<button onclick="resetVar('${key}','${v.code}')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--text2);">Reset to master</button>`:''}
     `;
@@ -1029,7 +1085,7 @@ function renderVars() {
         <div><div class="vc-code">${v.code}</div><div class="vc-full">${v.full}</div>${v.also?`<div class="vc-also">Also: ${v.also}</div>`:''}</div>
         <div style="text-align:right;font-size:11px;color:var(--text3);">${v.unit}<br><span style="font-size:10px;">${v.type}</span></div>
       </div>
-      <div class="vc-pills">${pills}</div>
+      ${bandsHTML}
       ${v.note?`<div class="vc-note">${v.note}</div>`:''}
       ${ctxBadge?`<div style="padding:6px 14px;">${ctxBadge}</div>`:''}
       <div class="vc-edit ${mode==='working'?'show':''}">${editFields}</div>
@@ -1038,16 +1094,63 @@ function renderVars() {
   });
 }
 
+function masterVarByKey(key) {
+  const arr = key.indexOf('p2_')===0 ? VARS_P2 : VARS_P1;
+  const code = key.replace(/^p2_/, '');
+  return arr.find(x => x.code === code);
+}
+
+// Copy the master bands into the working copy the first time a band is touched,
+// so edits never mutate the master data.
+function ensureWorkingThresholds(key) {
+  if (!wv[key]) wv[key] = {};
+  if (!wv[key].thresholds) {
+    const master = masterVarByKey(key);
+    wv[key].thresholds = JSON.parse(JSON.stringify(master.thresholds));
+  }
+  return wv[key].thresholds;
+}
+
+function cleanupWV(key) { if (wv[key] && Object.keys(wv[key]).length===0) delete wv[key]; }
+
 function updateVar(key, field, val, code, masterVal) {
-  if (!wv[key]) wv[key]={};
-  wv[key][field] = val;
-  logChange(`Variable ${code} — ${field}: ${masterVal} → ${val}`);
+  if (!wv[key]) wv[key] = {};
+  const m = (masterVal===null||masterVal===undefined) ? '(not set)' : masterVal;
+  const trimmed = (val==null?'':String(val)).trim();
+  if (trimmed === '') { delete wv[key][field]; logChange(`Variable ${code} — ${field==='normalHigh'?'normal high':'normal low'}: ${m} → (cleared)`); }
+  else { wv[key][field] = trimmed; logChange(`Variable ${code} — ${field==='normalHigh'?'normal high':'normal low'}: ${m} → ${trimmed}`); }
+  cleanupWV(key);
+  renderVars();
+}
+
+function updateBand(key, i, field, val, code) {
+  const thr = ensureWorkingThresholds(key);
+  if (!thr[i]) return;
+  const old = thr[i][field];
+  thr[i][field] = val;
+  const what = field==='l' ? 'label' : 'colour';
+  logChange(`Variable ${code} — band ${i+1} ${what}: "${old}" → "${val}"`);
+  renderVars();
+}
+
+function addBand(key, code) {
+  const thr = ensureWorkingThresholds(key);
+  thr.push({ l:'New band', c:'p-th' });
+  logChange(`Variable ${code} — added a threshold band`);
+  renderVars();
+}
+
+function removeBand(key, i, code) {
+  const thr = ensureWorkingThresholds(key);
+  const removed = thr[i] ? thr[i].l : '';
+  thr.splice(i, 1);
+  logChange(`Variable ${code} — removed band "${removed}"`);
   renderVars();
 }
 
 function resetVar(key, code) {
   delete wv[key];
-  logChange(`Variable ${code}: reset to master value`);
+  logChange(`Variable ${code}: reset to master values`);
   renderVars();
 }
 
