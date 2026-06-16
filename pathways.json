@@ -1,6 +1,20 @@
 {
   "pathways": [
     {
+      "id": "notts_lft",
+      "title": "Adult Liver Disease (LFT)",
+      "icb": "Nottingham & Nottinghamshire ICB",
+      "version": "V37 · September 2021 (review April 2024)",
+      "status": "live",
+      "tool_path": "notts_lft.html",
+      "admin_path": "notts_lft_admin.html",
+      "description": "Raised ALT (viral/autoimmune/metabolic screen + FIB-4/Fibroscan/ELF cascade), raised ALP ± GGT, alcohol-related and NAFLD liver risk assessment, synthetic-failure/malignancy 2WW, isolated bilirubin (Gilbert's), ferritin/iron overload. Age-modified FIB-4 scoring.",
+      "trigger_variables": ["alt", "ast", "alp", "ggt", "bilirubin", "albumin", "inr", "platelets", "ferritin"],
+      "trigger_context": [],
+      "source": "BSG 2017 abnormal liver blood tests; NICE NG49/NG50; MIB2016",
+      "note": "Nottingham & Nottinghamshire variant. Different from the NW London Abnormal LFT pathway (uses FIB-4 cascade and NUH local thresholds) — both surface on raised LFTs; clinician picks the local pathway."
+    },
+    {
       "id": "nwl_lft",
       "title": "Abnormal LFT",
       "icb": "NW London",

@@ -351,6 +351,10 @@ footer strong { color: rgba(255,255,255,.7); }
 //  Router matches variable NAMES only; it makes no clinical decisions.
 // ───────────────────────────────────────────────────────────────────────
 const PATHWAYS = [
+  { id:'notts_lft', title:'Adult Liver Disease (LFT)', icb:'Nottingham & Nottinghamshire ICB', version:'V37 · Sep 2021',
+    status:'live', tool_path:'notts_lft.html',
+    description:'Raised ALT (viral/autoimmune/metabolic screen + age-modified FIB-4/Fibroscan/ELF cascade), raised ALP ± GGT, NAFLD and alcohol-related liver risk assessment, synthetic-failure/malignancy 2WW, isolated bilirubin (Gilbert\'s), ferritin/iron overload.',
+    trigger_results:['alt','ast','alp','ggt','bili','alb','inr','plt'], trigger_context:[] },
   { id:'nwl_lft', title:'Abnormal LFT', icb:'NW London', version:'V1.6 Oct 2019 / V1.4 Aug 2019',
     status:'live', tool_path:'lft.html',
     description:"Hepatic and cholestatic patterns, Gilbert's syndrome, NAFLD, alcohol-related abnormality, isolated bilirubin or ALP elevation.",

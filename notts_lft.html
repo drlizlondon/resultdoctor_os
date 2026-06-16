@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nottingham &amp; Nottinghamshire Adult Liver Disease (LFT) Pathway V37</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0B1C3D;--blue:#1859CC;--blue-lt:#E8F0FD;--green:#00703C;--green-lt:#E3F5EC;
+  --red:#B91C1C;--red-lt:#FEF2F2;--amber:#92400E;--amber-lt:#FFFBEB;--purple:#6D28D9;
+  --grey:#6B7280;--grey-lt:#F9FAFB;--border:#E5E7EB;--border2:#D1D5DB;
+  --text:#111827;--text2:#374151;--text3:#6B7280;
+  --serif:'DM Serif Display',Georgia,serif;--sans:'DM Sans',system-ui,sans-serif;--radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:#F8F9FB;color:var(--text);font-size:14px;line-height:1.6;min-height:100vh}
+header{background:var(--navy);color:#fff;padding:0 32px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-family:var(--serif);font-size:19px;color:#fff;text-decoration:none}.logo span{color:#60A5FA}
+.header-nav{font-size:12px;color:rgba(255,255,255,.55)}
+.hero{background:#162545;color:#fff;padding:34px 0}
+.hero-inner{max-width:1000px;margin:0 auto;padding:0 32px}
+.hero-tag{display:inline-block;font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.04em;text-transform:uppercase;background:rgba(96,165,250,.15);color:#93C5FD;margin-bottom:12px}
+.hero-title{font-family:var(--serif);font-size:28px;line-height:1.15;margin-bottom:8px}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.7);max-width:680px}
+.page{max-width:1000px;margin:-22px auto 0;padding:0 32px 40px}
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+.panel-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin-bottom:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:11px;font-weight:600;color:var(--text2)}
+.fld .unit{font-size:10px;color:var(--text3);font-weight:400}
+.fld input,.fld select{padding:9px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:14px;font-family:var(--sans);background:#fff;color:var(--text);width:100%}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,89,204,.1)}
+.fld input.filled{border-color:var(--blue);background:var(--blue-lt)}
+.fld input.warn{border-color:var(--amber);background:var(--amber-lt)}
+.fld input.abn{border-color:var(--red);background:var(--red-lt)}
+.sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:18px 0 10px;display:flex;align-items:center;gap:8px}
+.sub::after{content:'';flex:1;height:1px;background:var(--border)}
+.btn{width:100%;padding:15px;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;font-family:var(--sans);cursor:pointer;margin-top:18px}
+.btn:hover{background:#1348B0}
+.reset{display:block;text-align:center;margin-top:9px;font-size:12px;color:var(--text3);cursor:pointer;text-decoration:underline}
+.fib4{margin-top:14px;background:var(--grey-lt);border:1px solid var(--border);border-radius:10px;padding:12px 14px;font-size:13px}
+.fib4 b{font-family:var(--serif)}
+.fib4 .v{font-size:20px;font-weight:700;color:var(--blue)}
+.fib4 .band{font-weight:600}
+.out{display:none}.out.show{display:block}
+.result-summary{background:var(--navy);color:#fff;border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}
+.rs-item .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.55)}
+.rs-item .val{font-size:15px;font-weight:600}
+.rs-item .val.ab{color:#FCA5A5}
+.card{background:#fff;border:1.5px solid var(--border);border-left-width:5px;border-radius:10px;padding:16px 18px;margin-bottom:12px}
+.card.red{border-left-color:var(--red)}.card.blue{border-left-color:var(--blue)}.card.amber{border-left-color:var(--amber)}.card.green{border-left-color:var(--green)}.card.purple{border-left-color:var(--purple)}
+.card h3{font-family:var(--serif);font-size:18px;font-weight:400;margin-bottom:6px}
+.card .tag{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:2px 9px;border-radius:10px;margin-bottom:8px}
+.tag.red{background:var(--red-lt);color:var(--red)}.tag.blue{background:var(--blue-lt);color:var(--blue)}.tag.amber{background:var(--amber-lt);color:var(--amber)}.tag.green{background:var(--green-lt);color:var(--green)}.tag.purple{background:#F5F3FF;color:var(--purple)}
+.card p{font-size:13px;color:var(--text2);margin-bottom:6px}
+.card ul{margin:6px 0 4px 18px;font-size:13px;color:var(--text2)}
+.divider{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--text3);margin:18px 0 10px}
+/* flow diagram panel + shared .fn-* classes */
+.flow-diagram-panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;margin-bottom:18px}
+.flow-diagram-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.flow-diagram-head-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);flex:1}
+.flow-toggle{font-size:12px;color:var(--blue);background:var(--blue-lt);border:none;border-radius:6px;padding:4px 10px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+.flow-diagram-svg{padding:18px;overflow-x:auto;background:#FAFBFD}
+.flow-diagram-svg svg{display:block;margin:0 auto;max-width:100%;height:auto}
+.flow-legend{padding:10px 18px;background:var(--grey-lt);border-top:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;gap:16px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:6px}.legend-dot{width:10px;height:10px;border-radius:3px}
+.fn-box{fill:#fff;stroke:#CBD5E1;stroke-width:1.5;transition:all .35s}
+.fn-box.gp-fill{fill:#EFF6FF;stroke:var(--blue);stroke-width:2}
+.fn-box.urgent-fill{fill:#FEF2F2;stroke:#DC2626;stroke-width:2}
+.fn-box.refer-fill{fill:#FAF5FF;stroke:#9333EA;stroke-width:2}
+.fn-box.noaction-fill{fill:#ECFDF5;stroke:var(--green);stroke-width:2}
+.fn-box.amber-fill{fill:#FFFBEB;stroke:#D97706;stroke-width:2}
+.fn-box.active{stroke-width:3.5;filter:drop-shadow(0 4px 12px rgba(0,0,0,.18))}
+.fn-box.dimmed{opacity:.25}
+.fn-text{font-family:var(--sans);font-size:11px;fill:var(--text);pointer-events:none}
+.fn-text.dimmed{opacity:.4}.fn-text-bold{font-weight:600}
+.fn-arrow{stroke:#94A3B8;stroke-width:1.5;fill:none}.fn-arrow.active{stroke:var(--blue);stroke-width:2.5}.fn-arrow.dimmed{opacity:.2}
+.fn-label{font-family:var(--sans);font-size:9px;fill:var(--text3);pointer-events:none}.fn-label.dimmed{opacity:.4}
+.fn-rect-step{font-family:var(--sans);font-size:9px;font-weight:700;fill:var(--text3);pointer-events:none}.fn-rect-step.active{fill:var(--blue)}
+/* additional notes */
+.notes details{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;background:#fff;overflow:hidden}
+.notes summary{padding:12px 16px;cursor:pointer;font-weight:600;font-size:13px;color:var(--text)}
+.notes .body{padding:0 16px 14px;font-size:13px;color:var(--text2)}
+.notes .body ul{margin:6px 0 6px 18px}
+footer{background:var(--navy);color:rgba(255,255,255,.5);font-size:11px;padding:22px 32px;margin-top:30px;line-height:1.6}
+footer b{color:rgba(255,255,255,.8)}
+@media(max-width:640px){.hero-title{font-size:22px}.grid{grid-template-columns:1fr 1fr}.page{padding:0 16px 28px}header{padding:0 16px}}
+</style>
+</head>
+<body>
+<header>
+  <a class="logo" href="index.html">Result<span>Doctor</span></a>
+  <div class="header-nav">NHS clinical pathways · Nottingham &amp; Nottinghamshire</div>
+</header>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-tag">Nottingham &amp; Nottinghamshire ICB</span>
+    <h1 class="hero-title">Adult Liver Disease / Abnormal LFT pathway</h1>
+    <p class="hero-sub">Guideline V37, September 2021. Reproduced from the published pathway (BGS 2017 abnormal liver blood tests; NICE NG49/NG50; MIB2016). Supports clinical navigation — it does not replace clinical judgement.</p>
+  </div>
+</div>
+
+<div class="page">
+  <div class="panel">
+    <div class="panel-title">Enter results &amp; context</div>
+
+    <div class="sub">Liver function &amp; related bloods</div>
+    <div class="grid">
+      <div class="fld"><label>ALT <span class="unit">IU/L</span></label><input type="number" id="f-alt" min="0" oninput="paint()"></div>
+      <div class="fld"><label>AST <span class="unit">IU/L</span></label><input type="number" id="f-ast" min="0" oninput="paint()"></div>
+      <div class="fld"><label>ALP <span class="unit">IU/L</span></label><input type="number" id="f-alp" min="0" oninput="paint()"></div>
+      <div class="fld"><label>GGT <span class="unit">IU/L</span></label><input type="number" id="f-ggt" min="0" oninput="paint()"></div>
+      <div class="fld"><label>Bilirubin <span class="unit">µmol/L</span></label><input type="number" id="f-bili" min="0" oninput="paint()"></div>
+      <div class="fld"><label>Albumin <span class="unit">g/L</span></label><input type="number" id="f-alb" min="0" oninput="paint()"></div>
+      <div class="fld"><label>INR <span class="unit">ratio</span></label><input type="number" id="f-inr" min="0" step="0.1" oninput="paint()"></div>
+      <div class="fld"><label>Platelets <span class="unit">×10⁹/L</span></label><input type="number" id="f-plt" min="0" oninput="paint()"></div>
+      <div class="fld"><label>Ferritin <span class="unit">µg/L</span></label><input type="number" id="f-ferritin" min="0" oninput="paint()"></div>
+      <div class="fld"><label>Transferrin sat <span class="unit">%</span></label><input type="number" id="f-tsat" min="0" step="0.1" oninput="paint()"></div>
+    </div>
+
+    <div class="sub">Patient &amp; clinical context</div>
+    <div class="grid">
+      <div class="fld"><label>Age <span class="unit">years</span></label><input type="number" id="f-age" min="0" oninput="paint()"></div>
+      <div class="fld"><label>Sex</label><select id="c-sex"><option value="">—</option><option value="m">Male</option><option value="f">Female</option></select></div>
+      <div class="fld"><label>Jaundice?</label><select id="c-jaundice"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="fld"><label>Unexplained weight loss?</label><select id="c-wtloss"><option value="">Not assessed</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+      <div class="fld"><label>NAFLD risk factors?<span class="unit">obesity/T2DM/HTN/dyslipidaemia/IHD/FH/hypothyroid/PCOS</span></label><select id="c-nafld"><option value="">Not assessed</option><option value="yes">Yes — ≥1 present</option><option value="no">None</option></select></div>
+      <div class="fld"><label>Alcohol <span class="unit">units/week</span></label><input type="number" id="c-units" min="0" oninput="paint()"></div>
+      <div class="fld"><label>AUDIT score</label><input type="number" id="c-audit" min="0" max="40" oninput="paint()"></div>
+      <div class="fld"><label>Liver ultrasound</label><select id="c-uss"><option value="">Not done</option><option value="normal">Normal</option><option value="abnormal">Abnormal (not mass)</option><option value="mass">Metastases / mass</option></select></div>
+    </div>
+
+    <div class="fib4" id="fib4-box" style="display:none"></div>
+
+    <button class="btn" onclick="analyse()">Find my path through the pathway →</button>
+    <span class="reset" onclick="resetAll()">Reset all</span>
+  </div>
+
+  <div id="out" class="out">
+    <div id="summary"></div>
+    <div id="primary"></div>
+    <!-- FLOW DIAGRAM -->
+    <div class="flow-diagram-panel">
+      <div class="flow-diagram-head">
+        <span class="flow-diagram-head-label">YOUR PATH THROUGH THE PATHWAY</span>
+        <button class="flow-toggle" onclick="toggleFlow(this)">Show diagram ▾</button>
+      </div>
+      <div id="flow-svg-wrap" style="display:none">
+        <div class="flow-diagram-svg" id="flow-svg"></div>
+        <div class="flow-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Active path</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#CBD5E1"></div>Not taken</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>2-week-wait</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>No referral / reassess</div>
+        </div>
+      </div>
+    </div>
+    <div id="secondary"></div>
+  </div>
+
+  <!-- ADDITIONAL NOTES (verbatim from the guideline) -->
+  <div class="panel notes">
+    <div class="panel-title">Additional notes from the guideline</div>
+    <details><summary>Elevated ALT &amp; NAFLD risk factors</summary><div class="body">The most common explanation for elevated ALT is fatty liver disease driven by diet, metabolism or alcohol; lifestyle advice should be given. Risk factors for NAFLD: obesity, type 2 diabetes, hypertension, dyslipidaemia, ischaemic heart disease, family history of hypertension/IHD/type 2 diabetes, hypothyroidism, PCOS. In patients with an isolated ALT rise and these conditions it is reasonable to attribute the result to fatty liver and arrange no further investigation, <b>unless</b> they have an intermediate or high FIB-4 score, or features of cirrhosis on USS/examination. Persistently raised ALT without risk factors, harmful alcohol use or another cause should be considered for referral and investigation.</div></details>
+    <details><summary>Harmful alcohol use</summary><div class="body">NICE definition: men >50 units/week (sustained ≥ several months); women >35 units/week (sustained); full AUDIT score >19. For alcohol dependence, the patient must be willing to consider reducing drinking. Brief intervention is effective for excessive drinking — include it when discussing the scan. Consider referral to Alcohol Services.</div></details>
+    <details><summary>FIB-4, Fibroscan &amp; ELF</summary><div class="body">FIB-4 is a liver fibrosis score from ALT, AST and platelets, with an age-modified cut-off (BSG-endorsed). Fibroscan and ELF (Enhanced Liver Fibrosis) are clinically equivalent — choice depends on local availability; ELF needs no extra blood beyond the NAFLD screen.<ul><li>FIB-4 low (&lt;1.3 if under 65; &lt;2.0 if 65+): reassess risk in 3 years.</li><li>FIB-4 indeterminate: lab processes ELF or books Fibroscan.</li><li>FIB-4 high (any age &gt;3.25): refer hepatology/gastroenterology.</li><li>Fibroscan ≤8 kPa or ELF &lt;10.51: reassess in 3 years.</li><li>Fibroscan &gt;8–15 kPa: consider referral, address risk factors, reassess 3–5 years.</li><li>Fibroscan &gt;15 kPa or ELF ≥10.51: refer. Refer ELF ≥10.51 to secondary care (NG49).</li></ul></div></details>
+    <details><summary>Autoantibodies &amp; immunoglobulins</summary><div class="body">Refer patients with abnormal LFTs and a positive liver antibody (anti-smooth-muscle actin / anti-LKM1) or strongly positive ANA (1:1600) — IgG is commonly raised in autoimmune hepatitis. Positive anti-mitochondrial antibody is strongly associated with primary biliary cholangitis (often raised IgM); if asymptomatic with normal LFTs, monitor LFTs every 2 years and refer when LFTs become abnormal or symptoms (fatigue/itch) develop. Weakly positive ANA or non-specific antibodies do not prevent Fibroscan referral if otherwise indicated.</div></details>
+    <details><summary>Isolated elevated ALP &amp; Ferritin</summary><div class="body"><b>ALP:</b> produced mainly by liver and bone (also gut, pancreas, kidney, placenta). When other LFTs are normal, NUH laboratory automatically quantifies GGT when ALP ≥160 U/L. <b>Ferritin:</b> commonest cause of a raised ferritin is fatty liver; it is also an acute-phase protein. If no acute cause, request fasting transferrin saturation on 2 occasions (raised if &gt;55% males, &gt;50% females). Raised ferritin &lt;1000 with normal transferrin saturation → assume fatty liver, proceed to Fibroscan if indicated. Ferritin &gt;1000 and/or persistently raised transferrin saturation → refer hepatology and request HFE mutation testing for haemochromatosis.</div></details>
+    <details><summary>Viral hepatitis, Wilson's &amp; Gilbert's</summary><div class="body"><b>Hepatitis B:</b> refer all HBsAg-positive patients; screen for HIV before referral and request HBV DNA. <b>Hepatitis C:</b> HCV Ab positive indicates exposure — request HCV RNA + genotype and HIV screen; refer all with HCV RNA present. <b>Wilson's:</b> test caeruloplasmin only if under 40 with neurological/behavioural symptoms (commonest cause of low caeruloplasmin is NAFLD); if low, send 24-hour urinary copper before referral. <b>Gilbert's syndrome:</b> a common cause of isolated hyperbilirubinaemia — no treatment needed beyond informing/counselling the patient.</div></details>
+  </div>
+</div>
+
+<footer>
+  <b>ResultDoctor</b> — reproduces the Nottingham &amp; Nottinghamshire Adult Liver Disease Guideline V37 (September 2021) verbatim from the published pathway. Drawn from the British Society of Gastroenterology guideline on abnormal liver blood tests (2017), NICE NG49/NG50 and MIB2016. Approved for primary care by Nottingham University Hospitals (10 Sep 2021) and Sherwood Forest Hospitals gastroenterology group (21 Apr 2021). Review date April 2024. <b>This is not an NHS service and does not replace clinical judgement.</b>
+</footer>
+
+<script src="pathwayDiagram.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// Inputs / prefill (shared router param keys: alt, ast, alp, ggt, bili, alb, inr, plt, ferritin)
+// ═══════════════════════════════════════════════════════════════════════
+function val(id){const v=(document.getElementById(id)||{}).value;return v==null||v===''?null:parseFloat(v);}
+function sel(id){return (document.getElementById(id)||{}).value||'';}
+
+(function prefill(){
+  const p=new URLSearchParams(location.search); let s=null;
+  try{s=JSON.parse(sessionStorage.getItem('resultdoctor_results')||'null');}catch(e){}
+  const map={alt:'f-alt',ast:'f-ast',alp:'f-alp',ggt:'f-ggt',bili:'f-bili',alb:'f-alb',inr:'f-inr',plt:'f-plt',ferritin:'f-ferritin',tsat:'f-tsat',age:'f-age'};
+  Object.entries(map).forEach(([k,id])=>{const v=p.get(k)??(s&&s[k]);if(v!=null&&v!==''){const el=document.getElementById(id);if(el)el.value=v;}});
+  const cs=p.get('sex')??(s&&s.sex); if(cs){const el=document.getElementById('c-sex');if(el)el.value=cs;}
+})();
+
+// Reference thresholds. ⚠ Lab ULNs not stated in the source are marked; FIB-4 /
+// Fibroscan / ELF cut-offs and alcohol limits are taken verbatim from the guideline.
+const THR = {
+  altULN:40,    // standard lab ULN — NOT specified in source
+  alpULN:130,   // standard lab ULN — NOT specified in source; source auto-adds GGT at ALP≥160
+  alpGGTauto:160,
+  ggtULN:55,    // standard lab ULN — NOT specified in source
+  biliULN:21,   // standard lab ULN — NOT specified in source
+  albLow:35,    // synthetic-failure criterion; threshold not specified in source
+  inrHigh:1.2,  // synthetic-failure criterion; threshold not specified in source
+  alt250:250,   // explicit branch in source
+  tsatM:55, tsatF:50,        // explicit (fasting transferrin saturation)
+  ferritinHigh:1000,         // explicit
+  alcoholM:50, alcoholF:35, audit:19,   // explicit (NICE)
+  fib4LowU65:1.3, fib4Low65:2.0, fib4High:3.25  // explicit (age-modified, BSG)
+};
+
+function computeFib4(age,ast,alt,plt){
+  if(age==null||ast==null||alt==null||plt==null||plt<=0||alt<=0) return null;
+  return (age*ast)/(plt*Math.sqrt(alt));
+}
+function fib4Band(fib4,age){
+  if(fib4==null) return null;
+  const lowCut = (age!=null && age>=65) ? THR.fib4Low65 : THR.fib4LowU65;
+  if(fib4 > THR.fib4High) return {key:'high',label:'High'};
+  if(fib4 < lowCut) return {key:'low',label:'Low'};
+  return {key:'indet',label:'Indeterminate'};
+}
+
+function paint(){
+  // FIB-4 live preview
+  const age=val('f-age'),ast=val('f-ast'),alt=val('f-alt'),plt=val('f-plt');
+  const f=computeFib4(age,ast,alt,plt), box=document.getElementById('fib4-box');
+  if(f==null){box.style.display='none';}
+  else{
+    const b=fib4Band(f,age);
+    box.style.display='block';
+    box.innerHTML=`<b>FIB-4</b> = (age × AST) / (platelets × √ALT) = <span class="v">${f.toFixed(2)}</span> · <span class="band">${b.label}</span> ${age!=null?`(age-modified cut-off ${age>=65?'<2.0 for 65+':'<1.3 for under 65'})`:''}`;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// FLOW DIAGRAM  —  source pathway diagram (V37). Highlight via shared renderer.
+// ═══════════════════════════════════════════════════════════════════════
+const FLOW_NODES = {
+  // entry patterns (top row)
+  alt:       {x:380,y:20,w:200,h:42,text:'Raised ALT',cls:'gp-fill',step:'Entry'},
+  alpGGT:    {x:60,y:20,w:200,h:46,text:'Raised ALP with raised GGT',cls:'gp-fill',step:'Entry'},
+  alpBone:   {x:60,y:120,w:200,h:56,text:'Raised ALP, normal GGT → bone disease & vitamin D',cls:'amber-fill',step:'Bone'},
+  synthetic: {x:640,y:20,w:240,h:64,text:'Synthetic failure (jaundice/low albumin/high INR) OR malignancy (weight loss, jaundice, marked cholestasis)',cls:'urgent-fill',step:'Red flag'},
+  gilberts:  {x:640,y:120,w:240,h:54,text:'Isolated raised bilirubin, normal ALT/ALP & Hb → Gilbert\'s syndrome',cls:'noaction-fill',step:'Gilbert'},
+  // raised ALT work-up
+  screen:    {x:340,y:110,w:280,h:64,text:'Request viral hepatitis screen, immunoglobulins, autoantibodies/ANA, ferritin, transferrin sat, coeliac, TFT, liver risk assessment',cls:'gp-fill',step:'Step 1'},
+  alt250:    {x:340,y:210,w:130,h:46,text:'ALT >250',cls:'gp-fill',step:'Branch'},
+  nafld:     {x:300,y:300,w:180,h:54,text:'NAFLD risk factors present',cls:'gp-fill',step:'NAFLD'},
+  alcohol:   {x:500,y:300,w:190,h:54,text:'Alcohol >35 (F)/>50 (M) units or AUDIT >19',cls:'gp-fill',step:'Alcohol'},
+  nafldReq:  {x:300,y:400,w:180,h:50,text:'ICE: NAFLD liver risk assessment (FIB-4/Fibroscan/ELF)',cls:'gp-fill',step:'Assess'},
+  alcReq:    {x:500,y:400,w:190,h:50,text:'ICE: Alcohol-related liver risk assessment (ELF/Fibroscan)',cls:'gp-fill',step:'Assess'},
+  // FIB-4 outcomes
+  fibLow:    {x:180,y:500,w:170,h:50,text:'Low fibrosis risk → reassess in 3 years',cls:'noaction-fill',step:'Low'},
+  fibIndet:  {x:370,y:500,w:170,h:50,text:'Indeterminate → ELF or Fibroscan',cls:'amber-fill',step:'Indet'},
+  fibHigh:   {x:560,y:500,w:170,h:50,text:'High fibrosis risk → refer',cls:'refer-fill',step:'High'},
+  // imaging
+  ig:        {x:60,y:210,w:200,h:50,text:'Request immunoglobulins & autoantibodies',cls:'gp-fill',step:'Step 2'},
+  uss:       {x:60,y:300,w:200,h:46,text:'Request liver ultrasound',cls:'gp-fill',step:'USS'},
+  ussMass:   {x:30,y:390,w:120,h:50,text:'Metastases or mass',cls:'urgent-fill',step:'USS'},
+  ussAbn:    {x:160,y:390,w:120,h:50,text:'Abnormal USS',cls:'amber-fill',step:'USS'},
+  // destinations
+  tww:       {x:740,y:300,w:200,h:54,text:'2-week-wait hepatobiliary surgery / hepatology referral',cls:'urgent-fill',step:'2WW'},
+  specRef:   {x:60,y:600,w:200,h:46,text:'Referral / advice from relevant speciality',cls:'refer-fill',step:'Refer'},
+  hepRef:    {x:560,y:600,w:200,h:50,text:'Refer / advice hepatology or gastroenterology',cls:'refer-fill',step:'Refer'}
+};
+const FLOW_EDGES = [
+  {from:'alpGGT',to:'ig'},{from:'ig',to:'uss'},
+  {from:'uss',to:'ussMass'},{from:'uss',to:'ussAbn'},
+  {from:'ussMass',to:'specRef'},{from:'ussAbn',to:'specRef'},
+  {from:'alt',to:'screen'},
+  {from:'screen',to:'alt250',label:'ALT >250'},
+  {from:'screen',to:'nafld',label:'NAFLD'},
+  {from:'screen',to:'alcohol',label:'alcohol'},
+  {from:'alt250',to:'uss'},
+  {from:'nafld',to:'nafldReq'},{from:'alcohol',to:'alcReq'},
+  {from:'nafldReq',to:'fibLow'},{from:'nafldReq',to:'fibIndet'},{from:'nafldReq',to:'fibHigh'},
+  {from:'alcReq',to:'fibIndet'},{from:'alcReq',to:'fibHigh'},
+  {from:'fibHigh',to:'hepRef'},{from:'fibIndet',to:'hepRef'},
+  {from:'synthetic',to:'tww'}
+];
+function renderFlow(activeNodes,activeEdges){
+  document.getElementById('flow-svg').innerHTML =
+    PathwayDiagram.renderPathwayDiagram(FLOW_NODES,FLOW_EDGES,activeNodes,activeEdges,{viewBox:'0 0 960 670'});
+}
+function toggleFlow(btn){
+  const w=document.getElementById('flow-svg-wrap');
+  const show=w.style.display==='none';
+  w.style.display=show?'block':'none';
+  btn.textContent=show?'Hide diagram ▴':'Show diagram ▾';
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// ENGINE  —  decision logic traces to the V37 pathway. Returns primary action
+// + active path. Clinical priority: red flags first.
+// ═══════════════════════════════════════════════════════════════════════
+function analyse(){
+  const d={
+    alt:val('f-alt'),ast:val('f-ast'),alp:val('f-alp'),ggt:val('f-ggt'),bili:val('f-bili'),
+    alb:val('f-alb'),inr:val('f-inr'),plt:val('f-plt'),ferritin:val('f-ferritin'),tsat:val('f-tsat'),
+    age:val('f-age'),sex:sel('c-sex'),jaundice:sel('c-jaundice'),wtloss:sel('c-wtloss'),
+    nafld:sel('c-nafld'),units:val('c-units'),audit:val('c-audit'),uss:sel('c-uss')
+  };
+  const anyVal=[d.alt,d.ast,d.alp,d.ggt,d.bili,d.alb,d.inr,d.plt,d.ferritin,d.tsat].some(v=>v!==null);
+  if(!anyVal && !d.jaundice && !d.wtloss){alert('Enter at least one result or clinical feature.');return;}
+
+  // derived flags
+  d.altRaised = d.alt!==null && d.alt>THR.altULN;
+  d.alt250 = d.alt!==null && d.alt>THR.alt250;
+  d.alpRaised = d.alp!==null && d.alp>THR.alpULN;
+  d.ggtRaised = d.ggt!==null && d.ggt>THR.ggtULN;
+  d.ggtNormal = d.ggt!==null && d.ggt<=THR.ggtULN;
+  d.biliRaised = d.bili!==null && d.bili>THR.biliULN;
+  d.albLow = d.alb!==null && d.alb<THR.albLow;
+  d.inrHigh = d.inr!==null && d.inr>THR.inrHigh;
+  d.jaundiceY = d.jaundice==='yes';
+  d.wtlossY = d.wtloss==='yes';
+  d.syntheticFailure = d.jaundiceY || d.albLow || d.inrHigh;
+  d.malignancy = d.wtlossY && (d.jaundiceY || d.alpRaised);
+  d.allHepNormal = (d.alt===null||!d.altRaised)&&(d.alp===null||!d.alpRaised);
+  d.isolatedBili = d.biliRaised && d.allHepNormal && !d.syntheticFailure;
+  d.nafldY = d.nafld==='yes';
+  d.alcoholExcess = (d.units!==null && ((d.sex==='m'&&d.units>THR.alcoholM)||(d.sex==='f'&&d.units>THR.alcoholF)||(d.sex===''&&d.units>THR.alcoholF))) || (d.audit!==null && d.audit>THR.audit);
+  d.tsatHigh = d.tsat!==null && ((d.sex==='m'&&d.tsat>THR.tsatM)||(d.sex!=='m'&&d.tsat>THR.tsatF));
+  d.ferritinHigh = d.ferritin!==null && d.ferritin>THR.ferritinHigh;
+  d.fib4 = computeFib4(d.age,d.ast,d.alt,d.plt);
+  d.fib4b = fib4Band(d.fib4,d.age);
+
+  let primary=null, secondaries=[];
+  let aN=[], aE=[];
+
+  if(d.syntheticFailure || d.malignancy){
+    aN=['synthetic','tww']; aE=['synthetic->tww'];
+    primary={cls:'red',tag:'red',tagL:'2-week-wait',h:'Urgent referral — 2-week-wait hepatobiliary surgery / hepatology',
+      p:'Suspected synthetic failure (jaundice, low albumin, prolonged INR) or malignancy (weight loss, jaundice, marked cholestasis). Refer on a 2-week-wait pathway to hepatobiliary surgery or hepatology.',
+      li:['Do not delay for further primary-care investigation.']};
+  } else if(d.alpRaised && d.ggtNormal && !d.altRaised){
+    aN=['alpBone']; aE=[];
+    primary={cls:'amber',tag:'amber',tagL:'Bone source',h:'Raised ALP with normal GGT',
+      p:'A raised ALP with a normal GGT points away from the liver. Consider bone disease and check vitamin D levels. Investigate in the context of co-morbidities.',li:[]};
+  } else if(d.alpRaised && (d.ggtRaised || d.ggt===null)){
+    aN=['alpGGT','ig','uss']; aE=['alpGGT->ig','ig->uss'];
+    if(d.ggt===null) primary={cls:'blue',tag:'blue',tagL:'Check GGT',h:'Raised ALP — GGT needed',
+      p:'Where other LFTs are normal, NUH laboratory auto-adds GGT when ALP ≥160 U/L. A raised ALP with raised GGT confirms a hepatic/cholestatic source — request immunoglobulins and autoantibodies, then a liver ultrasound.',li:[]};
+    else primary={cls:'blue',tag:'blue',tagL:'Cholestatic',h:'Raised ALP with raised GGT — cholestatic pattern',
+      p:'Request immunoglobulins and autoantibodies, then a liver ultrasound.',li:[]};
+    applyUSS(d,aN,aE);
+    if(d.uss) primary=ussPrimary(d);
+  } else if(d.altRaised){
+    aN=['alt','screen']; aE=['alt->screen'];
+    primary={cls:'blue',tag:'blue',tagL:'Hepatic',h:'Raised ALT — full liver screen',
+      p:'Request viral hepatitis screen, immunoglobulins, autoantibodies/ANA, ferritin, transferrin saturation, coeliac, TFT and a liver risk assessment.',li:[]};
+    if(d.alt250){
+      aN.push('alt250','uss'); aE.push('screen->alt250','alt250->uss');
+      applyUSS(d,aN,aE);
+      primary={cls:'blue',tag:'blue',tagL:'ALT >250',h:'ALT >250 — request liver ultrasound',
+        p:'A markedly raised ALT (>250) prompts a liver ultrasound alongside the screen.',li:[]};
+      if(d.uss) primary=ussPrimary(d);
+    } else if(d.nafldY){
+      aN.push('nafld','nafldReq'); aE.push('screen->nafld','nafld->nafldReq');
+      primary=nafldPrimary(d,aN,aE);
+      if(d.alcoholExcess) secondaries.push({h:'Alcohol also above threshold',p:'Alcohol intake is also above the harmful threshold — request an alcohol-related liver risk assessment (ELF/Fibroscan) and offer brief intervention / Alcohol Services.'});
+    } else if(d.alcoholExcess){
+      aN.push('alcohol','alcReq'); aE.push('screen->alcohol','alcohol->alcReq');
+      primary=alcoholPrimary(d,aN,aE);
+    } else {
+      primary.li=['No NAFLD risk factors, harmful alcohol use or ALT >250 captured. Refer abnormal screen results as clinically appropriate (see additional notes). Persistently raised ALT without a cause should be considered for referral.'];
+    }
+  } else if(d.isolatedBili){
+    aN=['gilberts']; aE=[];
+    primary={cls:'green',tag:'green',tagL:'Gilbert\'s',h:'Isolated raised bilirubin → consider Gilbert\'s syndrome',
+      p:'Isolated raised bilirubin with normal ALT/ALP (and normal Hb) is commonly Gilbert\'s syndrome. No treatment is necessary other than informing and counselling the patient. Confirm Hb/FBC normal to exclude haemolysis.',li:[]};
+  } else {
+    primary={cls:'green',tag:'green',tagL:'No abnormal pattern',h:'No abnormal LFT pattern triggered',
+      p:'The values entered do not trigger an abnormal-LFT branch. Patients at increased risk of advanced fibrosis/cirrhosis (obesity + type 2 diabetes, or hazardous alcohol use) are invited for assessment on a Primary Care Network basis; known intermediate Fibroscan results warrant an interval scan after 3–5 years.',li:[]};
+  }
+
+  // Ferritin / iron overload note (additive)
+  if(d.ferritinHigh || d.tsatHigh){
+    if(d.ferritinHigh && (d.tsatHigh || d.ferritin>1000))
+      secondaries.push({h:'Iron studies',p:'Ferritin >1000 and/or persistently raised transferrin saturation (>55% male, >50% female) → refer hepatology and request HFE mutation testing for haemochromatosis.'});
+    else
+      secondaries.push({h:'Iron studies',p:'Raised ferritin <1000 with normal fasting transferrin saturation is commonly fatty liver — proceed to Fibroscan if indicated. Repeat fasting transferrin saturation on 2 occasions.'});
+  }
+
+  render(d,primary,secondaries,aN,aE);
+}
+
+function applyUSS(d,aN,aE){
+  if(!d.uss) return;
+  if(d.uss==='mass'){aN.push('ussMass','tww');aE.push('uss->ussMass','ussMass->tww');}
+  else if(d.uss==='abnormal'){aN.push('ussAbn','specRef');aE.push('uss->ussAbn','ussAbn->specRef');}
+  else if(d.uss==='normal'){aN.push('hepRef');}
+}
+function ussPrimary(d){
+  if(d.uss==='mass') return {cls:'red',tag:'red',tagL:'2-week-wait',h:'Ultrasound shows mass / metastases — 2-week-wait',p:'Refer on a 2-week-wait pathway to hepatobiliary surgery or hepatology.',li:[]};
+  if(d.uss==='abnormal') return {cls:'purple',tag:'purple',tagL:'Refer',h:'Abnormal ultrasound',p:'Referral or advice from the relevant speciality, guided by the abnormality found.',li:[]};
+  if(d.uss==='normal') return {cls:'purple',tag:'purple',tagL:'Refer',h:'Normal ultrasound',p:'Referral or advice from hepatology / gastroenterology, guided by the screen results.',li:[]};
+  return null;
+}
+function fibPrimaryCore(d,aN,aE){
+  // attach FIB-4 outcome nodes
+  if(d.fib4b){
+    if(d.fib4b.key==='low'){aN.push('fibLow');}
+    else if(d.fib4b.key==='indet'){aN.push('fibIndet');}
+    else if(d.fib4b.key==='high'){aN.push('fibHigh');aE.push('fibHigh->hepRef');aN.push('hepRef');}
+  }
+}
+function nafldPrimary(d,aN,aE){
+  fibPrimaryCore(d,aN,aE);
+  if(d.fib4b&&d.fib4b.key==='high') aE.push('nafldReq->fibHigh');
+  else if(d.fib4b&&d.fib4b.key==='indet') aE.push('nafldReq->fibIndet');
+  else if(d.fib4b&&d.fib4b.key==='low') aE.push('nafldReq->fibLow');
+  let p='NAFLD risk factors present — request the NAFLD liver risk assessment (FIB-4 / Fibroscan / ELF cascade). Give lifestyle advice.';
+  let li=[];
+  if(d.fib4b){
+    if(d.fib4b.key==='low') li=['FIB-4 '+d.fib4.toFixed(2)+' (low) → reassess risk in 3 years.'];
+    else if(d.fib4b.key==='indet') li=['FIB-4 '+d.fib4.toFixed(2)+' (indeterminate) → lab will process ELF or book a Fibroscan. Fibroscan ≤8 kPa / ELF <10.51 → reassess in 3 years; >8–15 kPa → consider referral; >15 kPa / ELF ≥10.51 → refer.'];
+    else li=['FIB-4 '+d.fib4.toFixed(2)+' (high, >3.25) → refer hepatology or gastroenterology.'];
+  } else { li=['Enter age, AST, ALT and platelets to calculate FIB-4.']; }
+  return {cls:'blue',tag:'blue',tagL:'NAFLD',h:'Non-alcoholic fatty liver — risk assessment',p:p,li:li};
+}
+function alcoholPrimary(d,aN,aE){
+  fibPrimaryCore(d,aN,aE);
+  if(d.fib4b&&d.fib4b.key==='high') aE.push('alcReq->fibHigh');
+  else if(d.fib4b&&d.fib4b.key==='indet') aE.push('alcReq->fibIndet');
+  let li=['Offer brief intervention and consider referral to Alcohol Services.'];
+  if(d.fib4b&&d.fib4b.key!=='low') li.unshift('FIB-4 '+d.fib4.toFixed(2)+' ('+d.fib4b.label.toLowerCase()+').');
+  return {cls:'amber',tag:'amber',tagL:'Alcohol',h:'Alcohol above harmful threshold — risk assessment',
+    p:'Alcohol intake above the harmful threshold (men >50, women >35 units/week, or AUDIT >19) — request the alcohol-related liver risk assessment (ELF / Fibroscan).',li:li};
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════════════
+function render(d,primary,secondaries,aN,aE){
+  document.getElementById('out').classList.add('show');
+  // summary
+  const items=[['ALT',d.alt,'f-alt',d.altRaised],['AST',d.ast,null,false],['ALP',d.alp,'f-alp',d.alpRaised],['GGT',d.ggt,'f-ggt',d.ggtRaised],['Bili',d.bili,'f-bili',d.biliRaised],['Alb',d.alb,'f-alb',d.albLow],['INR',d.inr,'f-inr',d.inrHigh],['Plt',d.plt,'f-plt',false]];
+  document.getElementById('summary').innerHTML='<div class="result-summary">'+items.filter(i=>i[1]!=null).map(i=>`<div class="rs-item"><div class="k">${i[0]}</div><div class="val ${i[3]?'ab':''}">${i[1]}</div></div>`).join('')+(d.fib4!=null?`<div class="rs-item"><div class="k">FIB-4</div><div class="val ${d.fib4b&&d.fib4b.key==='high'?'ab':''}">${d.fib4.toFixed(2)}</div></div>`:'')+'</div>';
+  // primary
+  document.getElementById('primary').innerHTML=`<div class="card ${primary.cls}"><span class="tag ${primary.tag}">${primary.tagL}</span><h3>${primary.h}</h3><p>${primary.p}</p>${primary.li&&primary.li.length?'<ul>'+primary.li.map(x=>'<li>'+x+'</li>').join('')+'</ul>':''}</div>`;
+  // secondaries
+  document.getElementById('secondary').innerHTML=secondaries.length?'<div class="divider">Also relevant</div>'+secondaries.map(s=>`<div class="card blue"><h3>${s.h}</h3><p>${s.p}</p></div>`).join(''):'';
+  // flow
+  renderFlow(aN,aE);
+  paint();
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function resetAll(){
+  ['f-alt','f-ast','f-alp','f-ggt','f-bili','f-alb','f-inr','f-plt','f-ferritin','f-tsat','f-age','c-units','c-audit'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['c-sex','c-jaundice','c-wtloss','c-nafld','c-uss'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
+  document.getElementById('out').classList.remove('show');
+  document.getElementById('fib4-box').style.display='none';
+}
+paint();
+</script>
+</body>
+</html>
