@@ -133,6 +133,8 @@ footer b{color:rgba(255,255,255,.8)}
       <div class="fld"><label>Alcohol <span class="unit">units/week</span></label><input type="number" id="c-units" min="0" oninput="paint()"></div>
       <div class="fld"><label>AUDIT score</label><input type="number" id="c-audit" min="0" max="40" oninput="paint()"></div>
       <div class="fld"><label>Liver ultrasound</label><select id="c-uss"><option value="">Not done</option><option value="normal">Normal</option><option value="abnormal">Abnormal (not mass)</option><option value="mass">Metastases / mass</option></select></div>
+      <div class="fld"><label>Fibroscan <span class="unit">kPa · if returned</span></label><input type="number" id="f-fibroscan" min="0" step="0.1" oninput="paint()"></div>
+      <div class="fld"><label>ELF score <span class="unit">if returned</span></label><input type="number" id="f-elf" min="0" step="0.01" oninput="paint()"></div>
     </div>
 
     <div class="fib4" id="fib4-box" style="display:none"></div>
@@ -278,7 +280,7 @@ const FLOW_EDGES = [
   {from:'alt250',to:'uss'},
   {from:'nafld',to:'nafldReq'},{from:'alcohol',to:'alcReq'},
   {from:'nafldReq',to:'fibLow'},{from:'nafldReq',to:'fibIndet'},{from:'nafldReq',to:'fibHigh'},
-  {from:'alcReq',to:'fibIndet'},{from:'alcReq',to:'fibHigh'},
+  {from:'alcReq',to:'fibLow'},{from:'alcReq',to:'fibIndet'},{from:'alcReq',to:'fibHigh'},
   {from:'fibHigh',to:'hepRef'},{from:'fibIndet',to:'hepRef'},
   {from:'synthetic',to:'tww'}
 ];
@@ -302,7 +304,8 @@ function analyse(){
     alt:val('f-alt'),ast:val('f-ast'),alp:val('f-alp'),ggt:val('f-ggt'),bili:val('f-bili'),
     alb:val('f-alb'),inr:val('f-inr'),plt:val('f-plt'),ferritin:val('f-ferritin'),tsat:val('f-tsat'),
     age:val('f-age'),sex:sel('c-sex'),jaundice:sel('c-jaundice'),wtloss:sel('c-wtloss'),
-    nafld:sel('c-nafld'),units:val('c-units'),audit:val('c-audit'),uss:sel('c-uss')
+    nafld:sel('c-nafld'),units:val('c-units'),audit:val('c-audit'),uss:sel('c-uss'),
+    fibroscan:val('f-fibroscan'),elf:val('f-elf')
   };
   const anyVal=[d.alt,d.ast,d.alp,d.ggt,d.bili,d.alb,d.inr,d.plt,d.ferritin,d.tsat].some(v=>v!==null);
   if(!anyVal && !d.jaundice && !d.wtloss){alert('Enter at least one result or clinical feature.');return;}
@@ -401,36 +404,43 @@ function ussPrimary(d){
   if(d.uss==='normal') return {cls:'purple',tag:'purple',tagL:'Refer',h:'Normal ultrasound',p:'Referral or advice from hepatology / gastroenterology, guided by the screen results.',li:[]};
   return null;
 }
-function fibPrimaryCore(d,aN,aE){
-  // attach FIB-4 outcome nodes
-  if(d.fib4b){
-    if(d.fib4b.key==='low'){aN.push('fibLow');}
-    else if(d.fib4b.key==='indet'){aN.push('fibIndet');}
-    else if(d.fib4b.key==='high'){aN.push('fibHigh');aE.push('fibHigh->hepRef');aN.push('hepRef');}
+// Combine FIB-4 with any returned Fibroscan / ELF result, per the V37 cascade.
+// Priority: a high FIB-4 refers regardless. Otherwise a returned Fibroscan/ELF
+// (more specific second-line test) drives the decision; else the FIB-4 band.
+function fibrosisOutcome(d){
+  if(d.fib4b && d.fib4b.key==='high')
+    return {key:'high',text:'FIB-4 '+d.fib4.toFixed(2)+' (high, >3.25) → refer hepatology or gastroenterology.'};
+  if(d.fibroscan!==null){
+    if(d.fibroscan>15) return {key:'high',text:'Fibroscan '+d.fibroscan+' kPa (>15) → refer hepatology or gastroenterology.'};
+    if(d.fibroscan>8)  return {key:'mid',text:'Fibroscan '+d.fibroscan+' kPa (>8–15) → consider referral, address risk factors, reassess in 3–5 years.'};
+    return {key:'low',text:'Fibroscan '+d.fibroscan+' kPa (≤8) → reassess risk in 3 years.'};
   }
+  if(d.elf!==null){
+    if(d.elf>=10.51) return {key:'high',text:'ELF '+d.elf+' (≥10.51) → refer to secondary care (NG49).'};
+    return {key:'low',text:'ELF '+d.elf+' (<10.51) → reassess risk in 3 years.'};
+  }
+  if(d.fib4b){
+    if(d.fib4b.key==='low')   return {key:'low',text:'FIB-4 '+d.fib4.toFixed(2)+' (low) → reassess risk in 3 years.'};
+    if(d.fib4b.key==='indet') return {key:'indet',text:'FIB-4 '+d.fib4.toFixed(2)+' (indeterminate) → lab will process ELF or book a Fibroscan (≤8 kPa / ELF <10.51 → reassess; >8–15 kPa → consider referral; >15 kPa / ELF ≥10.51 → refer).'};
+  }
+  return {key:'none',text:'Enter age, AST, ALT and platelets for FIB-4, or a returned Fibroscan/ELF result.'};
+}
+function outcomeNode(o){ return o.key==='high'?'fibHigh':(o.key==='low'?'fibLow':((o.key==='mid'||o.key==='indet')?'fibIndet':null)); }
+function attachOutcome(reqNode,d,aN,aE){
+  const o=fibrosisOutcome(d), node=outcomeNode(o);
+  if(node){ aN.push(node); aE.push(reqNode+'->'+node); if(node==='fibHigh'){aN.push('hepRef');aE.push('fibHigh->hepRef');} }
+  return o;
 }
 function nafldPrimary(d,aN,aE){
-  fibPrimaryCore(d,aN,aE);
-  if(d.fib4b&&d.fib4b.key==='high') aE.push('nafldReq->fibHigh');
-  else if(d.fib4b&&d.fib4b.key==='indet') aE.push('nafldReq->fibIndet');
-  else if(d.fib4b&&d.fib4b.key==='low') aE.push('nafldReq->fibLow');
-  let p='NAFLD risk factors present — request the NAFLD liver risk assessment (FIB-4 / Fibroscan / ELF cascade). Give lifestyle advice.';
-  let li=[];
-  if(d.fib4b){
-    if(d.fib4b.key==='low') li=['FIB-4 '+d.fib4.toFixed(2)+' (low) → reassess risk in 3 years.'];
-    else if(d.fib4b.key==='indet') li=['FIB-4 '+d.fib4.toFixed(2)+' (indeterminate) → lab will process ELF or book a Fibroscan. Fibroscan ≤8 kPa / ELF <10.51 → reassess in 3 years; >8–15 kPa → consider referral; >15 kPa / ELF ≥10.51 → refer.'];
-    else li=['FIB-4 '+d.fib4.toFixed(2)+' (high, >3.25) → refer hepatology or gastroenterology.'];
-  } else { li=['Enter age, AST, ALT and platelets to calculate FIB-4.']; }
-  return {cls:'blue',tag:'blue',tagL:'NAFLD',h:'Non-alcoholic fatty liver — risk assessment',p:p,li:li};
+  const o=attachOutcome('nafldReq',d,aN,aE);
+  return {cls:'blue',tag:'blue',tagL:'NAFLD',h:'Non-alcoholic fatty liver — risk assessment',
+    p:'NAFLD risk factors present — request the NAFLD liver risk assessment (FIB-4 / Fibroscan / ELF cascade). Give lifestyle advice.',li:[o.text]};
 }
 function alcoholPrimary(d,aN,aE){
-  fibPrimaryCore(d,aN,aE);
-  if(d.fib4b&&d.fib4b.key==='high') aE.push('alcReq->fibHigh');
-  else if(d.fib4b&&d.fib4b.key==='indet') aE.push('alcReq->fibIndet');
-  let li=['Offer brief intervention and consider referral to Alcohol Services.'];
-  if(d.fib4b&&d.fib4b.key!=='low') li.unshift('FIB-4 '+d.fib4.toFixed(2)+' ('+d.fib4b.label.toLowerCase()+').');
+  const o=attachOutcome('alcReq',d,aN,aE);
   return {cls:'amber',tag:'amber',tagL:'Alcohol',h:'Alcohol above harmful threshold — risk assessment',
-    p:'Alcohol intake above the harmful threshold (men >50, women >35 units/week, or AUDIT >19) — request the alcohol-related liver risk assessment (ELF / Fibroscan).',li:li};
+    p:'Alcohol intake above the harmful threshold (men >50, women >35 units/week, or AUDIT >19) — request the alcohol-related liver risk assessment (ELF / Fibroscan).',
+    li:['Offer brief intervention and consider referral to Alcohol Services.',o.text]};
 }
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -452,7 +462,7 @@ function render(d,primary,secondaries,aN,aE){
 }
 
 function resetAll(){
-  ['f-alt','f-ast','f-alp','f-ggt','f-bili','f-alb','f-inr','f-plt','f-ferritin','f-tsat','f-age','c-units','c-audit'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  ['f-alt','f-ast','f-alp','f-ggt','f-bili','f-alb','f-inr','f-plt','f-ferritin','f-tsat','f-age','c-units','c-audit','f-fibroscan','f-elf'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   ['c-sex','c-jaundice','c-wtloss','c-nafld','c-uss'].forEach(id=>{const el=document.getElementById(id);if(el)el.selectedIndex=0;});
   document.getElementById('out').classList.remove('show');
   document.getElementById('fib4-box').style.display='none';

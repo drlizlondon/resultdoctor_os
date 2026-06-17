@@ -112,14 +112,29 @@
     return state.wv[key].thresholds;
   }
 
-  function updateVar(key, field, value) {
+  function updateVar(key, field, value, sex) {
     const master = masterVar(key); if (!master) return;
     if (!state.wv[key]) state.wv[key] = {};
     const label = field === 'normalHigh' ? 'normal high' : 'normal low';
-    const mv = (master[field] === null || master[field] === undefined) ? '(not set)' : master[field];
     const trimmed = (value == null ? '' : String(value)).trim();
-    if (trimmed === '') { delete state.wv[key][field]; logChange('Variable ' + master.code + ' — ' + label + ': ' + mv + ' → (cleared)'); }
-    else { state.wv[key][field] = trimmed; logChange('Variable ' + master.code + ' — ' + label + ': ' + mv + ' → ' + trimmed); }
+    if (master.sexSpecific && sex) {
+      if (!state.wv[key][field] || typeof state.wv[key][field] !== 'object') state.wv[key][field] = {};
+      const mObj = master[field] || {};
+      const mv = (mObj[sex] == null) ? '(not set)' : mObj[sex];
+      const sexL = sex === 'm' ? 'male' : 'female';
+      if (trimmed === '') {
+        delete state.wv[key][field][sex];
+        if (Object.keys(state.wv[key][field]).length === 0) delete state.wv[key][field];
+        logChange('Variable ' + master.code + ' — ' + label + ' (' + sexL + '): ' + mv + ' → (cleared)');
+      } else {
+        state.wv[key][field][sex] = trimmed;
+        logChange('Variable ' + master.code + ' — ' + label + ' (' + sexL + '): ' + mv + ' → ' + trimmed);
+      }
+    } else {
+      const mv = (master[field] === null || master[field] === undefined) ? '(not set)' : master[field];
+      if (trimmed === '') { delete state.wv[key][field]; logChange('Variable ' + master.code + ' — ' + label + ': ' + mv + ' → (cleared)'); }
+      else { state.wv[key][field] = trimmed; logChange('Variable ' + master.code + ' — ' + label + ': ' + mv + ' → ' + trimmed); }
+    }
     cleanupWV(key); renderVars();
   }
 
@@ -156,9 +171,29 @@
     renderVars();
   }
 
+  // Merge a sex-specific {m,f} master value with any working-copy override.
+  function mergeSex(mObj, wObj) {
+    mObj = mObj || {}; wObj = wObj || {};
+    return {
+      m: wObj.m !== undefined ? wObj.m : (mObj.m == null ? null : mObj.m),
+      f: wObj.f !== undefined ? wObj.f : (mObj.f == null ? null : mObj.f)
+    };
+  }
+
   // The current effective value of a variable field (working copy over master).
+  // A variable may declare sexSpecific:true, in which case normalHigh / low are
+  // {m,f} objects with separate male/female thresholds.
   function effective(key) {
     const m = masterVar(key) || {}, w = state.wv[key] || {};
+    if (m.sexSpecific) {
+      return {
+        sexSpecific: true,
+        normalHigh: mergeSex(m.normalHigh, w.normalHigh),
+        low: mergeSex(m.low, w.low),
+        thresholds: w.thresholds || m.thresholds || [],
+        changed: w.normalHigh !== undefined || w.low !== undefined || w.thresholds !== undefined
+      };
+    }
     return {
       normalHigh: w.normalHigh !== undefined ? w.normalHigh : m.normalHigh,
       low: w.low !== undefined ? w.low : m.low,
@@ -210,9 +245,20 @@
         bandsHTML = '<div class="vc-pills">' + eff.thresholds.map(function (t) { return '<span class="pill ' + t.c + '">' + escHtml(t.l) + '</span>'; }).join('') + '</div>';
       }
 
-      const editFields =
-        '<div class="ef"><label>Normal high (' + escHtml(v.unit) + ')</label><input type="text" value="' + (eff.normalHigh == null ? '' : escHtml(eff.normalHigh)) + '" placeholder="not set" onchange="PathwayAdmin.updateVar(\'' + key + '\',\'normalHigh\',this.value)" /></div>' +
-        '<div class="ef"><label>Normal low (' + escHtml(v.unit) + ')</label><input type="text" value="' + (eff.low == null ? '' : escHtml(eff.low)) + '" placeholder="not set" onchange="PathwayAdmin.updateVar(\'' + key + '\',\'low\',this.value)" /></div>' +
+      let rangeFields;
+      if (eff.sexSpecific) {
+        const hi = eff.normalHigh || {}, lo = eff.low || {};
+        const inp = function (lbl, field, sex, cur) {
+          return '<div class="ef"><label>' + lbl + ' (' + escHtml(v.unit) + ')</label><input type="text" value="' + (cur == null ? '' : escHtml(cur)) + '" placeholder="not set" onchange="PathwayAdmin.updateVar(\'' + key + '\',\'' + field + '\',this.value,\'' + sex + '\')" /></div>';
+        };
+        rangeFields = inp('Normal high · male', 'normalHigh', 'm', hi.m) + inp('Normal high · female', 'normalHigh', 'f', hi.f);
+        if (v.low && (v.low.m != null || v.low.f != null)) rangeFields += inp('Normal low · male', 'low', 'm', lo.m) + inp('Normal low · female', 'low', 'f', lo.f);
+      } else {
+        rangeFields =
+          '<div class="ef"><label>Normal high (' + escHtml(v.unit) + ')</label><input type="text" value="' + (eff.normalHigh == null ? '' : escHtml(eff.normalHigh)) + '" placeholder="not set" onchange="PathwayAdmin.updateVar(\'' + key + '\',\'normalHigh\',this.value)" /></div>' +
+          '<div class="ef"><label>Normal low (' + escHtml(v.unit) + ')</label><input type="text" value="' + (eff.low == null ? '' : escHtml(eff.low)) + '" placeholder="not set" onchange="PathwayAdmin.updateVar(\'' + key + '\',\'low\',this.value)" /></div>';
+      }
+      const editFields = rangeFields +
         (eff.changed ? '<span class="mod-badge">Modified</span>' : '') +
         (eff.changed ? '<button onclick="PathwayAdmin.resetVar(\'' + key + '\')" style="font-size:11px;padding:3px 8px;border:0.5px solid var(--border2);border-radius:4px;background:var(--surface);cursor:pointer;color:var(--text2);">Reset to master</button>' : '');
 

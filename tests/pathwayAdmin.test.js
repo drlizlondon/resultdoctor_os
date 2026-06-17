@@ -108,6 +108,44 @@ test('a preset numeric master (BMI=25) shows through until overridden', () => {
   assert(/BMI — normal high: 25 → 30/.test(PathwayAdmin.changes[0].description));
 });
 
+console.log('\nSex-specific ranges');
+
+function freshSexConfig() {
+  const VARS = [
+    { code: 'TSAT', full: 'Transferrin saturation', type: 'metabolic', unit: '%', sexSpecific: true,
+      normalHigh: { m: 55, f: 50 }, low: null, thresholds: [{ l: 'Raised → iron overload', c: 'p-hi' }] }
+  ];
+  PathwayAdmin.config({ pin: '2468', pages: [{ prefix: '', vars: VARS }] });
+  PathwayAdmin._state.wv = {}; PathwayAdmin._state.changes = []; PathwayAdmin._state.adminUnlocked = false; PathwayAdmin._state.mode = 'master';
+  return { VARS };
+}
+
+test('sex-specific master values show through per sex', () => {
+  freshSexConfig();
+  const eff = PathwayAdmin.effective('TSAT');
+  assert.strictEqual(eff.sexSpecific, true);
+  assert.strictEqual(eff.normalHigh.m, 55);
+  assert.strictEqual(eff.normalHigh.f, 50);
+});
+
+test('editing one sex leaves the other and the master intact', () => {
+  const { VARS } = freshSexConfig();
+  PathwayAdmin.updateVar('TSAT', 'normalHigh', '60', 'm');
+  const eff = PathwayAdmin.effective('TSAT');
+  assert.strictEqual(eff.normalHigh.m, '60');
+  assert.strictEqual(eff.normalHigh.f, 50, 'female untouched');
+  assert.strictEqual(VARS[0].normalHigh.m, 55, 'master untouched');
+  assert(/TSAT — normal high \(male\): 55 → 60/.test(PathwayAdmin.changes[0].description), PathwayAdmin.changes[0].description);
+});
+
+test('clearing a sex override reverts to master and cleans up', () => {
+  freshSexConfig();
+  PathwayAdmin.updateVar('TSAT', 'normalHigh', '60', 'm');
+  PathwayAdmin.updateVar('TSAT', 'normalHigh', '', 'm');
+  assert.strictEqual(PathwayAdmin.effective('TSAT').normalHigh.m, 55);
+  assert.strictEqual(PathwayAdmin.workingCopy.TSAT, undefined);
+});
+
 console.log('\nPasscode gate');
 
 test('correct passcode unlocks, wrong one does not', () => {

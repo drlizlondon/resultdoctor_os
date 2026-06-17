@@ -186,6 +186,37 @@
 
   /* Warning box */
   .review-warning{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#856404}
+
+  /* ── Shared master admin engine (pathwayAdmin.js) — light card styling ── */
+  #tab-variables{--surface:#fff;--text:#1a1a2e;--text2:#374151;--text3:#6B7280;--border:#E5E7EB;--border2:#D1D5DB;
+    --b:#1859CC;--g:#00703C;--g-bg:#E3F5EC;--r:#B91C1C;--r-bg:#FEF2F2;--o:#B45309;--o-bg:#FFFBEB;--o-bd:#FCD34D;--pu:#6D28D9;--pu-bg:#F5F3FF;--pu-bd:#DDD6FE}
+  .var-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .vc{background:#fff;border:1px solid #E5E7EB;border-radius:12px;overflow:hidden}
+  .vc-head{display:flex;justify-content:space-between;gap:10px;padding:12px 14px 8px}
+  .vc-code{font-weight:700;font-size:15px;color:#1a1a2e}.vc-full{font-size:12px;color:#374151}.vc-also{font-size:11px;color:#6B7280;margin-top:2px}
+  .vc-pills{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px}
+  .pill{font-size:11px;padding:3px 8px;border-radius:20px}
+  .p-n{background:#E3F5EC;color:#00703C}.p-hi{background:#FEF2F2;color:#B91C1C}.p-th{background:#FFFBEB;color:#B45309}.p-ctx{background:#F5F3FF;color:#6D28D9}
+  .vc-note{font-size:12px;color:#374151;background:#F9FAFB;padding:8px 14px;border-top:1px solid #E5E7EB}
+  .vc-edit{display:none;padding:8px 14px;border-top:1px solid #E5E7EB;gap:8px;flex-wrap:wrap;align-items:center}.vc-edit.show{display:flex}
+  .ef{display:flex;flex-direction:column;gap:2px}.ef label{font-size:10px;color:#6B7280;text-transform:uppercase;letter-spacing:.06em}
+  .ef input{width:92px;padding:4px 6px;border:1px solid #D1D5DB;border-radius:4px;font-size:12px;background:#fff;color:#1a1a2e}
+  .ef input::placeholder{color:#9aa3af;font-style:italic}.ef input:focus{outline:none;border-color:#1859CC}
+  .mod-badge{font-size:10px;background:#FFFBEB;color:#B45309;padding:2px 6px;border-radius:10px;border:1px solid #FCD34D}
+  .band-edit{display:flex;flex-direction:column;gap:6px;padding:8px 14px}
+  .bandrow{display:flex;align-items:center;gap:6px}
+  .band-swatch{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .band-swatch.p-n{background:#00703C}.band-swatch.p-hi{background:#B91C1C}.band-swatch.p-th{background:#B45309}.band-swatch.p-ctx{background:#6D28D9}
+  .band-input{flex:1;min-width:120px;padding:4px 7px;border:1px solid #D1D5DB;border-radius:4px;font-size:12px;background:#fff;color:#1a1a2e}
+  .band-input:focus{outline:none;border-color:#1859CC}
+  .band-sel{padding:4px 6px;border:1px solid #D1D5DB;border-radius:4px;font-size:11px;background:#fff;color:#1a1a2e}
+  .band-del{width:22px;height:22px;border:1px solid #D1D5DB;border-radius:4px;background:#fff;color:#6B7280;cursor:pointer;font-size:14px;line-height:1}
+  .band-del:hover{border-color:#B91C1C;color:#B91C1C}
+  .band-add{align-self:flex-start;font-size:11px;padding:4px 10px;border:1px dashed #D1D5DB;border-radius:4px;background:transparent;color:#1859CC;cursor:pointer}
+  .ch-item{background:#fff;border:1px solid #E5E7EB;border-radius:8px;padding:10px 12px;margin-bottom:8px}
+  .ch-meta{display:flex;justify-content:space-between;margin-bottom:4px}.ch-time{font-size:11px;color:#6B7280}.ch-tag{font-size:10px;font-weight:700;color:#B45309;background:#FFFBEB;padding:1px 7px;border-radius:8px}
+  .ch-diff{font-size:13px;color:#1a1a2e}
+  .empty{color:#6B7280;font-size:13px;padding:18px;text-align:center;border:1px dashed #D1D5DB;border-radius:10px}
 </style>
 </head>
 <body>
@@ -294,122 +325,7 @@
       <p>All measurable variables extracted from the pathway, with thresholds, synonyms, and pathway context.</p>
     </div>
 
-    <!-- Hb -->
-    <div class="var-card">
-      <span class="var-code">hb</span>
-      <div class="var-name">Haemoglobin</div>
-      <div class="var-aka">Also known as: Hb, hemoglobin, haemoglobin concentration, blood haemoglobin</div>
-      <div style="font-size:12px;color:#555">Unit: g/L &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-normal">Normal (M): ≥130 g/L</span>
-        <span class="threshold-pill pill-thresh">Anaemia (M): &lt;130 g/L</span>
-        <span class="threshold-pill pill-normal">Normal (F non-preg): ≥120 g/L</span>
-        <span class="threshold-pill pill-thresh">Anaemia (F non-preg): &lt;120 g/L</span>
-        <span class="threshold-pill pill-raised">Urgent (M): &lt;120 g/L</span>
-        <span class="threshold-pill pill-raised">Urgent (F postmeno): &lt;100 g/L</span>
-        <span class="threshold-pill pill-context">Context-required: sex, menopausal status</span>
-      </div>
-      <div class="var-note">"In men – Hb below 130 g/L [= anaemia]. In non-pregnant women – Hb below 120 g/L [= anaemia]. Men with a haemoglobin (Hb) level less than 120 g/L and postmenopausal women with an Hb level less than 100 g/L should be investigated more urgently."</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel &amp; step 9.0</div>
-    </div>
-
-    <!-- MCV -->
-    <div class="var-card">
-      <span class="var-code">mcv</span>
-      <div class="var-name">Mean Corpuscular Volume</div>
-      <div class="var-aka">Also known as: MCV, mean cell volume, red cell volume index, erythrocyte volume</div>
-      <div style="font-size:12px;color:#555">Unit: fl &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-thresh">Microcytosis: &lt;80 fl</span>
-        <span class="threshold-pill pill-context">Context: degree of anaemia affects interpretation</span>
-      </div>
-      <div class="var-note">"Red cell microcytosis (MCV) &lt;80fl. Note while the probability of iron deficiency in anaemic people increases with decreasing MCV, no specific cut-off point can be used." Thalassaemia trait associated with very low MCV/MCH/MCHC often disproportionate to degree of anaemia.</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
-    </div>
-
-    <!-- Ferritin -->
-    <div class="var-card">
-      <span class="var-code">ferritin</span>
-      <div class="var-name">Serum Ferritin</div>
-      <div class="var-aka">Also known as: ferritin, serum ferritin, s-ferritin, iron stores marker</div>
-      <div style="font-size:12px;color:#555">Unit: µg/L &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-raised">Absent iron stores: &lt;15 µg/L</span>
-        <span class="threshold-pill pill-thresh">Low iron stores: &lt;30 µg/L</span>
-        <span class="threshold-pill pill-normal">Iron deficiency rare: &gt;150 µg/L</span>
-        <span class="threshold-pill pill-context">Context: inflammatory conditions raise ferritin</span>
-      </div>
-      <div class="var-note">"Low serum ferritin (&lt;15µg/L is indicative of absent iron stores; &lt;30 µg/L are generally indicative of low body iron stores. Interpretation difficult if co-existing inflammatory conditions but is rare if ferritin &gt;150µg/L)."</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
-    </div>
-
-    <!-- MCH -->
-    <div class="var-card">
-      <span class="var-code">mch</span>
-      <div class="var-name">Mean Cell Haemoglobin</div>
-      <div class="var-aka">Also known as: MCH, mean corpuscular haemoglobin, cell haemoglobin content</div>
-      <div style="font-size:12px;color:#555">Unit: pg &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-thresh">Hypochromia: reduced MCH</span>
-        <span class="threshold-pill pill-context">Context: exclude chronic disease, haemoglobinopathy</span>
-      </div>
-      <div class="var-note">"Hypochromia (reduced MCH) in the absence of chronic disease or haemoglobinopathy" associated with iron deficiency. Also reduced in thalassaemia trait (often very low).</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Definition panel</div>
-    </div>
-
-    <!-- CRP -->
-    <div class="var-card">
-      <span class="var-code">crp</span>
-      <div class="var-name">C-Reactive Protein</div>
-      <div class="var-aka">Also known as: CRP, C reactive protein, inflammatory marker</div>
-      <div style="font-size:12px;color:#555">Unit: mg/L &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-context">Context: raised CRP may spuriously elevate ferritin</span>
-      </div>
-      <div class="var-note">Requested as part of investigation panel. "Consider Inflammatory markers: CRP, WBC and platelets if potentially spuriously affecting ferritin." CRP elevation indicates inflammation which can make ferritin falsely normal even in iron deficiency.</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 5.0 (B) Investigations</div>
-    </div>
-
-    <!-- Ferritin -->
-    <div class="var-card">
-      <span class="var-code">platelets</span>
-      <div class="var-name">Platelets</div>
-      <div class="var-aka">Also known as: PLT, thrombocytes, platelet count</div>
-      <div style="font-size:12px;color:#555">Unit: ×10⁹/L &nbsp;|&nbsp; Type: Numeric</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-thresh">Raised: consider MDC referral</span>
-        <span class="threshold-pill pill-context">Context: may spuriously affect ferritin interpretation</span>
-      </div>
-      <div class="var-note">"Consider referral to MDC if raised platelets (see abnormal full blood count primary care clinical pathway)." Threshold for "raised" not specified in this pathway — see FBC pathway.</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 4.1 (R)</div>
-    </div>
-
-    <!-- qFIT -->
-    <div class="var-card">
-      <span class="var-code">qfit</span>
-      <div class="var-name">Quantitative Faecal Immunochemical Test</div>
-      <div class="var-aka">Also known as: qFIT, FIT test, faecal immunochemical test, stool blood test</div>
-      <div style="font-size:12px;color:#555">Unit: Binary (positive/negative) &nbsp;|&nbsp; Type: Binary</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-raised">Positive / raised: 2WW trigger</span>
-        <span class="threshold-pill pill-binary">Negative: does not exclude referral need</span>
-      </div>
-      <div class="var-note">"Raised / positive FIT test suggestive of cancer" listed as 2WW referral criterion. "NOTE: Faecal occult blood test not recommended." — qFIT preferred over FOB test.</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Steps 5.0 (Investigations) &amp; 4.1 (R) 2WW criteria</div>
-    </div>
-
-    <!-- Coeliac screen -->
-    <div class="var-card">
-      <span class="var-code">coeliac_screen</span>
-      <div class="var-name">Coeliac Serology</div>
-      <div class="var-aka">Also known as: coeliac screen, TTG antibodies, tTG-IgA, coeliac serology, anti-endomysial antibodies</div>
-      <div style="font-size:12px;color:#555">Unit: Binary (positive/negative) &nbsp;|&nbsp; Type: Binary</div>
-      <div class="threshold-row">
-        <span class="threshold-pill pill-raised">Positive: refer to gastroenterology</span>
-      </div>
-      <div class="var-note">"If coeliac serology is positive" listed as explicit gastroenterology referral criterion. Coeliac disease is a cause of malabsorption-related iron deficiency.</div>
-      <div class="var-source">SOURCE: Adult Iron Deficiency Primary Care Clinical Pathway, NCL ICB, Final Aug 2022 — Step 9.0 / 11.0</div>
-    </div>
+    <div id="var-grid" class="var-grid"></div>
 
   </div>
 
@@ -920,9 +836,12 @@ FBC check at 1 month — expect Hb rise of 1-2 g/100ml over 3-4 weeks.</div>
       <h2>Change Log</h2>
       <p>All edits made in Working mode are timestamped here.</p>
     </div>
+    <h3 style="font-size:13px;color:#374151;margin-bottom:8px">Variable threshold &amp; band edits</h3>
+    <div id="changes-container"><div class="empty">No variable changes yet. Switch to Working mode to edit ranges or bands.</div></div>
+    <h3 style="font-size:13px;color:#374151;margin:16px 0 8px">Local instruction &amp; gap edits</h3>
     <div class="card">
       <div class="card-body" id="changelog-list">
-        <p style="color:#aaa;font-size:13px">No changes recorded yet. Switch to Working mode to edit thresholds, local instructions, or gap resolutions.</p>
+        <p style="color:#aaa;font-size:13px">No changes recorded yet. Switch to Working mode to edit local instructions or gap resolutions.</p>
       </div>
     </div>
   </div>
@@ -930,28 +849,66 @@ FBC check at 1 month — expect Hb rise of 1-2 g/100ml over 3-4 weeks.</div>
 </div><!-- /main -->
 </div><!-- /app -->
 
+<script src="pathwayAdmin.js"></script>
 <script>
 let mode = 'master';
 const localStore = {};
+
+// Variable definitions for the master admin engine (extracted from the pathway).
+// thresholds = display bands; normalHigh/low editable in Working mode. Hb is
+// sex-specific (anaemia threshold differs by sex).
+const VARS = [
+  { code:'hb', full:'Haemoglobin', also:'Hb, haemoglobin concentration, blood haemoglobin', type:'numeric', unit:'g/L', sexSpecific:true, normalHigh:null, low:{m:130,f:120},
+    thresholds:[{l:'Normal (M): ≥130',c:'p-n'},{l:'Anaemia (M): <130',c:'p-th'},{l:'Normal (F non-preg): ≥120',c:'p-n'},{l:'Anaemia (F): <120',c:'p-th'},{l:'Urgent (M): <120',c:'p-hi'},{l:'Urgent (F postmeno): <100',c:'p-hi'},{l:'Context: sex, menopausal status',c:'p-ctx'}],
+    note:'Anaemia: Hb <130 (men) / <120 (non-pregnant women). Investigate more urgently: men <120, postmenopausal women <100. Source: NCL ICB Adult Iron Deficiency pathway (Final Aug 2022).' },
+  { code:'mcv', full:'Mean Corpuscular Volume', also:'MCV, mean cell volume, red cell volume index', type:'numeric', unit:'fl', normalHigh:null, low:80,
+    thresholds:[{l:'Microcytosis: <80 fl',c:'p-th'},{l:'Context: degree of anaemia affects interpretation',c:'p-ctx'}],
+    note:'Microcytosis <80 fl. No specific cut-off for iron deficiency probability. Thalassaemia trait → very low MCV/MCH disproportionate to anaemia.' },
+  { code:'ferritin', full:'Serum Ferritin', also:'ferritin, s-ferritin, iron stores marker', type:'numeric', unit:'µg/L', normalHigh:150, low:30,
+    thresholds:[{l:'Absent iron stores: <15',c:'p-hi'},{l:'Low iron stores: <30',c:'p-th'},{l:'Iron deficiency rare: >150',c:'p-n'},{l:'Context: inflammation raises ferritin',c:'p-ctx'}],
+    note:'<15 µg/L = absent stores; <30 = low stores; deficiency rare if >150. Interpretation difficult with co-existing inflammation.' },
+  { code:'mch', full:'Mean Cell Haemoglobin', also:'MCH, mean corpuscular haemoglobin', type:'numeric', unit:'pg', normalHigh:null, low:null,
+    thresholds:[{l:'Hypochromia: reduced MCH',c:'p-th'},{l:'Context: exclude chronic disease, haemoglobinopathy',c:'p-ctx'}],
+    note:'Reduced MCH (hypochromia) without chronic disease/haemoglobinopathy is associated with iron deficiency; also reduced (often very low) in thalassaemia trait.' },
+  { code:'crp', full:'C-Reactive Protein', also:'CRP, inflammatory marker', type:'numeric', unit:'mg/L', normalHigh:null, low:null,
+    thresholds:[{l:'Context: raised CRP may spuriously elevate ferritin',c:'p-ctx'}],
+    note:'Consider inflammatory markers (CRP, WBC, platelets) if potentially affecting ferritin. Inflammation can make ferritin falsely normal in iron deficiency.' },
+  { code:'platelets', full:'Platelets', also:'PLT, thrombocytes, platelet count', type:'numeric', unit:'×10⁹/L', normalHigh:null, low:null,
+    thresholds:[{l:'Raised: consider MDC referral',c:'p-th'},{l:'Context: may affect ferritin interpretation',c:'p-ctx'}],
+    note:'Consider MDC referral if raised platelets (see abnormal FBC pathway). "Raised" threshold not specified in this pathway.' },
+  { code:'qfit', full:'Quantitative Faecal Immunochemical Test', also:'qFIT, FIT test, faecal immunochemical test', type:'binary', unit:'positive/negative', normalHigh:null, low:null,
+    thresholds:[{l:'Positive → 2WW trigger',c:'p-hi'},{l:'Negative: does not exclude referral',c:'p-ctx'}],
+    note:'Raised/positive FIT suggestive of cancer is a 2WW criterion. Faecal occult blood test is not recommended.' },
+  { code:'coeliac_screen', full:'Coeliac Serology', also:'TTG / tTG-IgA, anti-endomysial antibodies', type:'binary', unit:'positive/negative', normalHigh:null, low:null,
+    thresholds:[{l:'Positive → refer gastroenterology',c:'p-hi'}],
+    note:'Positive coeliac serology is an explicit gastroenterology referral criterion (cause of malabsorption-related iron deficiency).' }
+];
 
 function showTab(id) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.sb-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
   document.getElementById('nav-'+id).classList.add('active');
+  if (id==='changelog') PathwayAdmin.renderChanges();
 }
 
-function setMode(m) {
-  mode = m;
-  document.getElementById('btn-master').classList.toggle('active', m === 'master');
-  document.getElementById('btn-working').classList.toggle('active', m === 'working');
-  document.getElementById('working-banner').style.display = m === 'working' ? 'block' : 'none';
-  if (m === 'working') {
-    document.body.classList.add('working-mode');
-  } else {
-    document.body.classList.remove('working-mode');
+// Delegate to the shared master engine; it handles the passcode gate, the
+// variables grid (editable ranges + bands), the working copy and the change log.
+function setMode(m) { PathwayAdmin.setMode(m); }
+
+PathwayAdmin.config({
+  pin: '2468',                                  // client-side gate only (not real security)
+  pages: [ { prefix:'', vars: VARS } ],
+  dom: { grid:'var-grid', changes:'changes-container' },
+  onModeChange: function(m){
+    mode = m;
+    document.getElementById('btn-master').classList.toggle('active', m==='master');
+    document.getElementById('btn-working').classList.toggle('active', m==='working');
+    document.getElementById('working-banner').style.display = m==='working' ? 'block' : 'none';
+    document.body.classList.toggle('working-mode', m==='working');
   }
-}
+});
+PathwayAdmin.renderVars();
 
 function toggleRule(id) {
   const card = document.getElementById('rc-'+id);

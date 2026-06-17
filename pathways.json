@@ -60,7 +60,7 @@
       "version": "Final Aug 2022",
       "status": "live",
       "tool_path": "iron_deficiency.html",
-      "admin_path": null,
+      "admin_path": "iron_deficiency_admin.html",
       "description": "Adult iron deficiency primary care pathway. CV stability triage, 2WW gastroenterology criteria, routine gastro referral, non-GI bleeding routes, iron replacement and follow-up. SVG flow diagram with per-rule active path highlighting (post-v5 fixes).",
       "trigger_variables": ["haemoglobin", "mcv", "ferritin", "crp", "platelets"],
       "trigger_context": ["sex", "menopausal_status", "age", "cv_unstable", "gi_bleeding", "rectal_bleeding"],
