@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NWL Anaemia — Admin / Rule Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pathwayAdmin.css">
+</head>
+<body>
+<div class="side">
+  <div class="brand">NW LONDON ICB</div>
+  <div class="title">Anaemia pathway</div>
+  <div class="ver">Rule engine · V1 Jul 2020</div>
+  <div class="nav on" id="n-prov" onclick="showTab('prov',this)"><span class="nav-dot" style="background:var(--text3)"></span>Provenance &amp; metadata</div>
+  <div class="nav" id="n-vars" onclick="showTab('vars',this)"><span class="nav-dot" style="background:var(--b)"></span>Variables &amp; ranges</div>
+  <div class="nav" id="n-changes" onclick="showTab('changes',this)"><span class="nav-dot" style="background:var(--o)"></span>Change log</div>
+  <div class="side-foot">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600">Document mode</div>
+    <div class="mode-row">
+      <button class="mode-btn on" id="btn-m" onclick="setMode('master')">Master</button>
+      <button class="mode-btn" id="btn-w" onclick="setMode('working')">Working</button>
+    </div>
+    <div class="edit-notice" id="edit-notice">✏ Working copy — edits tracked (passcode-gated)</div>
+  </div>
+</div>
+<div class="main">
+  <div class="tab-panel on" id="tab-prov">
+    <div class="sec-title">Pathway provenance &amp; metadata</div>
+    <p class="lead">Switch to Working mode (passcode) on the Variables tab to edit normal ranges and threshold bands — every edit is tracked in the Change Log and master values are preserved.</p>
+    <div class="prov">
+      <div><b>Title</b> NW London Anaemia pathway</div>
+      <div><b>Version</b> V1 · 9 July 2020 (review was due 2021)</div>
+      <div><b>Clinician tool</b> nwl_anaemia.html</div>
+      <div><b>Note</b> Different thresholds from the NCL FBC pathway — both surface on Hb; clinician picks.</div>
+    </div>
+  </div>
+  <div class="tab-panel" id="tab-vars">
+    <div class="sec-title">Variables &amp; ranges</div>
+    <p class="lead">Anaemia definition and iron-deficiency criteria. In <b>Working</b> mode (passcode-gated) the normal range and bands of every variable become editable, tracked in the Change Log and resettable to master. Thresholds mirror the clinician tool (nwl_anaemia.html).</p>
+    <div id="var-grid" class="var-grid"></div>
+  </div>
+  <div class="tab-panel" id="tab-changes">
+    <div class="sec-title">Change log — working copy vs master</div>
+    <p class="lead">All modifications made in Working mode are recorded here. Master values are preserved.</p>
+    <div id="changes-container"><div class="empty">No changes yet. Switch to Working mode to edit variable ranges or bands.</div></div>
+  </div>
+</div>
+
+<script src="pathwayAdmin.js"></script>
+<script>
+const VARS = [
+  { code:'Haemoglobin', full:'Haemoglobin', also:'Hb', type:'haematology', unit:'g/L', sexSpecific:true, normalHigh:null, low:{m:130,f:114},
+    thresholds:[{l:'Anaemia: M <130 / F <114',c:'p-th'},{l:'Context: sex',c:'p-ctx'}], note:'Anaemia trigger: Hb <130 (men) / <114 (women) per NWL V1. Editable per sex.' },
+  { code:'MCV', full:'Mean Corpuscular Volume', type:'haematology', unit:'fL', normalHigh:null, low:83.5,
+    thresholds:[{l:'<83.5 → iron-deficiency criterion',c:'p-th'}], note:'MCV <83.5 fL is one of the three strict iron-deficiency criteria.' },
+  { code:'Ferritin', full:'Serum Ferritin', type:'metabolic', unit:'µg/L', sexSpecific:true, normalHigh:null, low:{f:10,m:20},
+    thresholds:[{l:'Iron deficiency: F <10 / M <20',c:'p-th'},{l:'Context: inflammation raises ferritin',c:'p-ctx'}], note:'Strict IDA criterion: ferritin <10 (women) / <20 (men). Editable per sex.' },
+  { code:'B12', full:'Vitamin B12', type:'metabolic', unit:'ng/L', normalHigh:null, low:null,
+    thresholds:[{l:'Part of full anaemia work-up',c:'p-ctx'}], note:'Requested in the non-IDA work-up.' },
+  { code:'Folate', full:'Serum Folate', type:'metabolic', unit:'µg/L', normalHigh:null, low:null,
+    thresholds:[{l:'Part of full anaemia work-up',c:'p-ctx'}], note:'Requested in the non-IDA work-up.' },
+  { code:'Reticulocytes', full:'Reticulocyte count', type:'haematology', unit:'×10⁹/L', normalHigh:null, low:null,
+    thresholds:[{l:'Helps classify non-IDA anaemia',c:'p-ctx'}], note:'' },
+  { code:'CRP', full:'C-Reactive Protein', type:'inflammatory', unit:'mg/L', normalHigh:null, low:null,
+    thresholds:[{l:'Context: raised CRP may mask iron deficiency',c:'p-ctx'}], note:'Inflammation can raise ferritin and obscure iron deficiency.' }
+];
+function showTab(id, navEl){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  if(navEl) navEl.classList.add('on');
+  if(id==='changes') PathwayAdmin.renderChanges();
+}
+function setMode(m){ PathwayAdmin.setMode(m); }
+PathwayAdmin.config({ pin:'2468', pages:[{prefix:'',vars:VARS}], dom:{grid:'var-grid',changes:'changes-container',btnMaster:'btn-m',btnWorking:'btn-w',notice:'edit-notice'} });
+PathwayAdmin.renderVars();
+</script>
+</body>
+</html>

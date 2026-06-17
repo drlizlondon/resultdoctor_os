@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NCL Abnormal FBC — Admin / Rule Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pathwayAdmin.css">
+</head>
+<body>
+<div class="side">
+  <div class="brand">NORTH CENTRAL LONDON ICB</div>
+  <div class="title">Abnormal FBC pathway</div>
+  <div class="ver">Rule engine · Final Jan 2023</div>
+  <div class="nav on" id="n-prov" onclick="showTab('prov',this)"><span class="nav-dot" style="background:var(--text3)"></span>Provenance &amp; metadata</div>
+  <div class="nav" id="n-vars" onclick="showTab('vars',this)"><span class="nav-dot" style="background:var(--b)"></span>Variables &amp; ranges</div>
+  <div class="nav" id="n-changes" onclick="showTab('changes',this)"><span class="nav-dot" style="background:var(--o)"></span>Change log</div>
+  <div class="side-foot">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600">Document mode</div>
+    <div class="mode-row">
+      <button class="mode-btn on" id="btn-m" onclick="setMode('master')">Master</button>
+      <button class="mode-btn" id="btn-w" onclick="setMode('working')">Working</button>
+    </div>
+    <div class="edit-notice" id="edit-notice">✏ Working copy — edits tracked (passcode-gated)</div>
+  </div>
+</div>
+<div class="main">
+  <div class="tab-panel on" id="tab-prov">
+    <div class="sec-title">Pathway provenance &amp; metadata</div>
+    <p class="lead">Switch to Working mode (passcode) on the Variables tab to edit the normal ranges and threshold bands of any variable — every edit is tracked in the Change Log and master values are preserved.</p>
+    <div class="prov">
+      <div><b>Title</b> NCL Abnormal Full Blood Count primary-care pathway</div>
+      <div><b>Version</b> Final Jan 2023 · review Jan 2026</div>
+      <div><b>Approving body</b> NCL ICB Clinical Advisory Group</div>
+      <div><b>Authors</b> Dr Sarah Morgan, Dr Sajir Mohamedbhai</div>
+      <div><b>Clinician tool</b> fbc.html</div>
+    </div>
+  </div>
+  <div class="tab-panel" id="tab-vars">
+    <div class="sec-title">Variables &amp; ranges</div>
+    <p class="lead">FBC indices and follow-up bloods with their thresholds. In <b>Working</b> mode (passcode-gated) the normal range and bands of every variable become editable, tracked in the Change Log and resettable to master. Thresholds mirror the clinician tool (fbc.html).</p>
+    <div id="var-grid" class="var-grid"></div>
+  </div>
+  <div class="tab-panel" id="tab-changes">
+    <div class="sec-title">Change log — working copy vs master</div>
+    <p class="lead">All modifications made in Working mode are recorded here. Master values are preserved.</p>
+    <div id="changes-container"><div class="empty">No changes yet. Switch to Working mode to edit variable ranges or bands.</div></div>
+  </div>
+</div>
+
+<script src="pathwayAdmin.js"></script>
+<script>
+const VARS = [
+  { code:'Haemoglobin', full:'Haemoglobin', also:'Hb', type:'haematology', unit:'g/L', normalHigh:null, low:110,
+    thresholds:[{l:'Anaemia: <110',c:'p-th'},{l:'Severe anaemia: <50',c:'p-hi'}], note:'Anaemia threshold <110 g/L (both sexes); severe <50 g/L per NCL pathway.' },
+  { code:'Haematocrit', full:'Haematocrit', also:'HCT, PCV', type:'haematology', unit:'L/L', sexSpecific:true, normalHigh:{m:0.52,f:0.48}, low:null,
+    thresholds:[{l:'Polycythaemia: M >0.52 / F >0.48',c:'p-th'},{l:'Urgent: M >0.60 / F >0.56',c:'p-hi'}], note:'Polycythaemia screen thresholds, sex-specific.' },
+  { code:'MCV', full:'Mean Corpuscular Volume', type:'haematology', unit:'fL', normalHigh:100, low:80,
+    thresholds:[{l:'Microcytic: <80',c:'p-th'},{l:'Normocytic: 80–100',c:'p-n'},{l:'Macrocytic: >100',c:'p-th'},{l:'Persistent macrocytosis: >105',c:'p-hi'}], note:'MCV stratifies the anaemia work-up.' },
+  { code:'Reticulocytes', full:'Reticulocyte count', type:'haematology', unit:'×10⁹/L', normalHigh:null, low:80,
+    thresholds:[{l:'Low: <80 → hypoproliferative',c:'p-th'},{l:'High: ≥80 → haemolysis/blood loss',c:'p-th'}], note:'Used to separate hypoproliferative from haemolytic anaemia.' },
+  { code:'WCC', full:'White Cell Count', also:'WBC', type:'haematology', unit:'×10⁹/L', normalHigh:11, low:4,
+    thresholds:[{l:'Low: <4',c:'p-th'},{l:'Normal: 4–11',c:'p-n'},{l:'High: >11',c:'p-th'},{l:'>50 or <2 → urgent',c:'p-hi'}], note:'Reference range a visual guide; PDF red flags WCC >50 and admission >100.' },
+  { code:'Neutrophils', full:'Neutrophils', also:'ANC', type:'haematology', unit:'×10⁹/L', normalHigh:7.5, low:1.5,
+    thresholds:[{l:'Neutropenia: <1.5 (mild 1–1.5)',c:'p-th'},{l:'Moderate: 0.5–1.0',c:'p-hi'},{l:'Severe: <0.5',c:'p-hi'},{l:'Neutrophilia: >7.5',c:'p-th'},{l:'>50 → urgent',c:'p-hi'}], note:'Neutropenia bands and neutrophilia thresholds per NCL pathway.' },
+  { code:'Lymphocytes', full:'Lymphocytes', type:'haematology', unit:'×10⁹/L', normalHigh:3.5, low:1.0,
+    thresholds:[{l:'Lymphopenia: <1.0 (severe <0.5)',c:'p-th'},{l:'Lymphocytosis: >3.5 (>20 urgent)',c:'p-th'}], note:'Lymphocytosis >20 flagged urgent.' },
+  { code:'Eosinophils', full:'Eosinophils', type:'haematology', unit:'×10⁹/L', normalHigh:0.5, low:null,
+    thresholds:[{l:'Eosinophilia: >0.5',c:'p-th'},{l:'Hypereosinophilia: >1.5',c:'p-hi'}], note:'' },
+  { code:'Monocytes', full:'Monocytes', type:'haematology', unit:'×10⁹/L', normalHigh:1.0, low:null,
+    thresholds:[{l:'Monocytosis: >1.0',c:'p-th'},{l:'Extreme: >5.0',c:'p-hi'}], note:'' },
+  { code:'Platelets', full:'Platelets', also:'PLT', type:'haematology', unit:'×10⁹/L', normalHigh:450, low:150,
+    thresholds:[{l:'Thrombocytopenia: <150 (mild 50–100, mod 20–50)',c:'p-th'},{l:'Severe: <20',c:'p-hi'},{l:'Thrombocytosis: >450 (>1000 extreme)',c:'p-th'}], note:'' },
+  { code:'Ferritin', full:'Serum Ferritin', type:'metabolic', unit:'µg/L', normalHigh:150, low:30,
+    thresholds:[{l:'Low: <30 → iron deficiency',c:'p-th'},{l:'Indeterminate: 30–150',c:'p-ctx'},{l:'Raised: >150 (>1000 markedly)',c:'p-hi'}], note:'' },
+  { code:'B12', full:'Vitamin B12', type:'metabolic', unit:'ng/L', normalHigh:null, low:170,
+    thresholds:[{l:'Low: <170',c:'p-th'}], note:'Low B12 threshold <170 ng/L per pathway.' },
+  { code:'Folate', full:'Serum Folate', type:'metabolic', unit:'µg/L', normalHigh:null, low:3,
+    thresholds:[{l:'Low: <3',c:'p-th'},{l:'Borderline: 3–4.5',c:'p-ctx'}], note:'' },
+  { code:'CRP', full:'C-Reactive Protein', type:'inflammatory', unit:'mg/L', normalHigh:30, low:null,
+    thresholds:[{l:'Raised: >30',c:'p-th'},{l:'Context: may mask iron deficiency on ferritin',c:'p-ctx'}], note:'' }
+];
+function showTab(id, navEl){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('tab-'+id).classList.add('on');
+  document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
+  if(navEl) navEl.classList.add('on');
+  if(id==='changes') PathwayAdmin.renderChanges();
+}
+function setMode(m){ PathwayAdmin.setMode(m); }
+PathwayAdmin.config({ pin:'2468', pages:[{prefix:'',vars:VARS}], dom:{grid:'var-grid',changes:'changes-container',btnMaster:'btn-m',btnWorking:'btn-w',notice:'edit-notice'} });
+PathwayAdmin.renderVars();
+</script>
+</body>
+</html>
