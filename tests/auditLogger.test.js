@@ -98,9 +98,9 @@ function test(name, fn) {
   });
 
   console.log('\nAdmin auth + privacy scan');
-  await test('verifyAdmin uses dev fallback when no config', () => {
-    assert.strictEqual(audit.verifyAdmin('admin', 'change-me-before-live'), true);
-    assert.strictEqual(audit.verifyAdmin('admin', 'wrong'), false);
+  await test('verifyAdmin (async) uses dev fallback when no config', async () => {
+    assert.strictEqual(await audit.verifyAdmin('admin', 'change-me-before-live'), true);
+    assert.strictEqual(await audit.verifyAdmin('admin', 'wrong'), false);
   });
   await test('scanForIdentifiers flags NHS-number-like and DOB-like free text', () => {
     assert.strictEqual(audit.scanForIdentifiers('ALT 120, plt 90').flagged, false);

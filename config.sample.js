@@ -21,13 +21,22 @@
 // ═══════════════════════════════════════════════════════════════════════
 window.RESULTDOCTOR_CONFIG = {
   // ── Cloud audit store (Supabase) — leave blank to use the dev fallback ──
+  // Used by testers' browsers for write-only run logging + the login / submit-
+  // query RPCs (anon key). Anon has NO table read access (see supabase_schema.sql).
   supabaseUrl: '',          // e.g. 'https://YOURPROJECT.supabase.co'
-  supabaseAnonKey: '',      // e.g. 'eyJhbGciOi...'
+  supabaseAnonKey: '',      // public anon key — safe to ship; protected by RLS
+
+  // ── Admin API (rd-admin Edge Function) — required for the admin dashboard ──
+  // The admin enters the admin secret (RD_ADMIN_SECRET, set as a Supabase
+  // function secret) at the admin login; it is sent per request and never
+  // stored in committed code. The service_role key lives ONLY in the function.
+  adminApiUrl: '',          // e.g. 'https://YOURPROJECT.supabase.co/functions/v1/rd-admin'
 
   // ── App / build identifier stamped on every run ──
   appVersion: 'rd-os-2026-06',
 
-  // ── Admin credentials (DEV FALLBACK ONLY — change before any real use) ──
+  // ── DEV-ONLY admin fallback (used only when there is no Supabase config) ──
+  // In cloud mode these are IGNORED — admin auth is the Edge Function secret.
   adminUsername: 'admin',
   adminPassword: 'change-me-before-live'
 };

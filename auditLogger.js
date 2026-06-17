@@ -142,40 +142,52 @@
     return runs.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   }
 
-  // ── Supabase adapter (cloud; static-site friendly via REST) ─────────────
+  // ── Supabase adapter (HARDENED; static-site friendly) ───────────────────
+  //  Tester-facing writes use the anon key: insert a run (write-only) and call
+  //  the two SECURITY DEFINER RPCs (login, submit query). Anon has NO table
+  //  read access. Every ADMIN read/update goes through the rd-admin Edge
+  //  Function (service_role server-side), authenticated with an admin secret
+  //  set at admin login — never stored in committed code.
   function makeSupabaseAdapter(url, key) {
     const base = url.replace(/\/$/, '') + '/rest/v1';
-    const headers = { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
+    const adminUrl = CFG.adminApiUrl || '';   // rd-admin Edge Function URL
+    let adminSecret = '';
+    const aHeaders = { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' };
+
     async function rq(path, opts) {
-      const res = await fetch(base + path, Object.assign({ headers: headers }, opts));
+      const res = await fetch(base + path, Object.assign({ headers: aHeaders }, opts));
       if (!res.ok) throw new Error('Supabase ' + res.status + ' ' + (await res.text()));
       const txt = await res.text(); return txt ? JSON.parse(txt) : null;
     }
+    async function adminCall(action, payload) {
+      if (!adminUrl) throw new Error('Admin API not configured (set RESULTDOCTOR_CONFIG.adminApiUrl)');
+      if (!adminSecret) throw new Error('Admin not authenticated');
+      const res = await fetch(adminUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-rd-admin-secret': adminSecret }, body: JSON.stringify(Object.assign({ action: action }, payload || {})) });
+      if (res.status === 401) throw new Error('unauthorised');
+      if (!res.ok) throw new Error('Admin API ' + res.status + ' ' + (await res.text()));
+      const txt = await res.text(); return txt ? JSON.parse(txt) : null;
+    }
     return {
-      async logRun(rec) { await rq('/runs', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, headers), body: JSON.stringify(rec) }); return rec; },
-      async getRuns(f) {
-        let q = '/runs?order=timestamp.desc';
-        if (f && f.testerId) q += '&testerId=eq.' + encodeURIComponent(f.testerId);
-        if (f && f.pathwayName) q += '&pathwayName=eq.' + encodeURIComponent(f.pathwayName);
-        if (f && f.queried != null) q += '&queried=eq.' + (!!f.queried);
-        return await rq(q);
+      // tester-facing (anon)
+      async logRun(rec) { await rq('/runs', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, aHeaders), body: JSON.stringify(rec) }); return rec; },
+      async verifyTester(id, pw) {
+        const ok = await rq('/rpc/rd_verify_tester', { method: 'POST', body: JSON.stringify({ p_tester_id: id, p_password: pw }) });
+        return ok ? { ok: true, tester: { testerId: id, displayName: '' } } : { ok: false };
       },
-      async getRun(runId) { const r = await rq('/runs?runId=eq.' + encodeURIComponent(runId)); return (r && r[0]) || null; },
-      async createQuery(qrec) {
-        await rq('/queries', { method: 'POST', headers: Object.assign({ Prefer: 'return=minimal' }, headers), body: JSON.stringify(qrec) });
-        await rq('/runs?runId=eq.' + encodeURIComponent(qrec.runId), { method: 'PATCH', body: JSON.stringify({ queried: true, queryId: qrec.queryId }) });
-        return qrec;
+      async submitQuery(runId, testerId, feedbackText) {
+        const queryId = await rq('/rpc/rd_submit_query', { method: 'POST', body: JSON.stringify({ p_run_id: runId, p_tester_id: testerId, p_feedback: feedbackText }) });
+        return String(queryId);
       },
-      async getQueries(f) {
-        let q = '/queries?order=timestamp.desc';
-        if (f && f.status) q += '&status=eq.' + encodeURIComponent(f.status);
-        if (f && f.testerId) q += '&testerId=eq.' + encodeURIComponent(f.testerId);
-        return await rq(q);
-      },
-      async updateQuery(queryId, patch) { const r = await rq('/queries?queryId=eq.' + encodeURIComponent(queryId), { method: 'PATCH', headers: Object.assign({ Prefer: 'return=representation' }, headers), body: JSON.stringify(patch) }); return (r && r[0]) || null; },
-      async listTesters() { return await rq('/testers?order=testerId.asc'); },
-      async getTester(id) { const r = await rq('/testers?testerId=eq.' + encodeURIComponent(id)); return (r && r[0]) || null; },
-      async upsertTester(acc) { await rq('/testers', { method: 'POST', headers: Object.assign({ Prefer: 'resolution=merge-duplicates,return=minimal' }, headers), body: JSON.stringify(acc) }); return acc; },
+      // admin (Edge Function, service_role)
+      setAdminSecret(s) { adminSecret = s || ''; },
+      async adminPing() { try { const r = await adminCall('ping'); return !!(r && r.ok); } catch (e) { adminSecret = ''; return false; } },
+      async getRuns(f) { return adminCall('getRuns', { filters: f || {} }); },
+      async getRun(runId) { return adminCall('getRun', { runId: runId }); },
+      async getQueries(f) { return adminCall('getQueries', { filters: f || {} }); },
+      async updateQuery(queryId, patch) { return adminCall('updateQuery', { queryId: queryId, status: patch.status, adminNotes: patch.adminNotes, reviewedBy: patch.reviewedBy }); },
+      async listTesters() { return adminCall('listTesters'); },
+      async adminUpsertTester(d) { return adminCall('upsertTester', d); },
+      async adminSetActive(testerId, active) { return adminCall('setTesterActive', { testerId: testerId, active: active }); },
       _seedTesters() {}, _reset() {}
     };
   }
@@ -218,6 +230,10 @@
     async getRun(runId) { return store.getRun(runId); },
 
     async createResultQuery(runId, feedbackText, testerId) {
+      if (store.submitQuery) {   // hardened cloud path: server-side RPC, no table writes from anon
+        const queryId = await store.submitQuery(runId, testerId, feedbackText);
+        return { queryId: queryId, runId: runId, testerId: testerId, feedbackText: feedbackText, status: 'new' };
+      }
       const q = makeQueryRecord(runId, testerId, feedbackText);
       await store.createQuery(q);
       return q;
@@ -234,6 +250,9 @@
     // Tester accounts + auth
     async listTesters() { return store.listTesters(); },
     async createOrUpdateTester(d, createdBy) {
+      if (store.adminUpsertTester) {   // cloud: Edge Function hashes server-side
+        return store.adminUpsertTester({ testerId: d.testerId, displayName: d.displayName || '', password: d.password, notes: d.notes || '', active: d.active !== false, createdBy: createdBy || 'admin' });
+      }
       const existing = await store.getTester(d.testerId);
       const acc = makeTesterAccount(Object.assign({}, existing || {}, d, { createdBy: (existing && existing.createdBy) || createdBy || null }));
       if (d.password) acc.passwordHash = await hashPassword(d.password);
@@ -241,22 +260,31 @@
       return store.upsertTester(acc);
     },
     async setTesterActive(testerId, active) {
+      if (store.adminSetActive) return store.adminSetActive(testerId, !!active);
       const t = await store.getTester(testerId); if (!t) return null;
       t.active = !!active; return store.upsertTester(t);
     },
     async verifyTester(testerId, password) {
+      if (store.verifyTester) return store.verifyTester(testerId, password);   // cloud: server-side RPC
       const t = await store.getTester(testerId);
       if (!t || !t.active) return { ok: false };
       const ok = t.passwordHash === await hashPassword(password);
       return ok ? { ok: true, tester: { testerId: t.testerId, displayName: t.displayName } } : { ok: false };
     },
 
-    // Admin auth (client-side check; real secret lives in config/env — see docs)
-    verifyAdmin(username, password) {
+    // Admin auth. Cloud: the entered password is the admin secret — verified by
+    // the rd-admin Edge Function (service_role server-side); never committed.
+    // Dev/local: client-side compare against config (DEV FALLBACK ONLY).
+    async verifyAdmin(username, password) {
+      if (store.setAdminSecret && store.adminPing) {
+        store.setAdminSecret(password);
+        return await store.adminPing();
+      }
       const u = CFG.adminUsername || 'admin';
-      const p = CFG.adminPassword || 'change-me-before-live';   // DEV FALLBACK ONLY
+      const p = CFG.adminPassword || 'change-me-before-live';
       return String(username) === u && String(password) === p;
     },
+    setAdminSecret(s) { if (store.setAdminSecret) store.setAdminSecret(s); },
 
     seedDevTesters,
     _store: store

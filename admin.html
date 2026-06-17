@@ -168,8 +168,15 @@ function authed(){ try{return sessionStorage.getItem(K_ADMIN)==='1';}catch(e){re
 
 async function doLogin(){
   const u=document.getElementById('a-user').value, p=document.getElementById('a-pass').value;
-  if(auditLogger.verifyAdmin(u,p)){ try{sessionStorage.setItem(K_ADMIN,'1');sessionStorage.setItem('rd_admin_user',u);}catch(e){} enter(); }
-  else document.getElementById('a-err').textContent='Incorrect username or password.';
+  document.getElementById('a-err').textContent='Checking…';
+  const ok = await auditLogger.verifyAdmin(u,p);
+  if(ok){
+    // Cloud: keep the admin secret in memory for this session's admin API calls
+    // (never persisted/committed). Dev/local: nothing sensitive to keep.
+    if(auditLogger.storageMode==='supabase') auditLogger.setAdminSecret(p);
+    try{sessionStorage.setItem(K_ADMIN,'1');sessionStorage.setItem('rd_admin_user',u);}catch(e){}
+    document.getElementById('a-err').textContent=''; enter();
+  } else document.getElementById('a-err').textContent='Incorrect credentials, or admin API unavailable.';
 }
 function logout(){ try{sessionStorage.removeItem(K_ADMIN);}catch(e){} location.reload(); }
 
@@ -308,8 +315,9 @@ async function exportData(which,format){
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
 }
 
-// boot
-if(authed()) enter();
+// boot — in cloud mode the admin secret lives in memory only, so require a
+// fresh login each page load. In dev/local there is no secret to lose.
+if(authed() && auditLogger.storageMode!=='supabase') enter();
 </script>
 </body>
 </html>
