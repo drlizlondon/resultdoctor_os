@@ -19,6 +19,13 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 | `pathwayDiagram.js` | **Shared pathway-diagram renderer + highlight**, extracted verbatim from the NWL LFT pathway. Draws any pathway's diagram with the patient's route highlighted and the rest dimmed. Used by every pathway page |
 | `pathwayLft.js` | NWL LFT diagram data (`LFT_FLOW_NODES`/`LFT_FLOW_EDGES`) + `lftActivePath(d)` — the reference rules, extracted so they are reusable and unit tested |
 | `tests/pathwayDiagram.test.js` | Diagram/highlight tests: LFT regression, reuse by another pathway, rules→steps mapping, route changes with inputs |
+| `auditLogger.js` | Central tester-mode audit/data module (storage abstraction + Supabase / dev-local / memory adapters + models + identifier scan) |
+| `testerMode.js` | Reusable tester-mode UX (entry modal, tester login, badge, auto run logging, Query-this-result flow) |
+| `admin.html` | Protected admin dashboard — tester accounts, runs, queries, stats, export |
+| `config.sample.js` | Config template — copy to `config.js` (git-ignored) for Supabase + admin credentials |
+| `supabase_schema.sql` | Supabase tables + starting RLS policies for central audit storage |
+| `tests/auditLogger.test.js` | Audit-logger unit tests (run logging, query linking, status, tester auth, privacy scan) |
+| `fbc_admin.html`, `nwl_anaemia_admin.html`, `notts_lft_admin.html` | Pathway admin pages on the shared master engine (`pathwayAdmin.js`) |
 | `pathwayAdmin.js` | **Master admin engine** — the shared, passcode-gated editing engine reused by every pathway admin page (editable normal ranges + threshold bands, working copy, Change Log, reset-to-master). Master data is never mutated |
 | `tests/pathwayAdmin.test.js` | Admin engine tests: working-copy isolation, change log, band add/remove, reset, passcode gate |
 
@@ -55,6 +62,37 @@ A variable is `{ code, full, type, unit, normalHigh, low, thresholds:[{l,c}], no
 4. Nothing touches the result fields until **Confirm and analyse** is pressed. On confirm, only eligible (non-review) rows are written into the existing fields + interpretation log, then the existing **Find pathways** routing runs. needsReview and unmapped rows are never analysed. There is no separate OCR analysis path.
 
 Manual entry and the search bar remain fully available alongside it.
+
+## Tester mode, audit & admin
+
+A transparency/validation layer so testers can run large batches of **fictional, anonymised, test-case** inputs and have every run recorded centrally for review. It does not store any patient-identifiable data.
+
+**Areas:** the header offers **Patient Demo · Clinician · Admin**. Patient Demo / Clinician are the same result-first tool; Admin (`admin.html`) is a protected dashboard.
+
+**Tester flow (on each pathway tool):**
+- On first use a modal asks *"Are you using an official tester account?"*
+- **No, continue as demo user** → tool behaves exactly as before: no login, no badge, no logging, no query control.
+- **Yes, I'm a tester** → tester login (Tester ID + password, authenticated per-tester). On success a "Tester mode active" badge appears and **every analysis run is logged automatically** — there is no OK/approve/sign-off button. A *"Query this result"* control lets the tester flag a run; submitting opens a query for admin review. Unqueried runs are kept as ordinary tester runs.
+
+**Modules (reusable across pathways):**
+- `auditLogger.js` — the single audit/data module. API: `logAnalysisRun`, `createResultQuery`, `updateQueryStatus`, `getRuns`, `getQueries`, plus tester-account + auth helpers and a lightweight `scanForIdentifiers` (warns on NHS-number/DOB-like free text). Picks a storage adapter automatically (Supabase → dev localStorage → in-memory for tests).
+- `testerMode.js` — the tester UX (entry modal, login, badge, automatic run logging, Query-this-result flow, safety wording). A pathway wires it with `TesterMode.init({pathwayName, pathwayVersion})` + `TesterMode.recordRun({...})`.
+- `admin.html` — admin login + dashboard: Overview stats, Tester accounts (create / set password / enable-disable), Runs (+ detail), Queries (+ review status & notes), and CSV/JSON export.
+
+### Configure admin credentials
+Admin auth reads `window.RESULTDOCTOR_CONFIG.adminUsername` / `adminPassword`. Copy `config.sample.js` → `config.js` (git-ignored), set them, and add `<script src="config.js"></script>` **before** `auditLogger.js`. With no `config.js` the **dev fallback** is `admin` / `change-me-before-live` — change before any real use. (A purely static site can only offer low-assurance admin auth; treat accordingly.)
+
+### Configure cloud storage (central, multi-device)
+localStorage is **not** the real audit store — each device is separate. For testers on different devices, use Supabase (works from a static site):
+1. Create a Supabase project; run `supabase_schema.sql` in its SQL editor.
+2. In `config.js` set `supabaseUrl` + `supabaseAnonKey`.
+3. Add `<script src="config.js"></script>` before `auditLogger.js` on `admin.html` and each pathway tool.
+The admin dashboard then reads the central store across all testers. Without Supabase config it runs in **development storage** (this browser only) and the dashboard says so.
+
+### Limitations / assumptions
+- Static GitHub Pages site → no server. Cloud audit needs the user's own Supabase project; admin/tester auth on a static client is low-assurance (the anon key is public — protect tables with RLS, and move password verification to an Edge Function for production). The repo never commits real keys/passwords.
+- Dev seed: in dev (no Supabase) the tester flow is usable out of the box with example accounts `tester01`–`tester06`, each with a distinct dev password `rd-<id>` (e.g. `rd-tester01`). These are development-only and never created against Supabase.
+- Test coverage: `tests/auditLogger.test.js` (9 cases) covers run logging + versioning, query linking, status updates, filters, tester auth (distinct hashed passwords, disable-blocks-login, history retained), admin auth and the identifier scan. The UI flows (demo path, tester login incl. failure, automatic logging, query submission, admin login/dashboards) were verified in-browser.
 
 ## How the routing works
 

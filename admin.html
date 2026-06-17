@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Result Doctor — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--sans:'DM Sans',system-ui,sans-serif;--serif:'DM Serif Display',Georgia,serif;
+  --bg:#F1F5F9;--surface:#fff;--navy:#0B1C3D;--text:#0B1C3D;--text2:#374151;--text3:#6B7280;--border:#E5E7EB;--border2:#D1D5DB;
+  --b:#1859CC;--b-bg:#E8F0FD;--g:#00703C;--g-bg:#E3F5EC;--r:#B91C1C;--r-bg:#FEF2F2;--o:#B45309;--o-bg:#FFFBEB;--pu:#6D28D9;--pu-bg:#F5F3FF;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+a{color:var(--b)}
+/* top nav */
+.topnav{background:var(--navy);color:#fff;height:54px;display:flex;align-items:center;gap:6px;padding:0 22px}
+.topnav .logo{font-family:var(--serif);font-size:18px;color:#fff;text-decoration:none;margin-right:18px}
+.topnav .logo span{color:#60A5FA}
+.topnav a.navlink{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;font-weight:500;padding:7px 12px;border-radius:8px}
+.topnav a.navlink:hover{background:rgba(255,255,255,.1);color:#fff}
+.topnav a.navlink.on{background:rgba(96,165,250,.2);color:#fff}
+.topnav .spacer{flex:1}
+.topnav .who{font-size:12px;color:rgba(255,255,255,.6)}
+.topnav .who button{background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;font-family:inherit;font-size:12px;margin-left:8px}
+/* login */
+.login-wrap{max-width:380px;margin:64px auto;background:#fff;border:1px solid var(--border);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.08);padding:26px}
+.login-wrap h1{font-family:var(--serif);font-weight:400;font-size:22px;margin-bottom:6px}
+.login-wrap p{font-size:12.5px;color:var(--text3);margin-bottom:16px}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.fld label{font-size:12px;font-weight:600;color:var(--text2)}
+.fld input,.fld select,.fld textarea{padding:9px 11px;border:1.5px solid var(--border2);border-radius:8px;font-size:14px;font-family:inherit;width:100%}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:none;border-color:var(--b);box-shadow:0 0 0 3px rgba(24,89,204,.1)}
+.btn{padding:10px 16px;border-radius:9px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:1.5px solid var(--border2);background:#fff;color:var(--text2)}
+.btn:hover{border-color:var(--b);color:var(--b)}
+.btn.primary{background:var(--b);color:#fff;border-color:var(--b)}.btn.primary:hover{background:#1348B0;color:#fff}
+.btn.sm{padding:5px 10px;font-size:12px}
+.err{color:var(--r);font-size:12.5px;min-height:16px;margin-bottom:8px}
+/* layout */
+.wrap{display:flex}
+.side{width:210px;background:#fff;border-right:1px solid var(--border);min-height:calc(100vh - 54px);padding:16px 12px;flex-shrink:0}
+.side a{display:block;padding:9px 12px;border-radius:8px;color:var(--text2);text-decoration:none;font-size:13px;cursor:pointer;margin-bottom:2px}
+.side a:hover{background:var(--bg)}.side a.on{background:var(--b-bg);color:var(--b);font-weight:600}
+.main{flex:1;padding:24px 28px;max-width:1080px}
+.h2{font-family:var(--serif);font-size:22px;font-weight:400;margin-bottom:4px}
+.lead{font-size:12.5px;color:var(--text3);margin-bottom:18px}
+.panel{display:none}.panel.on{display:block}
+/* stats */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat .k{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3)}
+.stat .v{font-family:var(--serif);font-size:26px;color:var(--navy)}
+.subh{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin:16px 0 8px}
+/* tables */
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:12.5px}
+th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3);background:var(--bg);padding:8px 10px;border-bottom:1px solid var(--border)}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+tr:last-child td{border-bottom:none}
+tr.clickable{cursor:pointer}tr.clickable:hover td{background:#FAFBFD}
+.pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:.03em}
+.pill.yes{background:var(--o-bg);color:var(--o)}.pill.no{background:var(--g-bg);color:var(--g)}
+.pill.new{background:var(--b-bg);color:var(--b)}.pill.reviewing{background:var(--o-bg);color:var(--o)}.pill.resolved{background:var(--g-bg);color:var(--g)}.pill.not_issue{background:#F3F4F6;color:var(--text3)}.pill.needs_pathway_change{background:var(--r-bg);color:var(--r)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toolbar select,.toolbar input{padding:7px 10px;border:1.5px solid var(--border2);border-radius:8px;font-size:12.5px;font-family:inherit}
+.mono{font-family:ui-monospace,monospace;font-size:11px;color:var(--text3)}
+.safe{background:var(--o-bg);border:1px solid #FCD34D;color:#92400E;font-size:12px;border-radius:8px;padding:9px 12px;margin-bottom:16px}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(11,28,61,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 18px;z-index:999;overflow:auto}
+.md{background:#fff;border-radius:14px;max-width:620px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.md h3{font-family:var(--serif);font-weight:400;font-size:20px;padding:18px 22px 0}
+.md .mb{padding:12px 22px}
+.kv{display:grid;grid-template-columns:160px 1fr;gap:4px 12px;font-size:12.5px;margin-bottom:4px}
+.kv .kk{color:var(--text3)}
+.md pre{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;overflow:auto;white-space:pre-wrap}
+.md .actions{display:flex;gap:10px;justify-content:flex-end;padding:0 22px 20px}
+</style>
+</head>
+<body>
+<div class="topnav">
+  <a class="logo" href="index.html">Result<span>Doctor</span></a>
+  <a class="navlink" href="index.html">Patient Demo</a>
+  <a class="navlink" href="index.html">Clinician</a>
+  <a class="navlink on" href="admin.html">Admin</a>
+  <span class="spacer"></span>
+  <span class="who" id="who"></span>
+</div>
+
+<!-- LOGIN -->
+<div id="login" class="login-wrap">
+  <h1>Admin login</h1>
+  <p>Restricted area for managing testers and reviewing tester activity.</p>
+  <div class="fld"><label>Admin username</label><input id="a-user" autocomplete="off"></div>
+  <div class="fld"><label>Admin password</label><input id="a-pass" type="password" autocomplete="off"></div>
+  <div class="err" id="a-err"></div>
+  <button class="btn primary" style="width:100%" onclick="doLogin()">Sign in</button>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dash" class="wrap" style="display:none">
+  <div class="side">
+    <a id="nav-overview" class="on" onclick="showPanel('overview',this)">Overview</a>
+    <a id="nav-testers" onclick="showPanel('testers',this)">Tester accounts</a>
+    <a id="nav-runs" onclick="showPanel('runs',this)">Runs</a>
+    <a id="nav-queries" onclick="showPanel('queries',this)">Queries</a>
+    <a id="nav-export" onclick="showPanel('export',this)">Export</a>
+  </div>
+  <div class="main">
+    <div class="safe" id="storage-note"></div>
+
+    <div class="panel on" id="panel-overview">
+      <div class="h2">Overview</div>
+      <div class="lead">Tester activity across all devices.</div>
+      <div class="stat-grid" id="stats"></div>
+      <div class="subh">Runs by pathway</div><div id="by-pathway"></div>
+      <div class="subh">Runs by tester</div><div id="by-tester"></div>
+    </div>
+
+    <div class="panel" id="panel-testers">
+      <div class="h2">Tester accounts</div>
+      <div class="lead">Create testers, set/reset passwords, activate or disable. Disabled testers cannot log in; their historic runs remain.</div>
+      <div class="toolbar">
+        <input id="t-id" placeholder="tester07"><input id="t-name" placeholder="Display name (optional)">
+        <input id="t-pw" type="text" placeholder="Set password"><button class="btn primary sm" onclick="saveTester()">Create / update</button>
+      </div>
+      <div class="err" id="t-err"></div>
+      <table><thead><tr><th>Tester ID</th><th>Name</th><th>Active</th><th>Created</th><th>Notes</th><th></th></tr></thead><tbody id="t-rows"></tbody></table>
+    </div>
+
+    <div class="panel" id="panel-runs">
+      <div class="h2">Runs</div>
+      <div class="lead">Every tester run. Click a row for full detail.</div>
+      <div class="toolbar">
+        <select id="r-pathway" onchange="loadRuns()"><option value="">All pathways</option></select>
+        <select id="r-tester" onchange="loadRuns()"><option value="">All testers</option></select>
+        <select id="r-queried" onchange="loadRuns()"><option value="">All</option><option value="true">Queried only</option><option value="false">Unqueried only</option></select>
+      </div>
+      <table><thead><tr><th>Date/time</th><th>Tester</th><th>Pathway</th><th>Version</th><th>Input</th><th>Output</th><th>Queried</th></tr></thead><tbody id="r-rows"></tbody></table>
+    </div>
+
+    <div class="panel" id="panel-queries">
+      <div class="h2">Queries</div>
+      <div class="lead">Queried runs only. Click a row to read feedback, inspect the run and update review status.</div>
+      <div class="toolbar">
+        <select id="q-status" onchange="loadQueries()"><option value="">All statuses</option></select>
+      </div>
+      <table><thead><tr><th>Date/time</th><th>Tester</th><th>Pathway</th><th>Input</th><th>Feedback</th><th>Status</th></tr></thead><tbody id="q-rows"></tbody></table>
+    </div>
+
+    <div class="panel" id="panel-export">
+      <div class="h2">Export</div>
+      <div class="lead">Download the central audit data for analysis.</div>
+      <div class="toolbar">
+        <button class="btn" onclick="exportData('runs','json')">All runs (JSON)</button>
+        <button class="btn" onclick="exportData('runs','csv')">All runs (CSV)</button>
+        <button class="btn" onclick="exportData('queried','csv')">Queried runs (CSV)</button>
+        <button class="btn" onclick="exportData('queries','json')">Queries (JSON)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-host"></div>
+
+<script src="auditLogger.js"></script>
+<script>
+const K_ADMIN='rd_admin_authed';
+function authed(){ try{return sessionStorage.getItem(K_ADMIN)==='1';}catch(e){return false;} }
+
+async function doLogin(){
+  const u=document.getElementById('a-user').value, p=document.getElementById('a-pass').value;
+  if(auditLogger.verifyAdmin(u,p)){ try{sessionStorage.setItem(K_ADMIN,'1');sessionStorage.setItem('rd_admin_user',u);}catch(e){} enter(); }
+  else document.getElementById('a-err').textContent='Incorrect username or password.';
+}
+function logout(){ try{sessionStorage.removeItem(K_ADMIN);}catch(e){} location.reload(); }
+
+function enter(){
+  document.getElementById('login').style.display='none';
+  document.getElementById('dash').style.display='flex';
+  const u=(()=>{try{return sessionStorage.getItem('rd_admin_user')||'admin';}catch(e){return 'admin';}})();
+  document.getElementById('who').innerHTML='Signed in as <b style="color:#fff">'+u+'</b><button onclick="logout()">Sign out</button>';
+  document.getElementById('storage-note').textContent = auditLogger.storageMode==='supabase'
+    ? 'Central cloud storage (Supabase) — runs from all testers/devices.'
+    : 'DEVELOPMENT storage ('+auditLogger.storageMode+'): this browser only. Configure Supabase for real multi-device audit (see README).';
+  if(auditLogger.seedDevTesters) auditLogger.seedDevTesters();
+  loadOverview(); loadTesters(); loadRuns(); loadQueries(); populateFilters();
+}
+function showPanel(id, el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  document.getElementById('panel-'+id).classList.add('on');
+  document.querySelectorAll('.side a').forEach(a=>a.classList.remove('on'));
+  if(el) el.classList.add('on');
+}
+
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=t=>{try{return new Date(t).toLocaleString('en-GB');}catch(e){return t;}};
+function inSummary(r){ const v=r.inputValues||{}; return Object.keys(v).filter(k=>v[k]!=null&&v[k]!=='').slice(0,5).map(k=>k+'='+v[k]).join(', ')||'—'; }
+function outSummary(r){ return esc(r.displayedRecommendation||r.displayedResultText||'—').slice(0,60); }
+
+async function loadOverview(){
+  const runs=await auditLogger.getRuns({}), queries=await auditLogger.getQueries({});
+  const q=runs.filter(r=>r.queried).length, rate=runs.length?Math.round(q/runs.length*100):0;
+  const byPath={}, byTester={};
+  runs.forEach(r=>{ byPath[r.pathwayName]=(byPath[r.pathwayName]||{n:0,q:0}); byPath[r.pathwayName].n++; if(r.queried)byPath[r.pathwayName].q++; byTester[r.testerId]=(byTester[r.testerId]||0)+1; });
+  let most='—',mostN=-1; Object.keys(byPath).forEach(p=>{if(byPath[p].q>mostN){mostN=byPath[p].q;most=p;}});
+  document.getElementById('stats').innerHTML=[
+    ['Total runs',runs.length],['Queried runs',q],['Unqueried runs',runs.length-q],['Query rate',rate+'%'],['Most queried',mostN>0?esc(most):'—']
+  ].map(s=>`<div class="stat"><div class="k">${s[0]}</div><div class="v">${s[1]}</div></div>`).join('');
+  document.getElementById('by-pathway').innerHTML='<table><thead><tr><th>Pathway</th><th>Runs</th><th>Queried</th></tr></thead><tbody>'+
+    Object.keys(byPath).map(p=>`<tr><td>${esc(p)}</td><td>${byPath[p].n}</td><td>${byPath[p].q}</td></tr>`).join('')+'</tbody></table>';
+  document.getElementById('by-tester').innerHTML='<table><thead><tr><th>Tester</th><th>Runs</th></tr></thead><tbody>'+
+    Object.keys(byTester).map(t=>`<tr><td>${esc(t)}</td><td>${byTester[t]}</td></tr>`).join('')+'</tbody></table>';
+}
+
+async function loadTesters(){
+  const ts=await auditLogger.listTesters();
+  document.getElementById('t-rows').innerHTML = ts.length? ts.sort((a,b)=>a.testerId.localeCompare(b.testerId)).map(t=>
+    `<tr><td class="mono">${esc(t.testerId)}</td><td>${esc(t.displayName)}</td><td>${t.active?'<span class="pill no">Active</span>':'<span class="pill yes">Disabled</span>'}</td><td>${fmt(t.createdAt)}</td><td>${esc(t.notes||'')}</td>`+
+    `<td><button class="btn sm" onclick="toggleTester('${esc(t.testerId)}',${!t.active})">${t.active?'Disable':'Enable'}</button></td></tr>`
+  ).join('') : '<tr><td colspan="6" style="color:#6B7280">No testers yet.</td></tr>';
+}
+async function saveTester(){
+  const id=document.getElementById('t-id').value.trim(), name=document.getElementById('t-name').value.trim(), pw=document.getElementById('t-pw').value;
+  const err=document.getElementById('t-err'); err.textContent='';
+  if(!/^[a-z0-9_]+$/i.test(id)){ err.textContent='Tester ID must be letters/numbers (e.g. tester07).'; return; }
+  if(!pw){ err.textContent='Set a password for the tester.'; return; }
+  const u=(()=>{try{return sessionStorage.getItem('rd_admin_user');}catch(e){return null;}})();
+  await auditLogger.createOrUpdateTester({testerId:id,displayName:name,password:pw,notes:''},u);
+  document.getElementById('t-id').value='';document.getElementById('t-name').value='';document.getElementById('t-pw').value='';
+  loadTesters(); populateFilters();
+}
+async function toggleTester(id,active){ await auditLogger.setTesterActive(id,active); loadTesters(); }
+
+async function loadRuns(){
+  const f={};
+  const p=document.getElementById('r-pathway').value, t=document.getElementById('r-tester').value, qd=document.getElementById('r-queried').value;
+  if(p)f.pathwayName=p; if(t)f.testerId=t; if(qd)f.queried=(qd==='true');
+  const runs=await auditLogger.getRuns(f);
+  document.getElementById('r-rows').innerHTML = runs.length? runs.map(r=>
+    `<tr class="clickable" onclick='openRun(${JSON.stringify(r.runId)})'><td>${fmt(r.timestamp)}</td><td class="mono">${esc(r.testerId)}</td><td>${esc(r.pathwayName)}</td><td>${esc(r.pathwayVersion)}</td><td>${esc(inSummary(r))}</td><td>${outSummary(r)}</td><td>${r.queried?'<span class="pill yes">Yes</span>':'<span class="pill no">No</span>'}</td></tr>`
+  ).join('') : '<tr><td colspan="7" style="color:#6B7280">No runs yet.</td></tr>';
+}
+async function openRun(runId){
+  const r=await auditLogger.getRun(runId); if(!r)return;
+  let qhtml='';
+  if(r.queried){ const qs=await auditLogger.getQueries({}); const q=qs.find(x=>x.runId===runId); if(q) qhtml=`<div class="subh">Query</div><div class="kv"><span class="kk">Feedback</span><span>${esc(q.feedbackText)}</span></div><div class="kv"><span class="kk">Status</span><span>${q.status}</span></div><div class="kv"><span class="kk">Admin notes</span><span>${esc(q.adminNotes||'—')}</span></div>`; }
+  showModal(`<h3>Run detail</h3><div class="mb">`+
+    kv('Run ID',r.runId)+kv('Timestamp',fmt(r.timestamp))+kv('Tester',r.testerId)+kv('Pathway',r.pathwayName)+kv('Pathway version',r.pathwayVersion)+kv('App/build',r.appVersion)+
+    kv('Rule branch',r.ruleBranchTriggered)+kv('Recommendation',r.displayedRecommendation)+kv('Queried',r.queried?'Yes':'No')+
+    `<div class="subh">Inputs</div><pre>${esc(JSON.stringify(r.inputValues,null,2))}</pre>`+
+    `<div class="subh">Context</div><pre>${esc(JSON.stringify(r.contextValues,null,2))}</pre>`+
+    `<div class="subh">Displayed result</div><pre>${esc(r.displayedResultText)}</pre>`+
+    (r.warningsShown&&r.warningsShown.length?`<div class="subh">Warnings</div><pre>${esc(r.warningsShown.join('\n'))}</pre>`:'')+
+    qhtml+`</div><div class="actions"><button class="btn" onclick="closeModal()">Close</button></div>`);
+}
+function kv(k,v){ return `<div class="kv"><span class="kk">${k}</span><span>${esc(v==null?'—':v)}</span></div>`; }
+
+async function loadQueries(){
+  const f={}; const st=document.getElementById('q-status').value; if(st)f.status=st;
+  const qs=await auditLogger.getQueries(f), runs=await auditLogger.getRuns({});
+  const runById={}; runs.forEach(r=>runById[r.runId]=r);
+  document.getElementById('q-rows').innerHTML = qs.length? qs.map(q=>{ const r=runById[q.runId]||{};
+    return `<tr class="clickable" onclick='openQuery(${JSON.stringify(q.queryId)})'><td>${fmt(q.timestamp)}</td><td class="mono">${esc(q.testerId)}</td><td>${esc(r.pathwayName||'')}</td><td>${esc(inSummary(r))}</td><td>${esc((q.feedbackText||'').slice(0,50))}</td><td><span class="pill ${q.status}">${q.status.replace('_',' ')}</span></td></tr>`;
+  }).join('') : '<tr><td colspan="6" style="color:#6B7280">No queries.</td></tr>';
+}
+async function openQuery(queryId){
+  const qs=await auditLogger.getQueries({}); const q=qs.find(x=>x.queryId===queryId); if(!q)return;
+  const r=await auditLogger.getRun(q.runId)||{};
+  const opts=auditLogger.QUERY_STATUSES.map(s=>`<option value="${s}" ${q.status===s?'selected':''}>${s.replace('_',' ')}</option>`).join('');
+  showModal(`<h3>Query — review</h3><div class="mb">`+
+    kv('Tester',q.testerId)+kv('Pathway',r.pathwayName)+kv('Pathway version',r.pathwayVersion)+kv('Submitted',fmt(q.timestamp))+
+    `<div class="subh">Tester feedback</div><pre>${esc(q.feedbackText)}</pre>`+
+    `<div class="subh">Linked run</div>`+kv('Recommendation',r.displayedRecommendation)+kv('Rule branch',r.ruleBranchTriggered)+
+    `<pre>${esc(JSON.stringify(r.inputValues||{},null,2))}</pre>`+
+    `<div class="fld"><label>Review status</label><select id="q-set">${opts}</select></div>`+
+    `<div class="fld"><label>Admin notes</label><textarea id="q-notes" rows="3">${esc(q.adminNotes||'')}</textarea></div>`+
+    (q.reviewedAt?`<div class="kv"><span class="kk">Last reviewed</span><span>${fmt(q.reviewedAt)} ${esc(q.reviewedBy||'')}</span></div>`:'')+
+    `</div><div class="actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn primary" onclick="saveQuery('${esc(queryId)}')">Save review</button></div>`);
+}
+async function saveQuery(queryId){
+  const status=document.getElementById('q-set').value, notes=document.getElementById('q-notes').value;
+  const u=(()=>{try{return sessionStorage.getItem('rd_admin_user');}catch(e){return 'admin';}})();
+  await auditLogger.updateQueryStatus(queryId,status,notes,u);
+  closeModal(); loadQueries(); loadOverview();
+}
+
+async function populateFilters(){
+  const runs=await auditLogger.getRuns({}), testers=await auditLogger.listTesters();
+  const paths=[...new Set(runs.map(r=>r.pathwayName).filter(Boolean))];
+  document.getElementById('r-pathway').innerHTML='<option value="">All pathways</option>'+paths.map(p=>`<option>${esc(p)}</option>`).join('');
+  document.getElementById('r-tester').innerHTML='<option value="">All testers</option>'+testers.map(t=>`<option>${esc(t.testerId)}</option>`).join('');
+  document.getElementById('q-status').innerHTML='<option value="">All statuses</option>'+auditLogger.QUERY_STATUSES.map(s=>`<option value="${s}">${s.replace('_',' ')}</option>`).join('');
+}
+
+function showModal(html){ document.getElementById('modal-host').innerHTML='<div class="ov" onclick="if(event.target===this)closeModal()"><div class="md">'+html+'</div></div>'; }
+function closeModal(){ document.getElementById('modal-host').innerHTML=''; }
+
+async function exportData(which,format){
+  let rows;
+  if(which==='queries'){ rows=await auditLogger.getQueries({}); }
+  else { rows=await auditLogger.getRuns({}); if(which==='queried') rows=rows.filter(r=>r.queried); }
+  let blob,name;
+  if(format==='json'){ blob=new Blob([JSON.stringify(rows,null,2)],{type:'application/json'}); name=which+'.json'; }
+  else {
+    const cols=Object.keys(rows[0]||{runId:''});
+    const csv=[cols.join(',')].concat(rows.map(r=>cols.map(c=>{const v=r[c];const s=typeof v==='object'?JSON.stringify(v):String(v==null?'':v);return '"'+s.replace(/"/g,'""')+'"';}).join(','))).join('\n');
+    blob=new Blob([csv],{type:'text/csv'}); name=which+'.csv';
+  }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click();
+}
+
+// boot
+if(authed()) enter();
+</script>
+</body>
+</html>

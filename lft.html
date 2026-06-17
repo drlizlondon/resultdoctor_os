@@ -1246,5 +1246,17 @@ function updateCopyBar() {
   if (lastAnalysisData) renderOutput(lastAnalysisData);
 }
 </script>
+<!-- Tester-mode audit (reusable: auditLogger.js + testerMode.js) -->
+<script src="auditLogger.js"></script>
+<script src="testerMode.js"></script>
+<script>
+(function(){
+  function gather(){var o={};document.querySelectorAll('input[id],select[id]').forEach(function(el){if(el.value!==''&&el.value!=null)o[el.id]=el.value;});return o;}
+  function outEl(){return document.getElementById('output-section');}
+  function vis(el){return el&&(el.classList.contains('show')||(el.style.display!=='none'&&el.offsetParent!==null));}
+  if(typeof analyse==='function'){var orig=analyse;window.analyse=function(){var r=orig.apply(this,arguments);try{var out=outEl();if(vis(out))TesterMode.recordRun({mount:out,inputValues:gather(),displayedResultText:(out.innerText||'').replace(/\s+/g,' ').trim().slice(0,800),displayedRecommendation:'',ruleBranchTriggered:''});}catch(e){}return r;};}
+  TesterMode.init({pathwayName:'NW London Abnormal LFT',pathwayVersion:'V1.6 Oct 2019 / V1.4 Aug 2019'});
+})();
+</script>
 </body>
 </html>

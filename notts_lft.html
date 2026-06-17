@@ -182,6 +182,8 @@ footer b{color:rgba(255,255,255,.8)}
 </footer>
 
 <script src="pathwayDiagram.js"></script>
+<script src="auditLogger.js"></script>
+<script src="testerMode.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════
 // Inputs / prefill (shared router param keys: alt, ast, alp, ggt, bili, alb, inr, plt, ferritin)
@@ -458,6 +460,17 @@ function render(d,primary,secondaries,aN,aE){
   // flow
   renderFlow(aN,aE);
   paint();
+  // Tester mode: log this run automatically + attach the "Query this result" control.
+  // No-op for demo users. Never blocks the clinical tool.
+  TesterMode.recordRun({
+    mount: document.getElementById('primary'),
+    inputValues: {alt:d.alt,ast:d.ast,alp:d.alp,ggt:d.ggt,bili:d.bili,alb:d.alb,inr:d.inr,plt:d.plt,ferritin:d.ferritin,tsat:d.tsat,fibroscan:d.fibroscan,elf:d.elf},
+    contextValues: {age:d.age,sex:d.sex,jaundice:d.jaundice,wtloss:d.wtloss,nafld:d.nafld,units:d.units,audit:d.audit,uss:d.uss},
+    displayedResultText: primary.h + ' — ' + primary.p,
+    displayedRecommendation: primary.tagL,
+    ruleBranchTriggered: primary.tagL,
+    warningsShown: [], missingInfoPrompts: []
+  });
   document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
@@ -468,6 +481,7 @@ function resetAll(){
   document.getElementById('fib4-box').style.display='none';
 }
 paint();
+TesterMode.init({ pathwayName:'Nottingham & Nottinghamshire Adult Liver Disease (LFT)', pathwayVersion:'V37 · September 2021' });
 </script>
 </body>
 </html>
