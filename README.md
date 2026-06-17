@@ -82,17 +82,25 @@ A transparency/validation layer so testers can run large batches of **fictional,
 ### Configure admin credentials
 Admin auth reads `window.RESULTDOCTOR_CONFIG.adminUsername` / `adminPassword`. Copy `config.sample.js` → `config.js` (git-ignored), set them, and add `<script src="config.js"></script>` **before** `auditLogger.js`. With no `config.js` the **dev fallback** is `admin` / `change-me-before-live` — change before any real use. (A purely static site can only offer low-assurance admin auth; treat accordingly.)
 
-### Configure cloud storage (central, multi-device)
-localStorage is **not** the real audit store — each device is separate. For testers on different devices, use Supabase (works from a static site):
-1. Create a Supabase project; run `supabase_schema.sql` in its SQL editor.
-2. In `config.js` set `supabaseUrl` + `supabaseAnonKey`.
-3. Add `<script src="config.js"></script>` before `auditLogger.js` on `admin.html` and each pathway tool.
-The admin dashboard then reads the central store across all testers. Without Supabase config it runs in **development storage** (this browser only) and the dashboard says so.
+### Configure cloud storage (central, multi-device) — intended route
+localStorage is **not** the real audit store — each device is separate. For testers on different devices use Supabase (works from a static site):
+1. Create a Supabase project; run `supabase_schema.sql` in its SQL editor (creates tables, RLS, the login/submit-query RPCs).
+2. Deploy the admin function: `supabase functions deploy rd-admin --no-verify-jwt`, then set its secrets (never committed): `SUPABASE_SERVICE_ROLE_KEY`, `RD_ADMIN_SECRET` (a long random admin secret).
+3. Copy `config.sample.js` → `config.js` (git-ignored). Set `supabaseUrl`, `supabaseAnonKey`, and `adminApiUrl` (the `rd-admin` function URL).
+4. Add `<script src="config.js"></script>` **before** `auditLogger.js` on `admin.html` and each pathway tool.
+
+Testers' browsers use the **anon key** only (write-only run logging + the login/submit-query RPCs). The admin dashboard calls the **rd-admin Edge Function** with the admin secret (entered at login). Without Supabase config everything runs in **development storage** (this browser only) and the dashboard says so. `config.js` is git-ignored — real keys/passwords are never committed.
+
+### Security — answers to the pre-external-tester checklist
+1. **RLS enabled on all tables?** Yes. `supabase_schema.sql` runs `enable row level security` on `testers`, `runs` and `queries`, and additionally `revoke`s the anon/authenticated grants PostgREST would use.
+2. **Can anon read tester accounts / admin credentials / unrestricted audit data?** No. Anon has **no read policy** on any table, so it cannot list testers, read password hashes, or read any runs/queries. Anon can only (a) **insert** a tester run (`mode='tester'`, write-only) and (b) call two `SECURITY DEFINER` RPCs — `rd_verify_tester` (returns only true/false) and `rd_submit_query` (returns only a query id). **Admin credentials are not stored in the database at all** — admin access is gated by `RD_ADMIN_SECRET` inside the Edge Function (the service_role key lives only there, never in the browser).
+3. **What is still low-assurance (static GitHub Pages site)?** There is no server in front of the static pages, so: the anon key is public (safe only because of the RLS above); anyone with the anon key can insert *junk* runs (write-only spam is possible — it cannot read or alter existing data); the admin secret is typed into a static page and held in memory for the session (no httpOnly cookie / CSRF protection / rate-limiting / lockout); and the dev-only `config.js` admin fallback, if ever shipped, would be readable in the browser. Treat the admin area as **low-assurance** and the data as **test-case only** — never patient-identifiable.
+4. **Minimum production-safe next step (recommended).** The `rd-admin` Edge Function already moves admin access control + all privileged reads/writes server-side, and tester-password verification is already server-side via `rd_verify_tester`. To reach production-grade, additionally: (a) issue a short-lived signed admin **session token** from the function instead of replaying the raw secret per request, behind rate-limiting/lockout; (b) move run/query **inserts** behind a per-tester signed token (issued by `rd_verify_tester`) so anon cannot spam; (c) serve the admin UI from an authenticated origin (Supabase Auth / a small server) rather than static Pages. Until then, run only **closed pilots with trusted testers** and rotate `RD_ADMIN_SECRET`.
 
 ### Limitations / assumptions
-- Static GitHub Pages site → no server. Cloud audit needs the user's own Supabase project; admin/tester auth on a static client is low-assurance (the anon key is public — protect tables with RLS, and move password verification to an Edge Function for production). The repo never commits real keys/passwords.
-- Dev seed: in dev (no Supabase) the tester flow is usable out of the box with example accounts `tester01`–`tester06`, each with a distinct dev password `rd-<id>` (e.g. `rd-tester01`). These are development-only and never created against Supabase.
-- Test coverage: `tests/auditLogger.test.js` (9 cases) covers run logging + versioning, query linking, status updates, filters, tester auth (distinct hashed passwords, disable-blocks-login, history retained), admin auth and the identifier scan. The UI flows (demo path, tester login incl. failure, automatic logging, query submission, admin login/dashboards) were verified in-browser.
+- The Supabase + Edge Function path is **provided and documented but not verified against a live project** here (no credentials in this environment). Dev/local mode is fully verified.
+- Dev seed: in dev (no Supabase) the tester flow works out of the box with example accounts `tester01`–`tester06`, each with a distinct dev password `rd-<id>` (e.g. `rd-tester01`). Development-only; never created against Supabase.
+- Test coverage: `tests/auditLogger.test.js` (9 cases) covers run logging + versioning, query linking, status updates, filters, tester auth (distinct hashed passwords, disable-blocks-login, history retained), async admin auth and the identifier scan. UI flows (demo path, tester login incl. failure, automatic logging, query submission, admin login/dashboards) verified in-browser in dev mode.
 
 ## How the routing works
 
