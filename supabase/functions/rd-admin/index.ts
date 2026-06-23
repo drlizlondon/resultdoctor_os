@@ -89,6 +89,12 @@ Deno.serve(async (req) => {
       case "setTesterActive":
         await sb(`/testers?testerId=eq.${encodeURIComponent(body.testerId)}`, { method: "PATCH", body: JSON.stringify({ active: !!body.active }) });
         return json({ ok: true });
+      case "publishConfig": {
+        // Insert a new versioned published config (clinician tools read it via anon SELECT).
+        const rec = body.record || {};
+        await sb(`/published_configs`, { method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify({ pathwayId: rec.pathwayId, version: rec.version, thresholds: rec.thresholds, publishedAt: rec.publishedAt, publishedBy: rec.publishedBy }) });
+        return json({ ok: true, version: rec.version });
+      }
       default:
         return json({ error: "unknown action" }, 400);
     }

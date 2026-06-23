@@ -25,6 +25,9 @@ Result-first navigation for NHS clinical pathways. Enter blood results → the r
 | `config.sample.js` | Config template — copy to `config.js` (git-ignored) for Supabase + admin credentials |
 | `supabase_schema.sql` | Supabase tables + starting RLS policies for central audit storage |
 | `tests/auditLogger.test.js` | Audit-logger unit tests (run logging, query linking, status, tester auth, privacy scan) |
+| `notts_lft_config.js` | Single source of truth for the Notts LFT decision thresholds + metadata |
+| `pathwayConfig.js` | Publish store — effective config (master + published), get/publish, dev-local + Supabase |
+| `tests/pathwayConfig.test.js` | Publish-pipeline unit tests (effective merge, publish/versioning) |
 | `fbc_admin.html`, `nwl_anaemia_admin.html`, `notts_lft_admin.html` | Pathway admin pages on the shared master engine (`pathwayAdmin.js`) |
 | `pathwayAdmin.js` | **Master admin engine** — the shared, passcode-gated editing engine reused by every pathway admin page (editable normal ranges + threshold bands, working copy, Change Log, reset-to-master). Master data is never mutated |
 | `tests/pathwayAdmin.test.js` | Admin engine tests: working-copy isolation, change log, band add/remove, reset, passcode gate |
@@ -78,6 +81,13 @@ A transparency/validation layer so testers can run large batches of **fictional,
 - `auditLogger.js` — the single audit/data module. API: `logAnalysisRun`, `createResultQuery`, `updateQueryStatus`, `getRuns`, `getQueries`, plus tester-account + auth helpers and a lightweight `scanForIdentifiers` (warns on NHS-number/DOB-like free text). Picks a storage adapter automatically (Supabase → dev localStorage → in-memory for tests).
 - `testerMode.js` — the tester UX (entry modal, login, badge, automatic run logging, Query-this-result flow, safety wording). A pathway wires it with `TesterMode.init({pathwayName, pathwayVersion})` + `TesterMode.recordRun({...})`.
 - `admin.html` — admin login + dashboard: Overview stats, Tester accounts (create / set password / enable-disable), Runs (+ detail), Queries (+ review status & notes), and CSV/JSON export.
+
+### Publish pipeline — Master → Working → Publish → live clinician tool
+The master admin engine can now **push agreed threshold changes live** to the clinician tool (proof built for **Notts LFT**; the pattern generalises):
+- **Single source of truth:** `notts_lft_config.js` holds the canonical decision thresholds + metadata (label, unit, and whether each value is *explicit in the guideline* vs a *standard lab value*). Both the clinician tool and its admin page import it — the numbers are no longer forked.
+- **Publish:** the admin page's **"Live thresholds & publish"** tab shows Master / Published / Working values; edit in Working mode (passcode) and **Publish agreed changes** writes a new **versioned** published config (and logs it in the Change Log).
+- **Clinician tool loads it:** on load `notts_lft.html` computes `effective = master defaults + published overrides` (`pathwayConfig.js`), so an admin-agreed change goes live; the footer shows the active version (e.g. *"admin-published v2"*). Falls back to the guideline master if nothing is published / offline.
+- **Storage:** dev/local uses `localStorage` (single device — proves the loop). With Supabase configured, published configs live in the `published_configs` table — **anon-readable** (published values are public; clinician tools need them) but **written only via the rd-admin Edge Function** (admin-gated). Run audit already stamps `pathwayVersion`, so historic test runs stay tied to the version they ran against.
 
 ### Configure admin credentials
 Admin auth reads `window.RESULTDOCTOR_CONFIG.adminUsername` / `adminPassword`. Copy `config.sample.js` → `config.js` (git-ignored), set them, and add `<script src="config.js"></script>` **before** `auditLogger.js`. With no `config.js` the **dev fallback** is `admin` / `change-me-before-live` — change before any real use. (A purely static site can only offer low-assurance admin auth; treat accordingly.)

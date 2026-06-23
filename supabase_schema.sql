@@ -108,6 +108,28 @@ end; $$;
 revoke all on function rd_submit_query(text, text, text) from public;
 grant execute on function rd_submit_query(text, text, text) to anon;
 
+-- ── Published pathway configs (the publish pipeline) ────────────────────────
+-- A versioned set of agreed threshold overrides per pathway. UNLIKE audit data,
+-- published configs are PUBLIC: clinician tools (anon) must read them. So anon
+-- gets SELECT here (and only here). Writes go through the rd-admin Edge Function
+-- (service_role) — anon cannot publish.
+create table if not exists published_configs (
+  id bigint generated always as identity primary key,
+  "pathwayId" text not null,
+  version integer not null,
+  thresholds jsonb not null,
+  "publishedAt" timestamptz default now(),
+  "publishedBy" text,
+  unique ("pathwayId", version)
+);
+create index if not exists pub_pathway_idx on published_configs ("pathwayId", version desc);
+
+alter table published_configs enable row level security;
+revoke insert, update, delete on published_configs from anon, authenticated;
+grant select on published_configs to anon;
+create policy "anon may read published configs" on published_configs for select to anon using (true);
+
 -- service_role bypasses RLS automatically and is used ONLY by the rd-admin
 -- Edge Function for: listing/reading runs, queries and testers; updating query
--- status; creating/disabling testers (hashing passwords server-side).
+-- status; creating/disabling testers (server-side hashing); and inserting a new
+-- published_configs row (publishConfig).

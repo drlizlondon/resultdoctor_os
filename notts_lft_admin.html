@@ -71,6 +71,7 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
   <div class="ver">Rule engine · V37 Sep 2021</div>
   <div class="nav on" id="n-prov" onclick="showTab('prov',this)"><span class="nav-dot" style="background:var(--text3)"></span>Provenance &amp; metadata</div>
   <div class="nav" id="n-vars" onclick="showTab('vars',this)"><span class="nav-dot" style="background:var(--b)"></span>Variables &amp; ranges</div>
+  <div class="nav" id="n-publish" onclick="showTab('publish',this)"><span class="nav-dot" style="background:var(--g)"></span>Live thresholds &amp; publish</div>
   <div class="nav" id="n-changes" onclick="showTab('changes',this)"><span class="nav-dot" style="background:var(--o)"></span>Change log</div>
   <div class="side-foot">
     <div style="font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600">Document mode</div>
@@ -102,6 +103,18 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
     <div id="var-grid" class="var-grid"></div>
   </div>
 
+  <div class="tab-panel" id="tab-publish">
+    <div class="sec-title">Live thresholds &amp; publish</div>
+    <p class="lead">These are the decision thresholds the clinician tool actually uses. <b>Master</b> = the guideline source of truth; edit them in <b>Working</b> mode and <b>Publish</b> to push the agreed values live to the clinician tool. Explicit = stated verbatim in the guideline.</p>
+    <div id="pub-status" style="font-size:13px;margin-bottom:12px"></div>
+    <div id="pub-grid"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+      <button class="mode-btn" id="pub-btn" style="background:var(--g);color:#fff;padding:9px 16px;border-radius:8px;border:none;cursor:pointer;font-weight:600" onclick="doPublish()">Publish agreed changes</button>
+      <button class="mode-btn" style="border:0.5px solid var(--border2);padding:9px 14px;border-radius:8px;cursor:pointer" onclick="resetPubWorking()">Discard edits</button>
+      <span id="pub-msg" style="font-size:13px;color:var(--g)"></span>
+    </div>
+  </div>
+
   <div class="tab-panel" id="tab-changes">
     <div class="sec-title">Change log — working copy vs master</div>
     <p class="lead">All modifications made in Working mode are recorded here. Master values are preserved.</p>
@@ -110,6 +123,8 @@ body{font-family:var(--sans);background:var(--bg);color:var(--text);font-size:14
 </div>
 
 <script src="pathwayAdmin.js"></script>
+<script src="notts_lft_config.js"></script>
+<script src="pathwayConfig.js"></script>
 <script>
 // Variable definitions for the Nottingham V37 pathway. thresholds = display bands;
 // normalHigh/low are editable in Working mode. Cut-offs marked "(source)" are
@@ -168,6 +183,7 @@ function showTab(id, navEl){
   document.querySelectorAll('.nav').forEach(n=>n.classList.remove('on'));
   if(navEl) navEl.classList.add('on');
   if(id==='changes') PathwayAdmin.renderChanges();
+  if(id==='publish') renderPublish();
 }
 function setMode(m){ PathwayAdmin.setMode(m); }
 
@@ -175,9 +191,72 @@ function setMode(m){ PathwayAdmin.setMode(m); }
 PathwayAdmin.config({
   pin: '2468',                                  // client-side gate only (not real security)
   pages: [ { prefix:'', vars: VARS } ],
-  dom: { grid:'var-grid', changes:'changes-container', btnMaster:'btn-m', btnWorking:'btn-w', notice:'edit-notice' }
+  dom: { grid:'var-grid', changes:'changes-container', btnMaster:'btn-m', btnWorking:'btn-w', notice:'edit-notice' },
+  onModeChange: function(){ renderPublish(); }
 });
 PathwayAdmin.renderVars();
+
+// ── Live thresholds & publish ───────────────────────────────────────────
+const CFGDEF = RD_NOTTS_LFT_CONFIG;
+let publishedRec = null;
+let pubWorking = Object.assign({}, CFGDEF.thresholds);
+
+function loadPublished(){
+  return PathwayConfig.getPublished(CFGDEF.pathwayId).then(function(rec){
+    publishedRec = rec;
+    pubWorking = Object.assign({}, PathwayConfig.effective(CFGDEF.thresholds, rec));
+    renderPublish();
+  });
+}
+function resetPubWorking(){ pubWorking = Object.assign({}, PathwayConfig.effective(CFGDEF.thresholds, publishedRec)); renderPublish(); document.getElementById('pub-msg').textContent=''; }
+
+function renderPublish(){
+  const grid = document.getElementById('pub-grid'); if(!grid) return;
+  const working = PathwayAdmin.mode === 'working';
+  const status = document.getElementById('pub-status');
+  status.innerHTML = publishedRec
+    ? 'Currently published: <b>v'+publishedRec.version+'</b> · '+new Date(publishedRec.publishedAt).toLocaleString('en-GB')+' · by '+escAttr(publishedRec.publishedBy)+'. The clinician tool uses these values.'
+    : 'Nothing published yet — the clinician tool uses the guideline master values. ' + (PathwayConfig.cloud?'(Cloud storage)':'(Development storage — this browser only)');
+  document.getElementById('pub-btn').disabled = !working;
+  document.getElementById('pub-btn').style.opacity = working ? '1' : '.5';
+  let rows = Object.keys(CFGDEF.meta).map(function(k){
+    const m = CFGDEF.meta[k], def = CFGDEF.thresholds[k];
+    const pub = publishedRec && publishedRec.thresholds && publishedRec.thresholds[k]!=null ? publishedRec.thresholds[k] : null;
+    const cur = pubWorking[k];
+    const changed = (+cur !== +def);
+    const input = working
+      ? '<input type="number" step="any" value="'+escAttr(cur)+'" style="width:90px;padding:4px 6px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px" onchange="pubEdit(\''+k+'\',this.value)">'
+      : '<b>'+escAttr(cur)+'</b>';
+    return '<tr style="border-bottom:0.5px solid var(--border)">'+
+      '<td style="padding:7px 8px">'+escAttr(m.label)+(m.explicit?' <span class="pill p-n" style="font-size:9px">explicit</span>':' <span class="pill p-th" style="font-size:9px">standard</span>')+'</td>'+
+      '<td style="padding:7px 8px;color:var(--text3)">'+escAttr(m.unit)+'</td>'+
+      '<td style="padding:7px 8px;color:var(--text3)">'+escAttr(def)+'</td>'+
+      '<td style="padding:7px 8px;color:var(--text3)">'+(pub!=null?escAttr(pub):'—')+'</td>'+
+      '<td style="padding:7px 8px">'+input+(changed?' <span class="mod-badge">changed</span>':'')+'</td></tr>';
+  }).join('');
+  grid.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;overflow:hidden">'+
+    '<thead><tr style="background:var(--bg);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)">'+
+    '<th style="text-align:left;padding:8px">Threshold</th><th style="text-align:left;padding:8px">Unit</th><th style="text-align:left;padding:8px">Master</th><th style="text-align:left;padding:8px">Published</th><th style="text-align:left;padding:8px">Working (live on publish)</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+function pubEdit(k, v){ pubWorking[k] = (v===''?CFGDEF.thresholds[k]:+v); renderPublish(); }
+function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function doPublish(){
+  if(PathwayAdmin.mode!=='working') return;
+  const opts = {};
+  if(PathwayConfig.cloud){
+    opts.adminApiUrl = (window.RESULTDOCTOR_CONFIG||{}).adminApiUrl || '';
+    opts.adminSecret = window.prompt('Enter the admin secret (RD_ADMIN_SECRET) to publish to the central store:') || '';
+    if(!opts.adminSecret) return;
+  }
+  PathwayConfig.publish(CFGDEF.pathwayId, pubWorking, 'pathway-admin', opts).then(function(rec){
+    PathwayAdmin.logChange('Published live thresholds v'+rec.version+' for '+CFGDEF.pathwayId);
+    document.getElementById('pub-msg').textContent = 'Published v'+rec.version+'. Clinician tool will use these values.';
+    return loadPublished();
+  }).catch(function(e){ document.getElementById('pub-msg').style.color='var(--r)'; document.getElementById('pub-msg').textContent='Publish failed: '+e.message; });
+}
+
+loadPublished();
 </script>
 </body>
 </html>

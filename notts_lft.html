@@ -178,12 +178,15 @@ footer b{color:rgba(255,255,255,.8)}
 </div>
 
 <footer>
-  <b>ResultDoctor</b> — reproduces the Nottingham &amp; Nottinghamshire Adult Liver Disease Guideline V37 (September 2021) verbatim from the published pathway. Drawn from the British Society of Gastroenterology guideline on abnormal liver blood tests (2017), NICE NG49/NG50 and MIB2016. Approved for primary care by Nottingham University Hospitals (10 Sep 2021) and Sherwood Forest Hospitals gastroenterology group (21 Apr 2021). Review date April 2024. <b>This is not an NHS service and does not replace clinical judgement.</b>
+  <b>ResultDoctor</b> — reproduces the Nottingham &amp; Nottinghamshire Adult Liver Disease Guideline V37 (September 2021) verbatim from the published pathway. Drawn from the British Society of Gastroenterology guideline on abnormal liver blood tests (2017), NICE NG49/NG50 and MIB2016. Approved for primary care by Nottingham University Hospitals (10 Sep 2021) and Sherwood Forest Hospitals gastroenterology group (21 Apr 2021). Review date April 2024. <b>This is not an NHS service and does not replace clinical judgement.</b><br>
+  <span id="cfg-version" style="color:rgba(255,255,255,.4)">Thresholds: guideline master</span>
 </footer>
 
 <script src="pathwayDiagram.js"></script>
 <script src="auditLogger.js"></script>
 <script src="testerMode.js"></script>
+<script src="notts_lft_config.js"></script>
+<script src="pathwayConfig.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════
 // Inputs / prefill (shared router param keys: alt, ast, alp, ggt, bili, alb, inr, plt, ferritin)
@@ -199,22 +202,20 @@ function sel(id){return (document.getElementById(id)||{}).value||'';}
   const cs=p.get('sex')??(s&&s.sex); if(cs){const el=document.getElementById('c-sex');if(el)el.value=cs;}
 })();
 
-// Reference thresholds. ⚠ Lab ULNs not stated in the source are marked; FIB-4 /
-// Fibroscan / ELF cut-offs and alcohol limits are taken verbatim from the guideline.
-const THR = {
-  altULN:40,    // standard lab ULN — NOT specified in source
-  alpULN:130,   // standard lab ULN — NOT specified in source; source auto-adds GGT at ALP≥160
-  alpGGTauto:160,
-  ggtULN:55,    // standard lab ULN — NOT specified in source
-  biliULN:21,   // standard lab ULN — NOT specified in source
-  albLow:35,    // synthetic-failure criterion; threshold not specified in source
-  inrHigh:1.2,  // synthetic-failure criterion; threshold not specified in source
-  alt250:250,   // explicit branch in source
-  tsatM:55, tsatF:50,        // explicit (fasting transferrin saturation)
-  ferritinHigh:1000,         // explicit
-  alcoholM:50, alcoholF:35, audit:19,   // explicit (NICE)
-  fib4LowU65:1.3, fib4Low65:2.0, fib4High:3.25  // explicit (age-modified, BSG)
-};
+// Thresholds come from the single source of truth (notts_lft_config.js),
+// overridden by whatever Admin has PUBLISHED (pathwayConfig.js). So an admin-
+// agreed change goes live here. Starts at master defaults; the published
+// overrides (if any) are merged in on load, before the clinician analyses.
+let THR = Object.assign({}, RD_NOTTS_LFT_CONFIG.thresholds);
+(function loadPublishedThresholds(){
+  PathwayConfig.getPublished(RD_NOTTS_LFT_CONFIG.pathwayId).then(function(pub){
+    THR = PathwayConfig.effective(RD_NOTTS_LFT_CONFIG.thresholds, pub);
+    const el = document.getElementById('cfg-version');
+    if (el) el.textContent = pub
+      ? ('Thresholds: admin-published v' + pub.version + ' (' + new Date(pub.publishedAt).toLocaleDateString('en-GB') + ')')
+      : 'Thresholds: guideline master (no admin changes published)';
+  }).catch(function(){});
+})();
 
 function computeFib4(age,ast,alt,plt){
   if(age==null||ast==null||alt==null||plt==null||plt<=0||alt<=0) return null;
@@ -361,8 +362,8 @@ function analyse(){
     if(d.alt250){
       aN.push('alt250','uss'); aE.push('screen->alt250','alt250->uss');
       applyUSS(d,aN,aE);
-      primary={cls:'blue',tag:'blue',tagL:'ALT >250',h:'ALT >250 — request liver ultrasound',
-        p:'A markedly raised ALT (>250) prompts a liver ultrasound alongside the screen.',li:[]};
+      primary={cls:'blue',tag:'blue',tagL:'ALT >'+THR.alt250,h:'ALT >'+THR.alt250+' — request liver ultrasound',
+        p:'A markedly raised ALT (>'+THR.alt250+') prompts a liver ultrasound alongside the screen.',li:[]};
       if(d.uss) primary=ussPrimary(d);
     } else if(d.nafldY){
       aN.push('nafld','nafldReq'); aE.push('screen->nafld','nafld->nafldReq');
@@ -413,13 +414,13 @@ function fibrosisOutcome(d){
   if(d.fib4b && d.fib4b.key==='high')
     return {key:'high',text:'FIB-4 '+d.fib4.toFixed(2)+' (high, >3.25) → refer hepatology or gastroenterology.'};
   if(d.fibroscan!==null){
-    if(d.fibroscan>15) return {key:'high',text:'Fibroscan '+d.fibroscan+' kPa (>15) → refer hepatology or gastroenterology.'};
-    if(d.fibroscan>8)  return {key:'mid',text:'Fibroscan '+d.fibroscan+' kPa (>8–15) → consider referral, address risk factors, reassess in 3–5 years.'};
-    return {key:'low',text:'Fibroscan '+d.fibroscan+' kPa (≤8) → reassess risk in 3 years.'};
+    if(d.fibroscan>THR.fibroscanHigh) return {key:'high',text:'Fibroscan '+d.fibroscan+' kPa (>'+THR.fibroscanHigh+') → refer hepatology or gastroenterology.'};
+    if(d.fibroscan>THR.fibroscanLow)  return {key:'mid',text:'Fibroscan '+d.fibroscan+' kPa (>'+THR.fibroscanLow+'–'+THR.fibroscanHigh+') → consider referral, address risk factors, reassess in 3–5 years.'};
+    return {key:'low',text:'Fibroscan '+d.fibroscan+' kPa (≤'+THR.fibroscanLow+') → reassess risk in 3 years.'};
   }
   if(d.elf!==null){
-    if(d.elf>=10.51) return {key:'high',text:'ELF '+d.elf+' (≥10.51) → refer to secondary care (NG49).'};
-    return {key:'low',text:'ELF '+d.elf+' (<10.51) → reassess risk in 3 years.'};
+    if(d.elf>=THR.elfRefer) return {key:'high',text:'ELF '+d.elf+' (≥'+THR.elfRefer+') → refer to secondary care (NG49).'};
+    return {key:'low',text:'ELF '+d.elf+' (<'+THR.elfRefer+') → reassess risk in 3 years.'};
   }
   if(d.fib4b){
     if(d.fib4b.key==='low')   return {key:'low',text:'FIB-4 '+d.fib4.toFixed(2)+' (low) → reassess risk in 3 years.'};
