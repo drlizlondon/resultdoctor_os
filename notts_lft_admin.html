@@ -228,15 +228,16 @@ function renderPublish(){
       ? '<input type="number" step="any" value="'+escAttr(cur)+'" style="width:90px;padding:4px 6px;border:0.5px solid var(--border2);border-radius:4px;font-size:12px" onchange="pubEdit(\''+k+'\',this.value)">'
       : '<b>'+escAttr(cur)+'</b>';
     return '<tr style="border-bottom:0.5px solid var(--border)">'+
-      '<td style="padding:7px 8px">'+escAttr(m.label)+(m.explicit?' <span class="pill p-n" style="font-size:9px">explicit</span>':' <span class="pill p-th" style="font-size:9px">standard</span>')+'</td>'+
+      '<td style="padding:7px 8px">'+escAttr(m.label)+(m.explicit?' <span class="pill p-n" style="font-size:9px">in guideline</span>':' <span class="pill p-th" style="font-size:9px">inferred</span>')+'</td>'+
       '<td style="padding:7px 8px;color:var(--text3)">'+escAttr(m.unit)+'</td>'+
       '<td style="padding:7px 8px;color:var(--text3)">'+escAttr(def)+'</td>'+
       '<td style="padding:7px 8px;color:var(--text3)">'+(pub!=null?escAttr(pub):'—')+'</td>'+
-      '<td style="padding:7px 8px">'+input+(changed?' <span class="mod-badge">changed</span>':'')+'</td></tr>';
+      '<td style="padding:7px 8px">'+input+(changed?' <span class="mod-badge">changed</span>':'')+'</td>'+
+      '<td style="padding:7px 8px;color:var(--text3);font-size:11px;max-width:260px">'+escAttr(m.source||'')+'</td></tr>';
   }).join('');
   grid.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:12.5px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;overflow:hidden">'+
     '<thead><tr style="background:var(--bg);font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--text3)">'+
-    '<th style="text-align:left;padding:8px">Threshold</th><th style="text-align:left;padding:8px">Unit</th><th style="text-align:left;padding:8px">Master</th><th style="text-align:left;padding:8px">Published</th><th style="text-align:left;padding:8px">Working (live on publish)</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    '<th style="text-align:left;padding:8px">Threshold</th><th style="text-align:left;padding:8px">Unit</th><th style="text-align:left;padding:8px">Master</th><th style="text-align:left;padding:8px">Published</th><th style="text-align:left;padding:8px">Working (live on publish)</th><th style="text-align:left;padding:8px">Source / provenance</th></tr></thead><tbody>'+rows+'</tbody></table>';
 }
 function pubEdit(k, v){ pubWorking[k] = (v===''?CFGDEF.thresholds[k]:+v); renderPublish(); }
 function escAttr(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }

@@ -145,6 +145,7 @@ footer b{color:rgba(255,255,255,.8)}
 
   <div id="out" class="out">
     <div id="summary"></div>
+    <div id="normals"></div>
     <div id="primary"></div>
     <!-- FLOW DIAGRAM -->
     <div class="flow-diagram-panel">
@@ -449,6 +450,35 @@ function alcoholPrimary(d,aN,aE){
 // ═══════════════════════════════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════════════════════════════
+// Print the normal range for each measured value the clinician entered, so they
+// can see at a glance whether a result is within, just outside, or well outside
+// normal. Ranges come from the same config the admin publishes (THR), so they
+// stay in sync; this is a guide and is NOT part of the routing decision.
+function renderNormals(d){
+  const refs = RD_NOTTS_LFT_CONFIG.references;
+  const rows = [];
+  Object.keys(refs).forEach(function(key){
+    const v = d[key]; if(v==null) return;
+    const r = refs[key];
+    const lo = r.lowKey ? THR[r.lowKey] : null;
+    let hi = r.highKey ? THR[r.highKey] : (r.highKeyM ? (d.sex==='f' ? THR[r.highKeyF] : THR[r.highKeyM]) : null);
+    let status='Within normal', col='#00703C', bg='#E3F5EC';
+    if(hi!=null && v>hi){ status='Above normal'; col='#B91C1C'; bg='#FEF2F2'; }
+    else if(lo!=null && v<lo){ status='Below normal'; col='#92400E'; bg='#FFFBEB'; }
+    let range;
+    if(lo!=null && hi!=null) range=lo+'–'+hi+' '+r.unit;
+    else if(hi!=null) range='< '+hi+' '+r.unit;
+    else if(lo!=null) range='≥ '+lo+' '+r.unit;
+    else range='—';
+    rows.push('<tr style="border-bottom:1px solid var(--border)"><td style="padding:7px 4px;font-weight:600">'+r.label+(r.highKeyM?' ('+(d.sex==='f'?'F':d.sex==='m'?'M':'M/F')+')':'')+'</td><td style="padding:7px 4px;font-family:ui-monospace,monospace">'+v+' '+r.unit+'</td><td style="padding:7px 4px;color:var(--text3)">'+range+'</td><td style="padding:7px 4px"><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;color:'+col+';background:'+bg+'">'+status+'</span></td></tr>');
+  });
+  const el = document.getElementById('normals');
+  if(!rows.length){ el.innerHTML=''; return; }
+  el.innerHTML = '<div class="card" style="border-left-color:var(--grey)"><h3 style="font-size:16px">Reference ranges for the values you entered</h3>'+
+    '<p style="font-size:12px;color:var(--text3);margin-bottom:8px">A guide only — not part of the routing decision. Ranges are local-lab/standard values unless the pathway states otherwise; admin can adjust them.</p>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="text-align:left;color:var(--text3);font-size:11px;text-transform:uppercase"><th style="padding:4px">Test</th><th style="padding:4px">Entered</th><th style="padding:4px">Normal</th><th style="padding:4px">Status</th></tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';
+}
+
 function render(d,primary,secondaries,aN,aE){
   document.getElementById('out').classList.add('show');
   // summary
@@ -458,6 +488,7 @@ function render(d,primary,secondaries,aN,aE){
   document.getElementById('primary').innerHTML=`<div class="card ${primary.cls}"><span class="tag ${primary.tag}">${primary.tagL}</span><h3>${primary.h}</h3><p>${primary.p}</p>${primary.li&&primary.li.length?'<ul>'+primary.li.map(x=>'<li>'+x+'</li>').join('')+'</ul>':''}</div>`;
   // secondaries
   document.getElementById('secondary').innerHTML=secondaries.length?'<div class="divider">Also relevant</div>'+secondaries.map(s=>`<div class="card blue"><h3>${s.h}</h3><p>${s.p}</p></div>`).join(''):'';
+  renderNormals(d);
   // flow
   renderFlow(aN,aE);
   paint();
