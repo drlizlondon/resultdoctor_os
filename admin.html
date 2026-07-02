@@ -98,6 +98,7 @@ tr.clickable{cursor:pointer}tr.clickable:hover td{background:#FAFBFD}
 <div id="dash" class="wrap" style="display:none">
   <div class="side">
     <a id="nav-overview" class="on" onclick="showPanel('overview',this)">Overview</a>
+    <a id="nav-pathways" onclick="showPanel('pathways',this)">Pathways</a>
     <a id="nav-testers" onclick="showPanel('testers',this)">Tester accounts</a>
     <a id="nav-runs" onclick="showPanel('runs',this)">Runs</a>
     <a id="nav-queries" onclick="showPanel('queries',this)">Queries</a>
@@ -112,6 +113,12 @@ tr.clickable{cursor:pointer}tr.clickable:hover td{background:#FAFBFD}
       <div class="stat-grid" id="stats"></div>
       <div class="subh">Runs by pathway</div><div id="by-pathway"></div>
       <div class="subh">Runs by tester</div><div id="by-tester"></div>
+    </div>
+
+    <div class="panel" id="panel-pathways">
+      <div class="h2">Pathways</div>
+      <div class="lead">All clinical pathways and their status. Click a pathway to review its config-driven thresholds, normal ranges, provenance and sources.</div>
+      <table><thead><tr><th>Pathway</th><th>ICB</th><th>Version</th><th>Status</th><th>Config-driven</th><th>Published</th><th></th></tr></thead><tbody id="pw-rows"></tbody></table>
     </div>
 
     <div class="panel" id="panel-testers">
@@ -161,6 +168,7 @@ tr.clickable{cursor:pointer}tr.clickable:hover td{background:#FAFBFD}
 <div id="modal-host"></div>
 
 <script src="auditLogger.js"></script>
+<script src="pathwayConfig.js"></script>
 <script>
 const K_ADMIN='rd_admin_authed';
 function authed(){ try{return sessionStorage.getItem(K_ADMIN)==='1';}catch(e){return false;} }
@@ -188,7 +196,7 @@ function enter(){
     ? 'Central cloud storage (Supabase) — runs from all testers/devices.'
     : 'DEVELOPMENT storage ('+auditLogger.storageMode+'): this browser only. Configure Supabase for real multi-device audit (see README).';
   if(auditLogger.seedDevTesters) auditLogger.seedDevTesters();
-  loadOverview(); loadTesters(); loadRuns(); loadQueries(); populateFilters();
+  loadOverview(); loadPathways(); loadTesters(); loadRuns(); loadQueries(); populateFilters();
 }
 function showPanel(id, el){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -199,6 +207,98 @@ function showPanel(id, el){
 
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=t=>{try{return new Date(t).toLocaleString('en-GB');}catch(e){return t;}};
+
+// ── Pathways dashboard + review ────────────────────────────────────────────
+// A pathway is "config-driven" if a <id>_config.js exists exposing the global
+// RD_<ID>_CONFIG (single source of truth for its thresholds/normal ranges).
+function configGlobalName(id){ return 'RD_'+String(id).toUpperCase()+'_CONFIG'; }
+function loadPathwayConfig(id){
+  return new Promise(function(resolve){
+    const g=configGlobalName(id);
+    if(window[g]) return resolve(window[g]);
+    const s=document.createElement('script');
+    s.src=id+'_config.js'; s.async=true;
+    s.onload=function(){ resolve(window[g]||null); };
+    s.onerror=function(){ resolve(null); };   // no config file → not config-driven yet
+    document.head.appendChild(s);
+  });
+}
+let PATHWAYS_CACHE=[];
+async function loadPathways(){
+  const tbody=document.getElementById('pw-rows');
+  let list=[];
+  try{ const res=await fetch('pathways.json',{cache:'no-store'}); const j=await res.json(); list=j.pathways||[]; }
+  catch(e){ tbody.innerHTML='<tr><td colspan="7" style="color:var(--r)">Could not load pathways.json</td></tr>'; return; }
+  PATHWAYS_CACHE=list;
+  const rows=await Promise.all(list.map(async function(p){
+    const cfg=await loadPathwayConfig(p.id);
+    let pub=null; try{ pub=await PathwayConfig.getPublished(p.id); }catch(e){}
+    const driven = !!cfg;
+    const publishedTxt = !driven ? '—' : (pub? ('v'+pub.version+' · '+fmt(pub.publishedAt)) : 'master (none published)');
+    return '<tr class="clickable" onclick="reviewPathway(\''+esc(p.id)+'\')">'+
+      '<td><b>'+esc(p.title)+'</b></td>'+
+      '<td>'+esc(p.icb||'')+'</td>'+
+      '<td>'+esc(p.version||'')+'</td>'+
+      '<td><span class="pill '+(p.status==='live'?'no':'new')+'">'+esc(p.status||'—')+'</span></td>'+
+      '<td>'+(driven?'<span class="pill no">Yes</span>':'<span class="pill new">Inline</span>')+'</td>'+
+      '<td>'+esc(publishedTxt)+'</td>'+
+      '<td><a href="'+esc(p.tool_path)+'" target="_blank" onclick="event.stopPropagation()">Open tool ↗</a></td></tr>';
+  }));
+  tbody.innerHTML = rows.join('') || '<tr><td colspan="7">No pathways.</td></tr>';
+}
+
+async function reviewPathway(id){
+  const p=PATHWAYS_CACHE.find(x=>x.id===id)||{};
+  const cfg=await loadPathwayConfig(id);
+  let pub=null; try{ pub=await PathwayConfig.getPublished(id); }catch(e){}
+  let body='';
+  body+='<div class="kv"><span class="kk">ICB</span><span>'+esc(p.icb||'')+'</span></div>';
+  body+='<div class="kv"><span class="kk">Version</span><span>'+esc(p.version||'')+'</span></div>';
+  body+='<div class="kv"><span class="kk">Source guidance</span><span>'+esc(p.source||p.note||'—')+'</span></div>';
+  body+='<div class="kv"><span class="kk">Clinician tool</span><span><a href="'+esc(p.tool_path)+'" target="_blank">'+esc(p.tool_path)+' ↗</a></span></div>';
+  if(p.admin_path) body+='<div class="kv"><span class="kk">Pathway admin</span><span><a href="'+esc(p.admin_path)+'" target="_blank">'+esc(p.admin_path)+' ↗</a></span></div>';
+
+  if(!cfg){
+    body+='<div class="safe" style="margin-top:14px">This pathway is <b>not yet config-driven</b>: its thresholds live inline in the clinician tool. Add a <span class="mono">'+esc(id)+'_config.js</span> (like Notts LFT) to review and publish them here.</div>';
+  } else {
+    const eff = PathwayConfig.effective(cfg.thresholds, pub);
+    body+='<div class="subh">Live configuration</div>';
+    body+='<div class="kv"><span class="kk">Clinician tool uses</span><span>'+(pub?('admin-published <b>v'+pub.version+'</b> ('+fmt(pub.publishedAt)+' by '+esc(pub.publishedBy)+')'):'<b>guideline master</b> (nothing published)')+'</span></div>';
+
+    // Decision thresholds (with provenance + source)
+    body+='<div class="subh">Decision thresholds &amp; cut-offs</div>';
+    body+='<table><thead><tr><th>Threshold</th><th>Value</th><th>Unit</th><th>Provenance</th><th>Source</th></tr></thead><tbody>';
+    Object.keys(cfg.meta).forEach(function(k){
+      const m=cfg.meta[k];
+      body+='<tr><td>'+esc(m.label)+'</td><td class="mono">'+esc(eff[k])+'</td><td>'+esc(m.unit)+'</td>'+
+        '<td>'+(m.explicit?'<span class="pill no">in guideline</span>':'<span class="pill new">inferred</span>')+'</td>'+
+        '<td style="font-size:11px;color:var(--text3)">'+esc(m.source||'')+'</td></tr>';
+    });
+    body+='</tbody></table>';
+
+    // Normal ranges printed to the clinician
+    if(cfg.references){
+      body+='<div class="subh">Normal ranges (printed to the clinician)</div>';
+      body+='<table><thead><tr><th>Test</th><th>Normal</th></tr></thead><tbody>';
+      Object.keys(cfg.references).forEach(function(key){
+        const r=cfg.references[key];
+        const lo=r.lowKey?eff[r.lowKey]:null;
+        const hi=r.highKey?eff[r.highKey]:(r.highKeyM?(eff[r.highKeyM]+' (M) / '+eff[r.highKeyF]+' (F)'):null);
+        let range;
+        if(lo!=null&&hi!=null&&!r.highKeyM) range=lo+'–'+hi+' '+r.unit;
+        else if(r.highKeyM) range='low '+(lo!=null?lo:'—')+' · high '+hi+' '+r.unit;
+        else if(hi!=null) range='< '+hi+' '+r.unit;
+        else if(lo!=null) range='≥ '+lo+' '+r.unit;
+        else range='—';
+        body+='<tr><td><b>'+esc(r.label)+'</b></td><td class="mono">'+esc(range)+(r.note?' <span style="color:var(--text3)">· '+esc(r.note)+'</span>':'')+'</td></tr>';
+      });
+      body+='</tbody></table>';
+    }
+  }
+  showModal('<h3>'+esc(p.title||id)+'</h3><div class="mb">'+body+'</div><div class="actions">'+
+    (cfg&&p.admin_path?'<a class="btn primary" href="'+esc(p.admin_path)+'" target="_blank" style="text-decoration:none">Edit &amp; publish ↗</a>':'')+
+    '<button class="btn" onclick="closeModal()">Close</button></div>');
+}
 function inSummary(r){ const v=r.inputValues||{}; return Object.keys(v).filter(k=>v[k]!=null&&v[k]!=='').slice(0,5).map(k=>k+'='+v[k]).join(', ')||'—'; }
 function outSummary(r){ return esc(r.displayedRecommendation||r.displayedResultText||'—').slice(0,60); }
 
