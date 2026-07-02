@@ -247,6 +247,18 @@ async function loadPathways(){
   tbody.innerHTML = rows.join('') || '<tr><td colspan="7">No pathways.</td></tr>';
 }
 
+// Readable normal-range text from a reference entry (handles single + sex-specific bounds)
+function refRange(r,eff){
+  const u=' '+r.unit;
+  if(r.lowKey && r.highKey) return eff[r.lowKey]+'–'+eff[r.highKey]+u;
+  const parts=[];
+  if(r.lowKeyM||r.lowKeyF) parts.push('≥ '+eff[r.lowKeyM]+' (M) / '+eff[r.lowKeyF]+' (F)');
+  else if(r.lowKey) parts.push('≥ '+eff[r.lowKey]);
+  if(r.highKeyM||r.highKeyF) parts.push('≤ '+eff[r.highKeyM]+' (M) / '+eff[r.highKeyF]+' (F)');
+  else if(r.highKey) parts.push('< '+eff[r.highKey]);
+  return (parts.length?parts.join(' · '):'—')+u;
+}
+
 async function reviewPathway(id){
   const p=PATHWAYS_CACHE.find(x=>x.id===id)||{};
   const cfg=await loadPathwayConfig(id);
@@ -282,15 +294,7 @@ async function reviewPathway(id){
       body+='<table><thead><tr><th>Test</th><th>Normal</th></tr></thead><tbody>';
       Object.keys(cfg.references).forEach(function(key){
         const r=cfg.references[key];
-        const lo=r.lowKey?eff[r.lowKey]:null;
-        const hi=r.highKey?eff[r.highKey]:(r.highKeyM?(eff[r.highKeyM]+' (M) / '+eff[r.highKeyF]+' (F)'):null);
-        let range;
-        if(lo!=null&&hi!=null&&!r.highKeyM) range=lo+'–'+hi+' '+r.unit;
-        else if(r.highKeyM) range='low '+(lo!=null?lo:'—')+' · high '+hi+' '+r.unit;
-        else if(hi!=null) range='< '+hi+' '+r.unit;
-        else if(lo!=null) range='≥ '+lo+' '+r.unit;
-        else range='—';
-        body+='<tr><td><b>'+esc(r.label)+'</b></td><td class="mono">'+esc(range)+(r.note?' <span style="color:var(--text3)">· '+esc(r.note)+'</span>':'')+'</td></tr>';
+        body+='<tr><td><b>'+esc(r.label)+'</b></td><td class="mono">'+esc(refRange(r,eff))+(r.note?' <span style="color:var(--text3)">· '+esc(r.note)+'</span>':'')+'</td></tr>';
       });
       body+='</tbody></table>';
     }
